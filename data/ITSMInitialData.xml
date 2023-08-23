@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entity-facade-xml type="seed-initial">
+    <!-- Service Organization Roles -->
+    <mantle.party.RoleType description="Sources of demand for services" roleTypeId="OrgServiceDemandSide"/>
+    <mantle.party.RoleType description="Service provider" roleTypeId="OrgServiceProvider"/>
+
+    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"
+                                     pkValue="OrgServiceDemandSide" locale="zh_CN" localized="服务需求方" />
+    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"
+                                      pkValue="OrgServiceProvider" locale="zh_CN" localized="服务提供方" />
+
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpAgreement" roleTypeId="OrgServiceDemandSide"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpAgreement" roleTypeId="OrgServiceProvider"/>
+
+    <!--    <mantle.party.RoleType description="Service operator" roleTypeId="OrgServiceOperator"/>-->
+    <!--    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"-->
+    <!--                                      pkValue="OrgServiceOperator" locale="zh_CN" localized="服务运营方" />-->
+
+
+    <mantle.party.RoleType description="Service Station" roleTypeId="OrgServiceStation"/>
+    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"
+                                      pkValue="OrgServiceStation" locale="zh_CN" localized="服务站" />
+
+    <mantle.party.RoleType description="Service Location" roleTypeId="OrgServiceLocation"/>
+    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"
+                                      pkValue="OrgServiceLocation" locale="zh_CN" localized="服务地点" />
+
+    <!--Service Relationship Type-->
+    <moqui.basic.Enumeration description="Service" enumId="PrtService" enumTypeId="PartyRelationshipType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="PrtService" locale="zh_CN" localized="服务" />
+
+    <moqui.basic.Enumeration description="Service Black List" enumId="PrtServiceBlackList" enumTypeId="PartyRelationshipType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="PrtServiceBlackList" locale="zh_CN" localized="服务黑名单" />
+
+
+<!--    Agreement Type-->
+    <moqui.basic.Enumeration enumId="AgrService" description="Service" enumTypeId="AgreementType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="AgrService" locale="zh_CN" localized="服务" />
+
+<!--    Service Agreement Status-->
+    <moqui.basic.StatusType description="Service Agreement Status"
+                            statusTypeId="ServiceAgreement"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusType" fieldName="description"
+                                      pkValue="ServiceAgreement" locale="zh_CN"
+                                      localized="服务协议状态"/>
+
+    <moqui.basic.StatusItem description="Open" sequenceNum="1" statusId="SAOpen"
+                            statusTypeId="ServiceAgreement"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="SAOpen" locale="zh_CN" localized="草稿"/>
+
+    <moqui.basic.StatusItem description="Confirmed" sequenceNum="3" statusId="SAConfirmed"
+                            statusTypeId="ServiceAgreement"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="SAConfirmed" locale="zh_CN" localized="已确认"/>
+
+    <moqui.basic.StatusItem description="Canceled" sequenceNum="3" statusId="SACanceled"
+                            statusTypeId="ServiceAgreement"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="SACanceled" locale="zh_CN" localized="已作废"/>
+
+    <moqui.basic.StatusItem description="In Force" sequenceNum="4" statusId="SAInForce"
+                            statusTypeId="ServiceAgreement"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="SAInForce" locale="zh_CN" localized="已生效"/>
+
+    <moqui.basic.StatusItem description="Terminated" sequenceNum="5" statusId="SATerminated"
+                            statusTypeId="ServiceAgreement"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="SATerminated" locale="zh_CN" localized="已中止"/>
+
+    <moqui.basic.StatusItem description="Completed" sequenceNum="6" statusId="SACompleted"
+                            statusTypeId="ServiceAgreement"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="SACompleted" locale="zh_CN" localized="已完成"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="TMOHSOpen" toStatusId="TMOHSConfirmed"
+                                      transitionName="Confirm"/>
+
+    <moqui.basic.StatusFlow statusFlowId="ServiceAgreement" description="status transitions for Service Agreement"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceAgreement" statusId="SAOpen"
+                                      toStatusId="SAConfirmed" transitionName="Confirm"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceAgreement" statusId="SAConfirmed"
+                                      toStatusId="SAInForce" transitionName="InForce"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceAgreement" statusId="SAConfirmed"
+                                      toStatusId="SACanceled" transitionName="Cancel"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceAgreement" statusId="SAInForce"
+                                      toStatusId="SATerminated" transitionName="Terminate"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceAgreement" statusId="SAInForce"
+                                      toStatusId="SACompleted" transitionName="Complete"/>
+
+<!--    AgreementAssoc Type-->
+    <moqui.basic.Enumeration description="Back-to-back" enumId="AatBackToBack" enumTypeId="AgreementAssocType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="AatBackToBack" locale="zh_CN" localized="背靠背协议" />
+
+<!--Service Category-->
+    <moqui.basic.Enumeration description="Service" enumId="PctService" enumTypeId="ProductCategoryType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="PctService" locale="zh_CN" localized="服务" />
+
+<!--Request-->
+    <moqui.basic.Enumeration enumId="RqtService" description="Service" enumTypeId="RequestType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="RqtService" locale="zh_CN" localized="服务" />
+        <!--    在role group RgpRequest中新增两个角色-->
+    <mantle.party.RoleGroupMember  roleGroupEnumId="RgpRequest" roleTypeId="OrgServiceDemandSide"/>
+    <mantle.party.RoleGroupMember  roleGroupEnumId="RgpRequest" roleTypeId="OrgServiceProvider"/>
+
+<!--Ticket-->
+    <moqui.basic.Enumeration description="Ticket" enumId="WetTicket" enumTypeId="WorkEffortType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="WetTicket" locale="zh_CN" localized="工单" />
+
+    <moqui.basic.Enumeration description="Advice to answer" enumId="WktpFAQ" enumTypeId="WorkType"/>
+    <moqui.basic.Enumeration description="On Field Service" enumId="WktpOnField" enumTypeId="WorkType"/>
+    <moqui.basic.Enumeration description="Remote Support" enumId="WktpRemote" enumTypeId="WorkType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="WktpFAQ" locale="zh_CN" localized="咨询解答" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="WktpOnField" locale="zh_CN" localized="现场服务" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="WktpRemote" locale="zh_CN" localized="远程服务" />
+
+<!--    <moqui.basic.StatusType description="Work Effort Status" statusTypeId="WorkEffort"/>-->
+<!--    <moqui.basic.StatusItem description="In Planning" sequenceNum="1" statusId="WeInPlanning" statusTypeId="WorkEffort"/>-->
+<!--    <moqui.basic.StatusItem description="Approved" sequenceNum="2" statusId="WeApproved" statusTypeId="WorkEffort"/>-->
+<!--    <moqui.basic.StatusItem description="In Progress" sequenceNum="3" statusId="WeInProgress" statusTypeId="WorkEffort"/>-->
+<!--    <moqui.basic.StatusItem description="On Hold" sequenceNum="5" statusId="WeOnHold" statusTypeId="WorkEffort"/>-->
+<!--    <moqui.basic.StatusItem description="Complete" sequenceNum="9" statusId="WeComplete" statusTypeId="WorkEffort"/>-->
+<!--    <moqui.basic.StatusItem description="Closed" sequenceNum="10" statusId="WeClosed" statusTypeId="WorkEffort"/>-->
+<!--    <moqui.basic.StatusItem description="Cancelled" sequenceNum="99" statusId="WeCancelled" statusTypeId="WorkEffort"/>-->
+    <moqui.basic.StatusItem description="Dispatched" sequenceNum="99" statusId="WeDispatched" statusTypeId="WorkEffort"/>
+    <moqui.basic.StatusItem description="Accepted" sequenceNum="99" statusId="WeAccepted" statusTypeId="WorkEffort"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="WeDispatched" locale="zh_CN" localized="已派单" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
+                                      pkValue="WeAccepted" locale="zh_CN" localized="已接单" />
+
+    <moqui.basic.StatusFlow statusFlowId="ServiceTicket" description="status transitions for Service Ticket"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeInPlanning"
+                                      toStatusId="WeApproved" transitionName="Approve"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeApproved"
+                                      toStatusId="WeDispatched" transitionName="Dispatch"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeApproved"
+                                      toStatusId="WeCancelled" transitionName="Cancel"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeApproved"
+                                      toStatusId="WeOnHold" transitionName="OnHold"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeDispatched"
+                                      toStatusId="WeAccepted" transitionName="Accept"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeDispatched"
+                                      toStatusId="WeCancelled" transitionName="Cancel"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeDispatched"
+                                      toStatusId="WeOnHold" transitionName="OnHold"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeAccepted"
+                                      toStatusId="WeInProgress" transitionName="InProgress"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeAccepted"
+                                      toStatusId="WeCancelled" transitionName="Cancel"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeAccepted"
+                                      toStatusId="WeOnHold" transitionName="OnHold"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeInProgress"
+                                      toStatusId="WeComplete" transitionName="Complete"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeInProgress"
+                                      toStatusId="WeCancelled" transitionName="Cancel"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeInProgress"
+                                      toStatusId="WeOnHold" transitionName="OnHold"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeComplete"
+                                      toStatusId="WeClosed" transitionName="Close"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeOnHold"
+                                      toStatusId="WeInProgress" transitionName="ReInProgress"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeCancelled"
+                                      toStatusId="WeApproved" transitionName="Restore"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeCancelled"
+                                      toStatusId="WeDispatched" transitionName="Restore"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeCancelled"
+                                      toStatusId="WeAccepted" transitionName="Restore"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeCancelled"
+                                      toStatusId="WeOnHold" transitionName="Restore"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeCancelled"
+                                      toStatusId="WeInProgress" transitionName="Restore"/>
+<!--    Service Supervisor-->
+    <mantle.party.RoleType description="Service Supervisor" roleTypeId="ServiceSupervisor"/>
+    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"
+                                      pkValue="ServiceSupervisor" locale="zh_CN" localized="服务监理" />
+
+<!--    Service Engineer-->
+    <mantle.party.RoleType description="Service Engineer" roleTypeId="ServiceEngineer"/>
+    <mantle.party.RoleType description="Service Team Leader" roleTypeId="ServiceTeamLeader"/>
+
+    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"
+                                      pkValue="ServiceEngineer" locale="zh_CN" localized="服务工程师" />
+    <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"
+                                      pkValue="ServiceTeamLeader" locale="zh_CN" localized="服务团队负责人" />
+
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpPerson" roleTypeId="ServiceEngineer"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpPerson" roleTypeId="ServiceTeamLeader"/>
+
+<!--    SLA indicator-->
+    <moqui.basic.EnumerationType description="SLA Indicator" enumTypeId="SLAIndicator"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.EnumerationType" fieldName="description"
+                                      pkValue="SLAIndicator" locale="zh_CN" localized="SLA指标" />
+
+    <moqui.basic.Enumeration description="Response Time" enumId="SlaResponseTime" enumTypeId="SLAIndicator" enumCode="TF_min"  sequenceNum="1"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SlaResponseTime" locale="zh_CN" localized="响应时间" />
+
+    <moqui.basic.Enumeration description="Resolution Time" enumId="SlaResolutionTime" enumTypeId="SLAIndicator" enumCode="TF_hr" sequenceNum="2"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SlaResolutionTime" locale="zh_CN" localized="问题解决时间" />
+
+    <moqui.basic.Enumeration description="Arrive Time" enumId="SlaArriveTime" enumTypeId="SLAIndicator" enumCode="TF_hr" sequenceNum="3"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SlaArriveTime" locale="zh_CN" localized="到达时间" />
+
+    <moqui.basic.Enumeration description="Numbers of Service Visits" enumId="SlaServiceVisit" enumTypeId="SLAIndicator" enumCode="OTH_ct" sequenceNum="4" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SlaServiceVisit" locale="zh_CN" localized="上门次数" />
+
+<!--    Escalate Type-->
+    <moqui.basic.EnumerationType description="Service Escalate Type" enumTypeId="SvcEscalateType"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.EnumerationType" fieldName="description"
+                                      pkValue="SvcEscalateType" locale="zh_CN" localized="服务升级类型" />
+
+    <moqui.basic.Enumeration description="Near" enumId="SetNear" enumTypeId="SvcEscalateType" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SetNear" locale="zh_CN" localized="临近" />
+
+    <moqui.basic.Enumeration description="Time Over" enumId="SetTimeOver" enumTypeId="SvcEscalateType"  />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SetTimeOver" locale="zh_CN" localized="超时" />
+
+<!--    Escalate Level-->
+    <moqui.basic.EnumerationType description="Service Escalate Level" enumTypeId="SvcEscalateLevel"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.EnumerationType" fieldName="description"
+                                      pkValue="SvcEscalateLevel" locale="zh_CN" localized="服务升级层级" />
+
+    <moqui.basic.Enumeration description="Level 1" enumId="SelOne" enumTypeId="SvcEscalateLevel" optionValue="1" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SelOne" locale="zh_CN" localized="层级 1" />
+
+    <moqui.basic.Enumeration description="Level 2" enumId="SelTwo" enumTypeId="SvcEscalateLevel" optionValue="2" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SelTwo" locale="zh_CN" localized="层级 2" />
+    <moqui.basic.Enumeration description="Level 3" enumId="SelThree" enumTypeId="SvcEscalateLevel" optionValue="3" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SelThree" locale="zh_CN" localized="层级 3" />
+    <moqui.basic.Enumeration description="Level 4" enumId="SelFour" enumTypeId="SvcEscalateLevel" optionValue="4" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SelFour" locale="zh_CN" localized="层级 4" />
+    <moqui.basic.Enumeration description="Level 5" enumId="SelFive" enumTypeId="SvcEscalateLevel" optionValue="5" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SelFive" locale="zh_CN" localized="层级 5" />
+    <moqui.basic.Enumeration description="Level 6" enumId="SelSix" enumTypeId="SvcEscalateLevel" optionValue="6" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="SelSix" locale="zh_CN" localized="层级 6" />
+
+<!--    Request channel-->
+    <moqui.basic.EnumerationType description="Request Channel" enumTypeId="RequestChannel"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.EnumerationType" fieldName="description"
+                                      pkValue="RequestChannel" locale="zh_CN" localized="请求渠道" />
+    <moqui.basic.Enumeration description="Web" enumId="RcWeb" enumTypeId="RequestChannel"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="RcWeb" locale="zh_CN" localized="网站" />
+
+    <moqui.basic.Enumeration description="Phone" enumId="RcPhone" enumTypeId="RequestChannel"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="RcPhone" locale="zh_CN" localized="电话" />
+
+    <moqui.basic.Enumeration description="E-Mail" enumId="RcEmail" enumTypeId="RequestChannel"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="RcEmail" locale="zh_CN" localized="电子邮件" />
+
+    <moqui.basic.Enumeration description="We Chat" enumId="RcWeChat" enumTypeId="RequestChannel"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="RcWeChat" locale="zh_CN" localized="微信" />
+
+    <moqui.basic.Enumeration description="Unknown" enumId="ScUnknown" enumTypeId="SalesChannel"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="ScUnknown" locale="zh_CN" localized="未知" />
+
+
+</entity-facade-xml>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Location" default-menu-index="4">
+<!--
+    1、通过Party来管理服务网点
+    2、每个协议只能添加服务需求方（OrganizationPartyId）下面的Party，，也可以通过PartyRelationship来获取
+    3、可以调整服务网点的有效时间，但必须在协议的有效时间之内
+-->
+    <parameter name="agreementId" required="true"/>
+
+
+    <transition name="createServiceLocation"><service-call name="create#mantle.party.agreement.AgreementServiceLocation"/>
+        <default-response url="."/></transition>
+    <transition name="updateServiceLocation"><service-call name="update#mantle.party.agreement.AgreementServiceLocation"/>
+        <default-response url="."/></transition>
+    <transition name="deleteServiceLocation"><service-call name="delete#mantle.party.agreement.AgreementServiceLocation"/>
+        <default-response url="."/></transition>
+    <actions>
+<!--        <script>-->
+<!--            locationList = [[agreementServiceLocationId:'1',serviceLocationPartyId:'100103-001',pseudoId:'HaagenDazs-001',organizationName:'哈根达斯(上海松江万达店）',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--                            [agreementServiceLocationId:'2',serviceLocationPartyId:'100103-003',pseudoId:'HaagenDazs-003',organizationName:'哈根达斯(上海莘庄店）',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--            ]-->
+<!--        </script>-->
+        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>
+        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
+        
+        <set field="ServiceDemandSideRoleType" value="OrgServiceDemandSide"/>
+        <set field="ServiceLocationRoleType" value="OrgServiceLocation"/>
+        <set field="relationshipTypeEnumId" value="PrtOrgRollup"/>
+        
+
+
+    </actions>
+    <widgets>
+        <container-row>
+            <row-col md="6">
+                <container-dialog id="AddServiceLocation" button-text="Add Service Location">
+                    <form-single name="AddServiceLocationForm" transition="createServiceLocation">
+                        <field name="agreementId"><default-field>
+                            <hidden/>
+                        </default-field></field>
+                        <field name="serviceLocationPartyId"><default-field title="Service Location">
+                            <drop-down>
+                                <entity-options key="${fromPartyId}" text="PartyNameTemplate">
+                                    <entity-find entity-name="mantle.party.PartyFromAndRelationship">
+                                        <date-filter/>
+                                        <econdition field-name="toPartyId" from="agreement.organizationPartyId"/>
+                                        <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
+                                        <econdition field-name="toRoleTypeId" from="ServiceDemandSideRoleType"/>
+                                        <econdition field-name="fromRoleTypeId" from="ServiceLocationRoleType"/>
+                                    </entity-find>
+                                </entity-options>
+                            </drop-down>
+                        </default-field></field>
+                        <field name="fromDate">
+                            <default-field title="From Date">
+                                <date-time />
+                            </default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+            </row-col>
+            <row-col md="6" style="text-right">
+                <link url="../../ServiceDemandSide/ServiceLocations" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Location"/>
+            </row-col>
+        </container-row>
+
+
+        <form-list name="CategoriesForm" list="locationList" transition="updateServiceLocation">
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceLocationDetail" list="locationList" cache="false">
+                <search-form-inputs/>
+                <econdition field-name="agreementId"/>
+            </entity-find>
+<!--            <row-actions>-->
+<!--                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">-->
+<!--                    <field-map field-name="partyId" from="serviceLocationPartyId"/>-->
+<!--                </entity-find-one>-->
+<!--            </row-actions>-->
+            <field name="agreementId"><header-field><hidden/></header-field>
+                <default-field><hidden/></default-field>
+            </field>
+            <field name="serviceLocationPartyId"><header-field><hidden/></header-field>
+                <default-field><hidden/></default-field>
+            </field>
+            <field name="pseudoId" >
+                <header-field title="pseudoId" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field title="pseudoId"><display/></default-field>
+            </field>
+            <field name="organizationName" >
+                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field title="Name"><display/></default-field>
+            </field>
+<!--            <field name="productCategoryTypeEnumId">-->
+<!--                <header-field title="Category Type" show-order-by="true">-->
+<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                </header-field>-->
+<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+<!--            </field>-->
+<!--            <field name="ownerPartyId">-->
+<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+<!--                            <order-by field-name="organizationName"/>-->
+<!--                        </entity-find>-->
+<!--                    </entity-options>-->
+<!--                </drop-down></header-field>-->
+<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+<!--            </field>-->
+            <field name="fromDate">
+                <header-field title="From Date">
+                    <date-time type="date"/>
+                </header-field>
+                <default-field title="From Date">
+                <display/>
+            </default-field></field>
+            <field name="thruDate">
+                <header-field title="Thru Date">
+                    <date-time type="date"/>
+                </header-field>
+
+                <default-field title="Thru Date">
+                <date-time type="date"/>
+            </default-field></field>
+            <field name="submitButton"><header-field title="Find">
+                <submit/>
+            </header-field>
+                <default-field title="Actions">
+                    <submit text="Update" />
+                    <link  url="deleteServiceLocation" text="Delete" />
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

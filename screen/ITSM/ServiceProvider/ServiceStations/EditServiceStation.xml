@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Edit Service Station" default-menu-index="1">
+
+    <parameter name="partyId" required="true"/>
+    <parameter name="subordinatePartyId" required="true"/>
+
+<!--    <transition name="updateParty"><service-call name="mantle.party.PartyServices.update#PartyDetail"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition-include name="createContent" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+<!--    <transition name="createPartyRole"><service-call name="create#mantle.party.PartyRole"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="deletePartyRole"><service-call name="delete#mantle.party.PartyRole"/>-->
+<!--        <default-response url="."/></transition>-->
+    <transition-include name="updateParty" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="createPartyRole" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="deletePartyRole" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+<!--    <transition name="createPartyIdentification"><service-call name="create#mantle.party.PartyIdentification"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="updatePartyIdentification"><service-call name="update#mantle.party.PartyIdentification"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="deletePartyIdentification"><parameter name="partyIdTypeEnumId"/>-->
+<!--        <service-call name="delete#mantle.party.PartyIdentification"/><default-response url="."/></transition>-->
+
+<!--    <transition name="updatePaymentMethodInfo"><default-response url="UpdatePaymentMethodInfo"/></transition>-->
+<!--    <transition name="removePaymentMethod"><service-call name="mantle.account.PaymentMethodServices.delete#PaymentMethod"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="findFinancialAccount"><default-response url="//${appRoot}/Accounting/FinancialAccount/FindFinancialAccount"/></transition>-->
+<!--    <transition name="editFinancialAccount"><default-response url="//${appRoot}/Accounting/FinancialAccount/EditFinancialAccount"/></transition>-->
+
+<!--    <transition name="storePartyContactMech"><service-call name="mantle.party.ContactServices.store#PartyContactMech"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="removeContactInfo"><service-call name="mantle.party.ContactServices.delete#PartyContactMech"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="updateContactMechMutable"><service-call name="mantle.party.ContactServices.update#ContactMechMutable"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="validateAddress"><service-call name="mantle.shipment.CarrierServices.validate#PostalAddress"/>-->
+<!--        <default-response url="."/></transition>-->
+    <transition-include name="storePartyContactMech" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="removeContactInfo" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updateContactMechMutable" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="validateAddress" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+<!--    <transition name="createContactMechOther"><service-call name="mantle.party.ContactServices.create#ContactMechOther"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="updatePartyContactOther"><service-call name="mantle.party.ContactServices.update#PartyContactOther"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition-include name="getContactMechPurposesByType" location="component://SimpleScreens/template/party/PartyForms.xml"/>-->
+    <transition-include name="createContactMechOther" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updatePartyContactOther" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="getContactMechPurposesByType" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+<!--    <transition name="createPartyNote"><service-call name="create#mantle.party.PartyNote"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="updatePartyNote"><service-call name="update#mantle.party.PartyNote"/>-->
+<!--        <default-response url="."/></transition>-->
+    <transition-include name="createPartyNote" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updatePartyNote" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+    <transition-include name="createContent" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updateContent" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="downloadContent" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+    <subscreens>
+        <subscreens-item name="UpdateContactInfo" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation/UpdateContactInfo.xml"/>
+        <subscreens-item name="ExpiredContactOther" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation/ExpiredContactOther.xml"/>
+        <subscreens-item name="ExpiredPostal" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation/ExpiredPostal.xml"/>
+<!--        <subscreens-item name="UpdatePaymentMethodInfo" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/UpdatePaymentMethodInfo.xml"/>-->
+<!--        <subscreens-item name="FindDuplicates" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/FindDuplicates.xml"/>-->
+    </subscreens>
+
+    <actions>
+        <set field="masterPartyId" from="partyId"/>
+
+        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="party" auto-field-map="[partyId: subordinatePartyId]"/>
+        <if condition="party == null"><return error="true" message="Service Station not found with ID ${partyId}"/></if>
+        <set field="ServiceLocationRoleType" value="OrgServiceStation"/>
+
+<!--        <entity-find-one entity-name="mantle.party.PartyRole" value-field="partyRole">-->
+<!--            <field-map field-name="partyId" /><field-map field-name="roleTypeId" from="ServiceLocationRoleType"/></entity-find-one>-->
+<!--        <if condition="partyRole == null"><return error="true" message="Party ${partyId} is not a ${ServiceLocationRoleType}"/></if>-->
+
+    </actions>
+    <widgets>
+        <container-row><row-col lg="6">
+
+            <section-include name="EditPartySection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+            <section-include name="RolesSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+<!--            <section-include name="PartyIdentificationSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+        </row-col><row-col lg="6">
+            <section-include name="NotesSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+            <section-include name="ContactInfoSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+<!--            <section-include name="PaymentMethodSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+<!--            <section-include name="FinancialAccountSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+            <section-include name="ContentSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+        </row-col></container-row>
+    </widgets>
+</screen>

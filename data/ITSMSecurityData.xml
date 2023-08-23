@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entity-facade-xml type="seed-initial">
+    <!-- NOTE: subscreen configuration is now in the MoquiConf.xml file instead of DB records
+    <moqui.screen.SubscreensItem screenLocation="component://webroot/screen/webroot/apps.xml" subscreenName="example" menuTitle="Example"
+            menuIndex="97" menuInclude="Y" subscreenLocation="component://example/screen/ExampleApp.xml"/>
+    -->
+
+    <!-- Artifact group for all of the Example application via the ExampleApp screen (the root screen for the app) -->
+    <moqui.basic.Enumeration description="ITSM App" enumId="UgtITSM" enumTypeId="UserGroupType"/>
+    <!-- Administrators User Group -->
+    <userGroups userGroupId="ITSMAdmin" description="ITSM Administrators" groupTypeEnumId="UgtITSM">
+        <authz artifactAuthzId="ITSMAdminAccount" artifactGroupId="ITSM" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+    </userGroups>
+
+        <moqui.security.ArtifactGroup artifactGroupId="ITSM" description="IT服务管理"/>
+        <moqui.security.ArtifactGroupMember artifactGroupId="ITSM" artifactTypeEnumId="AT_XML_SCREEN"
+                inheritAuthz="Y" artifactName="component://beiyelin-itsm/screen/ITSM.xml"/>
+        <!-- Full permissions for the ADMIN user group -->
+        <moqui.security.ArtifactAuthz artifactAuthzId="ServiceAgreement_AUTHZ_ALL" userGroupId="ADMIN" artifactGroupId="ITSM"
+                authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+
+    <!--    <moqui.security.ArtifactGroup artifactGroupId="ServiceAgreement" description="服务协议管理"/>-->
+<!--    <moqui.security.ArtifactGroupMember artifactGroupId="ServiceAgreement" artifactTypeEnumId="AT_XML_SCREEN"-->
+<!--            inheritAuthz="Y" artifactName="component://beiyelin-itsm/screen/ServiceAgreement.xml"/>-->
+<!--    &lt;!&ndash; Full permissions for the ADMIN user group &ndash;&gt;-->
+<!--    <moqui.security.ArtifactAuthz artifactAuthzId="ServiceAgreement_AUTHZ_ALL" userGroupId="ADMIN" artifactGroupId="ServiceAgreement"-->
+<!--            authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>-->
+
+<!--    <moqui.security.ArtifactGroup artifactGroupId="ServiceRequest" description="服务请求管理"/>-->
+<!--    <moqui.security.ArtifactGroupMember artifactGroupId="ServiceRequest" artifactTypeEnumId="AT_XML_SCREEN"-->
+<!--                                        inheritAuthz="Y" artifactName="component://beiyelin-itsm/screen/ServiceRequest.xml"/>-->
+<!--    &lt;!&ndash; Full permissions for the ADMIN user group &ndash;&gt;-->
+<!--    <moqui.security.ArtifactAuthz artifactAuthzId="ServiceAgreement_AUTHZ_ALL" userGroupId="ADMIN" artifactGroupId="ServiceRequest"-->
+<!--                                  authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>-->
+
+<!--    <moqui.security.ArtifactGroup artifactGroupId="ServiceTicket" description="服务工单管理"/>-->
+<!--    <moqui.security.ArtifactGroupMember artifactGroupId="ServiceTicket" artifactTypeEnumId="AT_XML_SCREEN"-->
+<!--                                        inheritAuthz="Y" artifactName="component://beiyelin-itsm/screen/ServiceTicket.xml"/>-->
+<!--    &lt;!&ndash; Full permissions for the ADMIN user group &ndash;&gt;-->
+<!--    <moqui.security.ArtifactAuthz artifactAuthzId="ServiceAgreement_AUTHZ_ALL" userGroupId="ADMIN" artifactGroupId="ServiceTicket"-->
+<!--                                  authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>-->
+
+<!--    &lt;!&ndash; Artifact group for all of the Example REST API via the example resource (the root resource) &ndash;&gt;-->
+<!--    <moqui.security.ArtifactGroup artifactGroupId="EXAMPLE_API" description="Example REST API (via root resource)"/>-->
+<!--    <moqui.security.ArtifactGroupMember artifactGroupId="EXAMPLE_API" artifactTypeEnumId="AT_REST_PATH"-->
+<!--            inheritAuthz="Y" artifactName="/example"/>-->
+<!--    &lt;!&ndash; Full permissions for the ADMIN user group &ndash;&gt;-->
+<!--    <moqui.security.ArtifactAuthz artifactAuthzId="EXAMPLEAPI_AUTHZ_ALL" userGroupId="ADMIN" artifactGroupId="EXAMPLE_API"-->
+<!--            authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>-->
+
+</entity-facade-xml>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <service verb="create" noun="ServiceRequest">
+        <in-parameters>
+            <auto-parameters entity-name="mantle.request.Request" include="nonpk"><exclude field-name="visitId"/></auto-parameters>
+            <parameter name="requestOrganizationPartyId" required="true"/>
+            <parameter name="serviceLocationPartyId" required="true"/>
+            <parameter name="draftStatus"/>
+            <parameter name="submittedStatus"/>
+            <parameter name="priority" type="Long" default="5"/>
+            <parameter name="requestTypeEnumId" default-value="RqtService"/>
+            <parameter name="requestResolutionEnumId" default-value="RrUnresolved"/>
+            <parameter name="requestDate" default="ec.user.nowTimestamp"/>
+            <parameter name="filedByPartyId" default="ec.user.userAccount?.partyId"/>
+            <parameter name="reporterPartyId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="requestId"/>
+        </out-parameters>
+        <actions>
+
+            <set field="visitId" from="ec.user.visitId"/>
+            <if condition="draftStatus"><set field="statusId" value="ReqDraft"/> </if>
+            <if condition="submittedStatus"><set field="statusId" value="ReqSubmitted"/> </if>
+            <service-call name="create#mantle.request.Request" out-map="context" in-map="context"/>
+            <if condition="reporterPartyId">
+                <service-call name="create#mantle.request.RequestParty"
+                              in-map="[requestId:requestId, partyId:reporterPartyId, roleTypeId:'Reporter', fromDate:ec.user.nowTimestamp]"/>
+            </if>
+        </actions>
+    </service>
+    <service verb="get" noun="RequestDisplayInfo">
+        <in-parameters>
+            <parameter name="requestId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="requestId"/>
+            <parameter name="request" type="Map"><auto-parameters entity-name="mantle.request.Request"/> </parameter>
+            <parameter name="statusItem" type="Map"><auto-parameters entity-name="moqui.basic.StatusItem"/></parameter>
+            <parameter name="editableStatusIds" type="Set"><parameter name="statusId"/></parameter>
+            <parameter name="requestEditable" type="Boolean"/>
+            <parameter name="placeWarnings" type="List"><parameter name="placeWarning"/></parameter>
+
+            <parameter name="requestTypeEnum" type="Map">
+                <auto-parameters entity-name="moqui.basic.Enumeration"/></parameter>
+            <parameter name="requestCategoryDetail" type="Map">
+                <auto-parameters entity-name="mantle.request.RequestCategory"/></parameter>
+            <parameter name="requestResolutionEnum" type="Map">
+                <auto-parameters entity-name="moqui.basic.Enumeration"/></parameter>
+            <parameter name="facilityDetail" type="Map"><auto-parameters entity-name="mantle.facility.Facility"/></parameter>
+            <parameter name="filedByPartyDetail" type="Map"><auto-parameters entity-name="mantle.party.PartyDetail"/></parameter>
+            <parameter name="requestOrganizationPartyDetail" type="Map"><auto-parameters entity-name="mantle.party.PartyDetail"/></parameter>
+            <parameter name="serviceLocationPartyDetail" type="Map"><auto-parameters entity-name="mantle.party.PartyDetail"/></parameter>
+            <parameter name="productDetail" type="Map"><auto-parameters entity-name="mantle.product.Product"/></parameter>
+            <parameter name="assetDetail" type="Map"><auto-parameters entity-name="mantle.product.asset.Asset"/></parameter>
+            <parameter name="requestChannelEnum" type="Map">
+                <auto-parameters entity-name="moqui.basic.Enumeration"/></parameter>
+        </out-parameters>
+        <actions>
+            <set field="placeWarnings" from="[]"/>
+
+            <entity-find-one entity-name="mantle.request.Request" value-field="request"/>
+            <if condition="request == null"><return error="true" message="Request not found with ID ${requestId}"/></if>
+            <set field="statusItem" from="request.status"/>
+
+            <set field="editableStatusIds" from="new HashSet(['ReqDraft', 'ReqSubmitted'])"/>
+            <set field="requestEditable" from="editableStatusIds.contains(request.statusId)"/>
+
+        </actions>
+    </service>
+</services>

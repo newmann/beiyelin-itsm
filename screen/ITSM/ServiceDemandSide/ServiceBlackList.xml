@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Black List" default-menu-index="6">
+<!--
+    1、通过black list 屏蔽掉不喜欢的工程师
+    2、通过PartyRelationship来管理,toPartyId为serviceDemandSidePartyId，toRoleTypeId为 OrgServiceDemandSide,relationshipTypeEnumId 为 PrtServiceBlackList
+
+
+-->
+    <parameter name="partyId" required="true"/>
+
+    <transition name="findServiceLocations"><default-response url="."/></transition>
+    <transition name="editFacility"><default-response url="../EditCategory"/></transition>
+
+    <transition name="addServiceBlackList"><service-call name="create#mantle.product.category.ProductCategory"/>
+        <default-response url="."/></transition>
+
+    <actions>
+<!--        <script>-->
+<!--            serviceBlackList = [[serviceLocationPartyId:'100103-001',pseudoId:'HaagenDazs-001',organizationName:'哈根达斯(上海松江万达店）',description:''],-->
+<!--                            [serviceLocationPartyId:'100103-003',pseudoId:'HaagenDazs-003',organizationName:'哈根达斯(上海莘庄店）',description:''],-->
+<!--            ]-->
+<!--        </script>-->
+        <set field="ServiceDemandSideRoleType" value="OrgServiceDemandSide"/>
+        <set field="relationshipTypeEnumId" value="PrtServiceBlackList"/>
+
+        <message type="info">partyId: ${partyId}</message>
+        <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="serviceBlackList" cache="false">
+            <date-filter/>
+            <econdition field-name="toPartyId" from="partyId"/>
+            <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
+            <econdition field-name="toRoleTypeId" from="ServiceDemandSideRoleType"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <container-dialog id="AddServiceBlackList" button-text="Add Service Black List">
+            <form-single name="AddServiceBlackListForm" transition="addServiceBlackList">
+                <field name="locationName"><default-field><text-line/></default-field></field>
+                <field name="productCategoryTypeEnumId"><default-field title="Category Type">
+                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                        <set field="enumTypeId" value="ProductCategoryType"/></widget-template-include>
+                </default-field></field>
+                <field name="ownerPartyId"><default-field title="Owner Party">
+                    <drop-down>
+                        <option key="_NA_" text="N/A"/>
+                        <entity-options key="${partyId}" text="PartyNameTemplate">
+                            <entity-find entity-name="mantle.party.PartyDetailAndRole">
+                                <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>
+                                <econdition field-name="roleTypeId" value="OrgInternal"/>
+                                <econdition field-name="disabled" value="N" or-null="true"/>
+                                <order-by field-name="organizationName"/></entity-find>
+                        </entity-options>
+                    </drop-down>
+                </default-field></field>
+                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+
+        <form-list name="ServiceLocationsForm" list="serviceBlackList">
+
+            <field name="partyRelationshipId"><default-field>
+                <hidden/>
+            </default-field></field>
+
+            <field name="pseudoId">
+                <header-field title="PseudoId" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field title="PseudoId"><link url="editFacility" text="${pseudoId}" link-type="anchor"/></default-field>
+            </field>
+            <field name="organizationName">
+                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field><link url="editFacility" text="${organizationName}" link-type="anchor"/></default-field>
+            </field>
+<!--            <field name="productCategoryTypeEnumId">-->
+<!--                <header-field title="Category Type" show-order-by="true">-->
+<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                </header-field>-->
+<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+<!--            </field>-->
+<!--            <field name="ownerPartyId">-->
+<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+<!--                            <order-by field-name="organizationName"/>-->
+<!--                        </entity-find>-->
+<!--                    </entity-options>-->
+<!--                </drop-down></header-field>-->
+<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+<!--            </field>-->
+            <field name="fromDate">
+                <header-field title="From Date">
+                    <date-time type="date"/>
+                </header-field>
+                <default-field title="From Date">
+                <date-time type="date"/>
+            </default-field></field>
+            <field name="thruDate">
+                <header-field title="Thru Date">
+                    <date-time type="date"/>
+                </header-field>
+
+                <default-field title="Thru Date">
+                <date-time type="date"/>
+            </default-field></field>
+            <field name="submitButton"><header-field title="Find">
+                <submit/>
+            </header-field>
+                <default-field title="Actions">
+                    <submit text="Update" />
+                    <link  url="." text="Delete" parameter-map="[agreementServiceTimeId:agreementServiceTimeId]" link-type="anchor"/>
+
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

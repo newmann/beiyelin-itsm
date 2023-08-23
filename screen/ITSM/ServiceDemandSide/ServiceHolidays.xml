@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Holidays" default-menu-index="3">
+<!--
+    1、在workeffort中创建workEffortTypeEnumId=‘WetEvent’，且purposeEnumId="WepHoliday"，即为一条节假日定义
+    2、法定节假日有系统维护，算是基础数据
+    3、节假日定义到公司，即每个公司都可以创建自己的节假日，服务协议中生效的节假日为ServiceDemandSide的节假日
+    4、这里定义的公司特别关注的节假日，和法定节假日不同，在签署协议的时候才需要导入节假日
+
+-->
+    <parameter name="partyId" required="true"/>
+
+<!--    <transition name="findServiceLocations"><default-response url="."/></transition>-->
+<!--    <transition name="editFacility"><default-response url="../EditCategory"/></transition>-->
+
+    <transition name="addHoliday"><service-call name="create#mantle.work.effort.WorkEffort"/>
+        <default-response url="."/></transition>
+    <transition name="updateHoliday"><service-call name="update#mantle.work.effort.WorkEffort"/>
+        <default-response url="."/></transition>
+    <transition name="deleteHoliday"><service-call name="delete#mantle.work.effort.WorkEffort"/>
+        <default-response url="."/></transition>
+
+<!--    <transition name="addLegalHoliday">-->
+<!--        <default-response url="." save-parameters="true"/></transition>-->
+    <actions>
+<!--        <script>-->
+<!--            holidayList = [[serviceLocationPartyId:'100103-001',pseudoId:'HaagenDazs-001',organizationName:'哈根达斯(上海松江万达店）',description:''],-->
+<!--                            [serviceLocationPartyId:'100103-003',pseudoId:'HaagenDazs-003',organizationName:'哈根达斯(上海莘庄店）',description:''],-->
+<!--            ]-->
+<!--        </script>-->
+        <set field="workEffortTypeEnumId" value="WetEvent"/>
+        <set field="purposeEnumId" value="WepHoliday"/>
+<!--        <set field="relationshipTypeEnumId" value="PrtOrgRollup"/>-->
+<!--        <script>-->
+<!--            curYear = ec.getUser().getNowCalendar().get(Calendar.YEAR)-->
+<!--            yearList = (curYear-5..curYear+5).toList()-->
+<!--//            yearList = (curYear-5..curYear+5).toList().collect{[key:it,text:it]}-->
+
+<!--        </script>-->
+<!--        <message type="info">yearList: ${yearList}</message>-->
+<!--        <set field="curYear" from="ec."-->
+    </actions>
+    <widgets>
+<!--        <container-dialog id="AddLegalHoliday" button-text="Add Legal Holiday">-->
+<!--            <form-single name="AddLegalHolidayForm" transition="addLegalHoliday">-->
+<!--                <field name="partyId">-->
+<!--                    <default-field> <hidden/></default-field>-->
+<!--                </field>-->
+<!--                <field name="selectedYear">-->
+<!--                    <default-field title="Select Year">-->
+<!--                        <drop-down no-current-selected-key="${curYear}" >-->
+<!--                            <list-options list="yearList"/>-->
+<!--                        </drop-down>-->
+<!--                    </default-field>-->
+<!--                </field>-->
+<!--                <field name="submitButton"><default-field title="Inport"><submit/></default-field></field>-->
+<!--            </form-single>-->
+<!--        </container-dialog>-->
+
+        <container-dialog id="AddHoliday" button-text="Add Holiday">
+            <form-single name="AddHolidayForm" transition="addHoliday">
+                <field name="partyId">
+                    <default-field> <hidden/></default-field>
+                </field>
+                <field name="workEffortName"><default-field title="Holiday Name"><text-line/></default-field></field>
+                <field name="workEffortTypeEnumId" from="workEffortTypeEnumId">
+                    <default-field> <hidden/></default-field>
+                </field>
+                <field name="purposeEnumId" from="purposeEnumId">
+                    <default-field> <hidden/></default-field>
+                </field>
+                <field name="ownerPartyId" from="partyId">
+                    <default-field> <hidden/></default-field>
+                </field>
+                <field name="allDayStart">
+                    <default-field><date-time type="date"/></default-field>
+                </field>
+                <field name="allDayEnd">
+                    <default-field><date-time type="date"/></default-field>
+                </field>
+                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+
+        <form-list name="HolidayForm" list="holidayList" transition="updateHoliday">
+            <entity-find entity-name="mantle.work.effort.WorkEffort" list="holidayList" cache="false">
+                <search-form-inputs/>
+                <econdition field-name="ownerPartyId" from="partyId"/>
+                <econdition field-name="workEffortTypeEnumId" from="workEffortTypeEnumId"/>
+                <econdition field-name="purposeEnumId" from="purposeEnumId"/>
+                <order-by field-name="allDayStart"/>
+            </entity-find>
+
+            <field name="workEffortId"><default-field>
+                <hidden/>
+            </default-field></field>
+            
+            <field name="workEffortName">
+                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field title="Name"><text-line/></default-field>
+            </field>
+            <field name="allDayStart">
+                <header-field title="Start Day"><date-time type="date"/></header-field>
+                <default-field><date-time type="date"/></default-field>
+            </field>
+            <field name="allDayEnd">
+                <header-field title="End Day"><date-time type="date"/></header-field>
+                <default-field><date-time type="date"/></default-field>
+            </field>
+
+<!--            <field name="productCategoryTypeEnumId">-->
+<!--                <header-field title="Category Type" show-order-by="true">-->
+<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                </header-field>-->
+<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+<!--            </field>-->
+<!--            <field name="ownerPartyId">-->
+<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+<!--                            <order-by field-name="organizationName"/>-->
+<!--                        </entity-find>-->
+<!--                    </entity-options>-->
+<!--                </drop-down></header-field>-->
+<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+<!--            </field>-->
+<!--            <field name="fromDate">-->
+<!--                <header-field title="From Date">-->
+<!--                    <date-time type="date"/>-->
+<!--                </header-field>-->
+<!--                <default-field title="From Date">-->
+<!--                <date-time type="date"/>-->
+<!--            </default-field></field>-->
+<!--            <field name="thruDate">-->
+<!--                <header-field title="Thru Date">-->
+<!--                    <date-time type="date"/>-->
+<!--                </header-field>-->
+
+<!--                <default-field title="Thru Date">-->
+<!--                <date-time type="date"/>-->
+<!--            </default-field></field>-->
+            <field name="submitButton"><header-field title="Find">
+                <submit/>
+            </header-field>
+                <default-field title="Actions">
+                    <submit text="Update" />
+                    <link  url="deleteHoliday" text="Delete"  link-type="anchor"/>
+
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

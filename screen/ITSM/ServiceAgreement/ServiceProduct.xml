@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Product" default-menu-index="5">
+    <!--
+        1、通过Product来管理服务产品
+        2、每个协议只能添加服务需求方（OrganizationPartyId）定义的服务产品（即product的ownerPartyId是服务需求方的）或服务提供方定义的产品
+        3、服务产品可以定义到网点，如果不指定网点，这表示该产品在所有网点都可用
+        4、设置每条记录的有效时间
+        5、设置每条记录是否需要提供服务，用于解决某些产品在个别网点不需要提供服务的情况
+    -->
+<!--    <parameter name="partyId"/>-->
+    <parameter name="agreementId" required="true"/>
+
+
+    <transition name="findProduct"><default-response url="."/></transition>
+    <transition name="editProduct"><default-response url="../EditCategory"/></transition>
+
+    <transition name="createServiceProduct"><service-call name="create#mantle.party.agreement.AgreementServiceProduct"/>
+        <default-response url="."/></transition>
+    <transition name="updateServiceProduct"><service-call name="update#mantle.party.agreement.AgreementServiceProduct"/>
+        <default-response url="."/></transition>
+    <transition name="deleteServiceProduct"><service-call name="delete#mantle.party.agreement.AgreementServiceProduct"/>
+        <default-response url="."/></transition>
+
+    <transition-include name="getProductList" location="component://SimpleScreens/template/product/ProductTransitions.xml"/>
+
+    <actions>
+<!--        <script>-->
+<!--            productList = [[agreementServiceProductId:'1',productId:'HPDC8000',pseudoId:'HPDC8000',productName:'HP DC 8000', fromDate:'2023-08-01',thruDate:''],-->
+<!--                            [agreementServiceProductId:'2',productId:'Switch16',pseudoId:'Switch16',productName:'TP Link 16 Port Switch', fromDate:'2023-08-01',thruDate:''],-->
+<!--            ]-->
+<!--        </script>-->
+
+
+    </actions>
+    <widgets>
+        <container-row>
+        <row-col md="6">
+        <container-dialog id="AddServiceProduct" button-text="Add Service Product">
+            <form-single name="AddServiceProductForm" transition="createServiceProduct">
+                <field name="agreementId">
+                    <default-field>
+                    <hidden/>
+                </default-field>
+                </field>
+                <field name="productId"><default-field title="Service Product">
+                    <drop-down>
+                        <dynamic-options transition="getProductList" server-search="true" min-length="2"/></drop-down>
+                </default-field></field>
+                <field name="fromDate">
+                    <default-field title="From Date">
+                        <date-time type="date" />
+                    </default-field></field>
+                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+        </row-col>
+            <row-col md="6" style="text-right">
+                <link url="."  text="Create Service Product"/>
+            </row-col>
+        </container-row>
+
+        <form-list name="CategoriesForm" list="productList" transition="updateServiceProduct">
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceProductDetail" list="productList" cache="false">
+                <search-form-inputs default-order-by="sequenceNum"/>
+                <econdition field-name="agreementId"/>
+            </entity-find>
+
+            <field name="agreementId"><header-field><hidden/></header-field>
+                <default-field><hidden/></default-field>
+            </field>
+            <field name="productId"><header-field><hidden/></header-field>
+                <default-field><hidden/></default-field>
+            </field>
+            
+            <field name="pseudoId">
+                <header-field title="Product ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="productName" >
+                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+<!--            <field name="productCategoryTypeEnumId">-->
+<!--                <header-field title="Category Type" show-order-by="true">-->
+<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                </header-field>-->
+<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+<!--            </field>-->
+<!--            <field name="ownerPartyId">-->
+<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+<!--                            <order-by field-name="organizationName"/>-->
+<!--                        </entity-find>-->
+<!--                    </entity-options>-->
+<!--                </drop-down></header-field>-->
+<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+<!--            </field>-->
+            <field name="fromDate" >
+                <header-field title="From Date" show-order-by="case-insensitive">
+                    <date-time type="date"/>
+                </header-field>
+                <default-field title="From Date">
+                <date-time type="date"/>
+            </default-field></field>
+            <field name="thruDate">
+                <header-field title="Thru Date" show-order-by="case-insensitive">
+                    <date-time type="date"/>
+                </header-field>
+
+                <default-field title="Thru Date">
+                <date-time type="date"/>
+            </default-field></field>
+            <field name="submitButton"><header-field title="Find">
+                <submit/>
+            </header-field>
+                <default-field title="Actions">
+                    <submit text="Update" />
+                    <link  url="deleteServiceProduct" text="Delete" />
+
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Find Service Stations" default-menu-include="false">
+<!--
+    1、通过Party来管理服务站
+    2、服务站的ownerPartyId就是serviceProviderPartyId，也可以通过PartyRelationship来获取
+    3、可以关闭服务站，但必须保证该服务站下面没有承担服务的服务地点
+
+-->
+    <parameter name="partyId" required="true"/>
+
+
+<!--    <transition name="editFacility"><default-response url="../EditCategory"/></transition>-->
+    <transition name="editServiceStation"><default-response url="../EditServiceStation"/></transition>
+
+    <transition name="addServiceStation"><service-call name="beiyelin.party.PartyServices.create#SubordinateOrganization"/>
+        <default-response url="." parameter-map="[partyId:toPartyId]"/></transition>
+    <actions>
+<!--        <script>-->
+<!--            serviceStationList = [[serviceStationPartyId:'Much-001',pseudoId:'Much-001',organizationName:'码驰松江服务站',description:''],-->
+<!--                            [serviceStationPartyId:'Much-002',pseudoId:'Much-002',organizationName:'码驰闵行服务站',description:''],-->
+<!--            ]-->
+<!--        </script>-->
+        <set field="ServiceProviderRoleType" value="OrgServiceProvider"/>
+        <set field="ServiceStationRoleType" value="OrgServiceStation"/>
+        <set field="relationshipTypeEnumId" value="PrtOrgRollup"/>
+
+
+    </actions>
+    <widgets>
+        <container-dialog id="AddServiceStation" button-text="Add Service Station">
+            <form-single name="AddServiceStationForm" transition="addServiceStation"
+                extends="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/FindServiceLocation.xml#AddServiceLocationForm">
+                <field name="relationshipTypeEnumId" from="relationshipTypeEnumId">
+                    <default-field ><hidden/></default-field>
+                </field>
+                <field name="toRoleTypeId" from="ServiceProviderRoleType">
+                    <default-field ><hidden/></default-field>
+                </field>
+                <field name="roleTypeId" from="ServiceStationRoleType">
+                    <default-field ><hidden/></default-field>
+                </field>
+            </form-single>
+        </container-dialog>
+
+        <form-list name="ServiceStationsForm" list="serviceStationList" >
+            <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="serviceStationList" cache="false">
+                <search-form-inputs/>
+<!--                <date-filter/>-->
+                <econdition field-name="toPartyId" from="partyId"/>
+                <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
+                <econdition field-name="toRoleTypeId" from="ServiceProviderRoleType"/>
+                <econdition field-name="fromRoleTypeId" from="ServiceStationRoleType"/>
+            </entity-find>
+
+            <field name="partyId" from="partyId">
+                <header-field>
+                    <hidden/>
+                </header-field>
+                <default-field><hidden/></default-field>
+            </field>
+            <field name="partyRelationshipId">
+                <default-field><hidden/></default-field>
+            </field>
+            <field name="fromPartyId"><default-field><hidden/></default-field></field>
+            <field name="pseudoId">
+                <header-field title="Service Station ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field title="Service Station ID"><link url="editServiceStation"
+                                                                parameter-map="[partyId:partyId,subordinatePartyId:fromPartyId]" text="${pseudoId}" link-type="anchor"/></default-field>
+            </field>
+            <field name="organizationName">
+                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true" /></header-field>
+                <default-field title="Name"><link url="editServiceStation"
+                                                  parameter-map="[partyId:partyId,subordinatePartyId:fromPartyId]" text="${organizationName}" link-type="anchor"/></default-field>
+            </field>
+<!--            <field name="productCategoryTypeEnumId">-->
+<!--                <header-field title="Category Type" show-order-by="true">-->
+<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                </header-field>-->
+<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+<!--            </field>-->
+<!--            <field name="ownerPartyId">-->
+<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+<!--                            <order-by field-name="organizationName"/>-->
+<!--                        </entity-find>-->
+<!--                    </entity-options>-->
+<!--                </drop-down></header-field>-->
+<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+<!--            </field>-->
+            <field name="fromDate">
+                <header-field title="From Date" >
+                    <date-time type="date" />
+                </header-field>
+                <default-field title="From Date">
+                <date-time type="date"/>
+            </default-field></field>
+            <field name="thruDate">
+                <header-field title="Thru Date">
+                    <date-time type="date"/>
+                </header-field>
+
+                <default-field title="Thru Date">
+                <date-time type="date"/>
+            </default-field></field>
+
+            <field name="serviceEngineerList">
+                <default-field title="Service Engineers">
+                    <display/>
+                </default-field></field>
+
+            <field name="submitButton"><header-field title="Find">
+                <submit/>
+            </header-field>
+                <default-field title="Actions">
+                    <submit text="Update" />
+                    <link  url="." text="Add Engineer" parameter-map="[agreementServiceTimeId:agreementServiceTimeId]" link-type="anchor"/>
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

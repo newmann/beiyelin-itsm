@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-include="false">
+
+
+    <transition name="editAgreement"><default-response url="../EditAgreement"/></transition>
+    <transition name="createAgreement"><service-call name="create#mantle.party.agreement.Agreement"/>
+        <default-response url="../EditAgreement"/></transition>
+    <transition name="createBackToBackAgreement"><service-call name="beiyelin.party.AgreementServices.create#BackToBackAgreement"/>
+        <default-response url="../EditAgreement"/></transition>
+
+    <transition name="getServiceProviderList">
+        <parameter name="serviceDemandSidePartyId"/>
+        <actions>
+            <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="partyList">
+                <!--                            <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>-->
+                <date-filter/>
+                <econdition field-name="relationshipTypeEnumId" value="PrtService"/>
+                <econdition field-name="toPartyId" from="serviceDemandSidePartyId"/>
+                <econdition field-name="fromRoleTypeId" value="OrgServiceProvider"/>
+                <econdition field-name="disabled" value="N" or-null="true"/>
+                <order-by field-name="organizationName"/></entity-find>
+
+            <script>
+                def outList = []
+                for (def party in partyList)
+                    outList.add([value:party.fromPartyId, label:"${ec.resource.expand('PartyNameTemplate','',party)}".toString()])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    
+    <transition name="getSourceAgreementList">
+        <parameter name="serviceProviderPartyId" required="true"/>
+        <actions>
+            <entity-find entity-name="mantle.party.agreement.AgreementOrganizationPartyDetail" list="agreementList">
+<!--                <date-filter/>-->
+                <econdition field-name="agreementTypeEnumId" value="AgrService"/>
+                <econdition field-name="organizationRoleTypeId" value="OrgServiceDemandSide"/>
+                <econdition field-name="otherPartyId" from="serviceProviderPartyId"/>
+                <econdition field-name="otherRoleTypeId" value="OrgServiceProvider" />
+                <econdition field-name="statusId" value="SAInForce"/>
+                <order-by field-name="agreementId"/>
+            </entity-find>
+
+            <script>
+                def outList = []
+                for (def agreement in agreementList)
+                    outList.add([value:agreement.agreementId, label: agreement.pseudoId +':' + agreement.organizationName+ ' 《' + agreement.description +'》'])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <transition name="getAgreementFromDate">
+        <parameter name="agreementId" required="true"/>
+        <actions>
+            <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement">
+                <field-map field-name="agreementId" from="agreementId"/>
+            </entity-find-one>
+            <if condition="agreement == null"><return error="true" message="Agreement not found by Id:${agreementId}"/> </if>
+
+            <script>ec.web.sendTextResponse(ec.l10n.format(agreement.fromDate, "yyyy-MM-dd"))</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <transition name="getAgreementThruDate">
+        <parameter name="toAgreementId" required="true"/>
+        <actions>
+            <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement">
+                <field-map field-name="agreementId" from="toAgreementId"/>
+            </entity-find-one>
+            <if condition="agreement == null"><return error="true" message="Agreement not found by Id:${agreementId}"/> </if>
+<!--            <message type="info">agreement: ${agreement}</message>-->
+            <script>ec.web.sendTextResponse(ec.l10n.format(agreement.thruDate, "yyyy-MM-dd"))</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <actions>
+        <set field="agreementTypeEnumId" value="AgrService"/>
+        <set field="organizationRoleTypeId" value="OrgServiceDemandSide"/>
+        <set field="otherRoleTypeId" value="OrgServiceProvider"/>
+        <set field="statusFlowId" value="ServiceAgreement"/>
+        <set field="statusId" value="SAOpen"/>
+
+        <set field="partyId" from="ec.getUser().getUserAccount().partyId"/>
+
+        <set field="empOrgIdList" from="new HashSet()"/>
+        <set field="serviceDemandSideIdList" from="new HashSet()"/>
+
+        <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="empOrgList">
+            <!--                            <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>-->
+            <econdition field-name="relationshipTypeEnumId" value="PrtEmployee"/>
+            <econdition field-name="fromPartyId" from="partyId"/>
+            <econdition field-name="fromRoleTypeId" value="Employee"/>
+            <econdition field-name="disabled" value="N" or-null="true"/>
+            <order-by field-name="organizationName"/></entity-find>
+        <script>
+            empOrgIdList.addAll(empOrgList*.toPartyId)
+        </script>
+        <entity-find entity-name="mantle.party.PartyRelationship" list="serviceDemandSideList">
+            <!--                            <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>-->
+            <date-filter/>
+            <econdition field-name="relationshipTypeEnumId" value="PrtService"/>
+            <econdition field-name="fromPartyId" operator="in" from="empOrgIdList"/>
+            <econdition field-name="fromRoleTypeId" value="OrgServiceProvider"/>
+            <econdition field-name="toRoleTypeId" value="OrgServiceDemandSide"/>
+        </entity-find>
+        <script>
+            serviceDemandSideIdList.addAll(serviceDemandSideList*.toPartyId)
+        </script>
+<!--如果自己也是服务提供方，这将自己添加进去        -->
+        <entity-find entity-name="mantle.party.PartyRole" list="selfIdList">
+            <!--                            <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>-->
+            <econdition field-name="partyId" operator="in" from="empOrgIdList"/>
+            <econdition field-name="roleTypeId" value="OrgServiceDemandSide"/>
+        </entity-find>
+        <script>
+            serviceDemandSideIdList.addAll(selfIdList*.partyId)
+        </script>
+
+<!--        <message type="warning">empOrgIdList: ${empOrgIdList}</message>-->
+<!--        <message type="warning">serviceDemandSideIdList: ${serviceDemandSideIdList}</message>-->
+    </actions>
+    <widgets>
+        <container-dialog id="NewAgreementDialog" button-text="New Agreement">
+            <form-single name="NewAgreement" transition="createAgreement">
+                <field name="agreementTypeEnumId" ><default-field><hidden/></default-field></field>
+                <field name="organizationRoleTypeId"><default-field><hidden/></default-field></field>
+                <field name="otherRoleTypeId"><default-field><hidden/></default-field></field>
+                <field name="statusFlowId" ><default-field><hidden/></default-field></field>
+                <field name="statusId" ><default-field><hidden/></default-field></field>
+<!--                <field name="partyId"><default-field><hidden/></default-field></field>-->
+
+<!--                <field name="agreementTypeEnumId" from="curAgreementTypeEnumId"><default-field title="Type">-->
+<!--&lt;!&ndash;                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">&ndash;&gt;-->
+<!--&lt;!&ndash;                        <set field="enumTypeId" value="AgreementType"/><set field="noCurrentSelectedKey" value="AgrOther"/></widget-template-include>&ndash;&gt;-->
+<!--                    <display-entity entity-name="moqui.basic.Enumeration" />-->
+<!--                </default-field></field>-->
+
+
+                <field name="organizationPartyId"><default-field title="Service Demand Side"><drop-down allow-empty="false" >
+                    <entity-options key="${partyId}" text="PartyNameTemplate">
+                        <entity-find entity-name="mantle.party.PartyDetailAndRole">
+<!--                            <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>-->
+                            <econdition field-name="partyId" operator="in" from="serviceDemandSideIdList"/>
+                            <econdition field-name="roleTypeId" from="organizationRoleTypeId"/>
+                            <econdition field-name="disabled" value="N" or-null="true"/>
+                            <order-by field-name="organizationName"/></entity-find>
+                    </entity-options>
+                </drop-down></default-field></field>
+
+                <field name="otherPartyId" ><default-field title="Service Provider">
+                    <drop-down allow-empty="false">
+                        <dynamic-options transition="getServiceProviderList">
+                            <depends-on field="organizationPartyId" parameter="serviceDemandSidePartyId"/>
+                        </dynamic-options>
+                </drop-down></default-field></field>
+
+                <field name="description"><default-field><text-line size="80"/></default-field></field>
+<!--                <field name="otherRoleTypeId"><default-field title="Role"><drop-down>-->
+<!--                    <entity-options key="${roleTypeId}" text="${description}">-->
+<!--                        <entity-find entity-name="mantle.party.RoleGroupMemberAndType" cache="true">-->
+<!--                            <econdition field-name="roleGroupEnumId" value="RgpAgreement"/>-->
+<!--                            <order-by field-name="description"/></entity-find></entity-options>-->
+<!--                </drop-down></default-field></field>-->
+
+                <field name="agreementDate"><default-field><date-time/></default-field></field>
+                <field name="fromDate"><default-field title="Valid From"><date-time/></default-field></field>
+                <field name="thruDate"><default-field title="Valid Thru"><date-time/></default-field></field>
+
+                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+        <container-dialog id="NewBackToBackAgreementDialog" button-text="New Back To Back Agreement">
+            <form-single name="NewBackToBackAgreement" transition="createBackToBackAgreement"
+                extends="component://beiyelin-itsm/screen/ITSM/ServiceAgreement/FindAgreement.xml#NewAgreement">
+                <field name="toAgreementId">
+                    <default-field title="Source Agreement">
+                        <drop-down>
+                            <dynamic-options transition="getSourceAgreementList" >
+                                <depends-on field="organizationPartyId" parameter="serviceProviderPartyId"/>
+                            </dynamic-options>
+
+                        </drop-down>
+                    </default-field>
+
+                </field>
+                <field name="fromDate">
+                    <default-field title="Valid From">
+                        <display dynamic-transition="getAgreementFromDate" >
+                            <depends-on field="toAgreementId" parameter="agreementId" />
+                        </display>
+                    </default-field>
+                </field>
+                <field name="thruDate">
+                    <default-field title="Valid Thru">
+                        <display dynamic-transition="getAgreementThruDate" >
+                            <depends-on field="toAgreementId"/>
+                        </display>
+                    </default-field>
+                </field>
+                <field-layout>
+                    <field-ref name="organizationPartyId"/>
+                    <field-ref name="toAgreementId"/>
+                    <field-ref name="otherPartyId"/>
+                    <field-ref name="description"/>
+                    <field-ref name="agreementDate"/>
+                    <field-ref name="fromDate"/>
+                    <field-ref name="thruDate"/>
+                    <field-ref name="submitButton"/>
+                </field-layout>
+            </form-single>
+        </container-dialog>
+        <form-list name="AgreementList" list="agreementList" skip-form="true">
+            <entity-find entity-name="mantle.party.agreement.Agreement" list="agreementList">
+<!--                <search-form-inputs default-order-by="-fromDate"/>-->
+                <econditions combine="or">
+                    <econdition field-name="organizationPartyId" operator="in" from="empOrgIdList"/>
+                    <econdition field-name="otherPartyId" operator="in" from="empOrgIdList" />
+                </econditions>
+            </entity-find>
+
+            <field name="agreementId"><default-field>
+                <link url="editAgreement" text="${agreementId}" link-type="anchor"/></default-field></field>
+            <field name="description"><default-field>
+                <link url="editAgreement" text="${description}" link-type="anchor"/></default-field></field>
+
+            <field name="agreementTypeEnumId"><default-field title="Type">
+                <display-entity entity-name="moqui.basic.Enumeration"/></default-field></field>
+
+            <field name="statusId"><default-field title="Status">
+                <display-entity entity-name="moqui.basic.StatusItem"/></default-field></field>
+
+            <field name="organizationPartyId"><default-field title="Service Demand Side">
+                <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
+<!--            <field name="organizationRoleTypeId"><default-field title="Role">-->
+<!--                <display-entity entity-name="mantle.party.RoleType"/></default-field></field>-->
+
+            <field name="otherPartyId"><default-field title="Service Provider">
+                <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
+
+<!--            <field name="otherRoleTypeId"><default-field title="Role">-->
+<!--                <display-entity entity-name="mantle.party.RoleType"/></default-field></field>-->
+
+
+            <field name="fromDate"><default-field title="Valid From"><display/></default-field></field>
+            <field name="thruDate"><default-field title="Valid Thru"><display/></default-field></field>
+        </form-list>
+
+<!--        <section name="ShowSql" condition="AgreementList_xafind?.getQueryTextList()"><widgets>-->
+<!--            <container-dialog id="ShowSqlDialog" button-text="Show SQL" type="info">-->
+<!--                <section-iterate name="ShowSqlIter" list="AgreementList_xafind?.getQueryTextList()" entry="queryText"><widgets>-->
+<!--                    <label text="queryText: ${queryText}" type="p"/>-->
+
+<!--                    <label text="AgreementList_xafind: ${AgreementList_xafind}" type="p"/>-->
+<!--                </widgets></section-iterate>-->
+<!--            </container-dialog>-->
+<!--        </widgets></section>-->
+    </widgets>
+</screen>

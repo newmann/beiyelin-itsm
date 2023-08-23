@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        include-child-content="true" require-authentication="true" menu-image="fa fa-flash" menu-image-type="icon" default-menu-index="20">
+<!--
+    服务协议管理：
+    1、用户登录后，系统自动选择用户所属的组织（为该组织的员工），只能查询所在组织的服务协议
+    2、在签署协议的时候，需要检查甲方的是否同时为需求提出方和服务提供方，只有同时拥有这两个角色的，才能签署背靠背协议，
+        因为背靠背协议是需要根据需求服务方找出合同后，作为本合同的来源，而需求服务方在背靠背合同中是作为需求提出方存在。
+    3、在制定服务合同的时候，甲方可选范围是所属组织的服务提出方，乙方可选范围是所属组织的服务提供方
+    4、服务地点管理：在Organization中新增，暂时不涉及ProductStore，如果未来系统扩展到零售业务，则可以新增ProductStore，同时将ProductStore的organizationPartyId设为服务地点即可
+
+-->
+
+
+    <subscreens default-item="FindAgreement"/>
+    <widgets>
+        <!--        <subscreens-active/>-->
+        <!--        <label text="Service Agreement Management" />-->
+        <subscreens-panel id="AgreementPanel" type="tab"/>
+    </widgets>
+
+<!--    <pre-actions>-->
+<!--        <script><![CDATA[-->
+<!--            html_scripts.add('/libs/moment.js/moment-with-locales.min.js')-->
+<!--//            footer_scripts.add('/js/TestMachineVue.qvt.js')-->
+<!--            ]]></script>-->
+<!--    </pre-actions>-->
+<!--    <always-actions>-->
+<!--        <set field="appRoot" value="ServiceAgreement"/>-->
+
+<!--&lt;!&ndash;        <set field="searchIndexName" value="mantle"/>-->
+<!--        <set field="searchLinkSets" value="marble"/>-->
+<!--        <set field="searchProductDocType" value="MantleProduct"/>-->
+<!--        <set field="searchPartyDocType" value="MantleParty"/>-->
+
+<!--        <set field="appUserGroupTypeEnumId" value="UgtMarbleErp"/>-->
+
+<!--        <service-call name="mantle.party.PartyServices.setup#UserOrganizationInfo" out-map="context"/>&ndash;&gt;-->
+<!--    </always-actions>-->
+
+<!--    <subscreens default-item="dashboard" always-use-full-path="true">-->
+
+<!--    </subscreens>-->
+
+<!--    <widgets>-->
+<!--        <subscreens-panel id="ServiceAgreement" type="popup" title="服务协议"/>-->
+<!--    </widgets>-->
+</screen>

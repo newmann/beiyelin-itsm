@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Demand Side" default-menu-index="1">
+
+    <parameter name="partyId" required="true"/>
+
+    <transition name="findAgreement"><default-response url="../../ServiceAgreement/FindAgreement"/></transition>
+    <transition name="updateParty"><service-call name="mantle.party.PartyServices.update#PartyDetail"/>
+        <default-response url="."/></transition>
+
+    <transition name="createPartyRole"><service-call name="create#mantle.party.PartyRole"/>
+        <default-response url="."/></transition>
+    <transition name="deletePartyRole"><service-call name="delete#mantle.party.PartyRole"/>
+        <default-response url="."/></transition>
+
+    <transition name="createPartyIdentification"><service-call name="create#mantle.party.PartyIdentification"/>
+        <default-response url="."/></transition>
+    <transition name="updatePartyIdentification"><service-call name="update#mantle.party.PartyIdentification"/>
+        <default-response url="."/></transition>
+    <transition name="deletePartyIdentification"><parameter name="partyIdTypeEnumId"/>
+        <service-call name="delete#mantle.party.PartyIdentification"/><default-response url="."/></transition>
+
+    <transition name="updatePaymentMethodInfo"><default-response url="UpdatePaymentMethodInfo"/></transition>
+    <transition name="removePaymentMethod"><service-call name="mantle.account.PaymentMethodServices.delete#PaymentMethod"/>
+        <default-response url="."/></transition>
+    <transition name="findFinancialAccount"><default-response url="//${appRoot}/Accounting/FinancialAccount/FindFinancialAccount"/></transition>
+    <transition name="editFinancialAccount"><default-response url="//${appRoot}/Accounting/FinancialAccount/EditFinancialAccount"/></transition>
+
+    <transition name="storePartyContactMech"><service-call name="mantle.party.ContactServices.store#PartyContactMech"/>
+        <default-response url="."/></transition>
+    <transition name="removeContactInfo"><service-call name="mantle.party.ContactServices.delete#PartyContactMech"/>
+        <default-response url="."/></transition>
+    <transition name="updateContactMechMutable"><service-call name="mantle.party.ContactServices.update#ContactMechMutable"/>
+        <default-response url="."/></transition>
+    <transition name="validateAddress"><service-call name="mantle.shipment.CarrierServices.validate#PostalAddress"/>
+        <default-response url="."/></transition>
+
+    <transition name="createContactMechOther"><service-call name="mantle.party.ContactServices.create#ContactMechOther"/>
+        <default-response url="."/></transition>
+    <transition name="updatePartyContactOther"><service-call name="mantle.party.ContactServices.update#PartyContactOther"/>
+        <default-response url="."/></transition>
+    <transition-include name="getContactMechPurposesByType" location="component://SimpleScreens/template/party/PartyForms.xml"/>
+
+    <transition name="createPartyNote"><service-call name="create#mantle.party.PartyNote"/>
+        <default-response url="."/></transition>
+    <transition name="updatePartyNote"><service-call name="update#mantle.party.PartyNote"/>
+        <default-response url="."/></transition>
+
+<!--    <transition name="editAgreement">-->
+<!--        <default-response url="../ServiceAgreement"/>-->
+<!--    </transition>-->
+
+    <transition-include name="createContent" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+    <transition-include name="updateContent" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+    <transition-include name="downloadContent" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+
+    <subscreens>
+        <subscreens-item name="UpdateContactInfo" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/UpdateContactInfo.xml"/>
+        <subscreens-item name="ExpiredContactOther" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/ExpiredContactOther.xml"/>
+        <subscreens-item name="ExpiredPostal" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/ExpiredPostal.xml"/>
+        <subscreens-item name="UpdatePaymentMethodInfo" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/UpdatePaymentMethodInfo.xml"/>
+        <subscreens-item name="FindDuplicates" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/FindDuplicates.xml"/>
+    </subscreens>
+
+    <actions>
+        <set field="agreementTypeEnumId" value="AgrService"/>
+        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="party"/>
+        <if condition="party == null"><return error="true" message="Supplier not found with ID ${partyId}"/></if>
+
+        <entity-find-one entity-name="mantle.party.PartyRole" value-field="partyRole">
+            <field-map field-name="partyId"/><field-map field-name="roleTypeId" value="OrgServiceDemandSide"/></entity-find-one>
+        <if condition="partyRole == null"><return error="true" message="Party ${partyId} is not a ServiceDemandSide"/></if>
+    </actions>
+    <widgets>
+        <container-row><row-col lg="6">
+<!--            <link url="findAgreement" text="Agreements" parameter-map="[organizationPartyId:partyId]"/>-->
+<!--            <dynamic-dialog id="FindDuplicatesDialog" button-text="Find Duplicates" transition="FindDuplicates" width="960"/>-->
+<!--            <section-include name="HasDuplicatesSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+
+<!--            <section-include name="EditPartySection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+            <section name="EditPartySection">
+                <widgets>
+                    <form-single name="EditOrganizationForm" map="party" transition="updateParty">
+                        <field name="partyId"><default-field><hidden/></default-field></field>
+                        <field name="pseudoId"><default-field title="ID"><text-line size="15"/></default-field></field>
+                        <field name="organizationName"><default-field><text-line size="60"/></default-field></field>
+                        <field name="annualRevenue"><default-field title="Annual Revenue"><text-line size="60" input-type="number"/></default-field></field>
+                        <field name="numEmployees"><default-field title="Number of Employees"><text-line size="60" input-type="number"/></default-field></field>
+<!--                        <field name="externalId"><default-field><text-line size="20"/></default-field></field>-->
+
+                        <field name="disabled"><default-field title="Disabled"><drop-down>
+                            <option key="N"/><option key="Y"/></drop-down></default-field></field>
+<!--                        <field name="gatewayCimId"><default-field title="CIM ID"><text-line size="20"/></default-field></field>-->
+<!--                        <field name="ownerPartyId"><default-field title="Owned By Org"><drop-down allow-empty="true">-->
+<!--                            <option key="_NA_" text="N/A"/>-->
+<!--                            <entity-options key="${partyId}" text="PartyNameTemplate">-->
+<!--                                <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+<!--                                    <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+<!--                                    <econdition field-name="disabled" value="N" or-null="true"/>-->
+<!--                                    <order-by field-name="organizationName"/>-->
+<!--                                </entity-find>-->
+<!--                            </entity-options>-->
+<!--                        </drop-down></default-field></field>-->
+<!--                        <field name="dataSourceId"><default-field title="Data Source"><drop-down allow-empty="true">-->
+<!--                            <entity-options key="${dataSourceId}" text="${description}">-->
+<!--                                <entity-find entity-name="moqui.basic.DataSource">-->
+<!--                                    <order-by field-name="description"/></entity-find>-->
+<!--                            </entity-options>-->
+<!--                        </drop-down></default-field></field>-->
+                        <field name="comments"><default-field title="Comments"><text-area rows="3" cols="120"/></default-field></field>
+<!--                        <field name="shippingInstructions"><default-field><text-area rows="5" cols="120"/></default-field></field>-->
+
+                        <field name="submitButton"><default-field title="Update Organization"><submit/></default-field></field>
+                    </form-single>
+                </widgets>
+            </section>
+<!--            agreement section-->
+            <container-box>
+                <box-header title="Service Agreement"></box-header>
+                <box-body>
+                    <form-list name="AgreementList" list="agreementList" skip-form="true">
+                        <entity-find entity-name="mantle.party.agreement.Agreement" list="agreementList">
+                            <!--                <search-form-inputs default-order-by="-fromDate"/>-->
+                            <econdition field-name="agreementTypeEnumId"/>
+
+                            <econditions combine="or">
+                                <econdition field-name="organizationPartyId" from="partyId"/>
+                                <econdition field-name="otherPartyId" from="partyId"  />
+                            </econditions>
+                        </entity-find>
+
+                        <field name="agreementId"><default-field>
+                            <link url="../../ServiceAgreement/EditAgreement" text="${agreementId}" link-type="anchor"/></default-field></field>
+                        <field name="description"><default-field>
+                            <link url="../../ServiceAgreement/EditAgreement" text="${description}" link-type="anchor"/></default-field></field>
+
+<!--                        <field name="agreementTypeEnumId"><default-field title="Type">-->
+<!--                            <display-entity entity-name="moqui.basic.Enumeration"/></default-field></field>-->
+
+                        <field name="statusId"><default-field title="Status">
+                            <display-entity entity-name="moqui.basic.StatusItem"/></default-field></field>
+
+                        <field name="organizationPartyId"><default-field title="Service Demand Side">
+                            <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
+                        <!--            <field name="organizationRoleTypeId"><default-field title="Role">-->
+                        <!--                <display-entity entity-name="mantle.party.RoleType"/></default-field></field>-->
+
+                        <field name="otherPartyId"><default-field title="Service Provider">
+                            <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
+
+                        <!--            <field name="otherRoleTypeId"><default-field title="Role">-->
+                        <!--                <display-entity entity-name="mantle.party.RoleType"/></default-field></field>-->
+
+
+                        <field name="fromDate"><default-field title="Valid From"><display format="yyyy-MM-dd"/></default-field></field>
+                        <field name="thruDate"><default-field title="Valid Thru"><display  format="yyyy-MM-dd"/></default-field></field>
+                        <form-list-column>
+                            <field-ref name="agreementId"/>
+                            <field-ref name="description"/>
+                        </form-list-column>
+                        <form-list-column>
+                            <field-ref name="statusId"/>
+                            <field-ref name="fromDate"/>
+                            <field-ref name="thruDate"/>
+                        </form-list-column>
+                        <form-list-column>
+                            <field-ref name="organizationPartyId"/>
+                        </form-list-column>
+                        <form-list-column>
+                            <field-ref name="otherPartyId"/>
+                        </form-list-column>
+
+                    </form-list>
+                </box-body>
+            </container-box>
+            <section-include name="RolesSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+            <section-include name="PartyIdentificationSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+        </row-col><row-col lg="6">
+            <section-include name="NotesSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+            <section-include name="ContactInfoSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+            <section-include name="PaymentMethodSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+            <section-include name="FinancialAccountSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+            <section-include name="ContentSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>
+        </row-col></container-row>
+    </widgets>
+</screen>

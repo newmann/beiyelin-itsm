@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <field name="statusFlowId" type="id" default="Default"/>
+    </extend-entity>
+
+    <view-entity entity-name="AgreementOrganizationPartyDetail" package="mantle.party.agreement">
+        <member-entity entity-alias="AGM" entity-name="mantle.party.agreement.Agreement"/>
+        <member-entity entity-alias="PTY" entity-name="mantle.party.Party" join-from-alias="AGM" join-optional="true">
+            <key-map field-name="organizationPartyId" related="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="ORG" entity-name="mantle.party.Organization" join-from-alias="PTY" join-optional="true">
+            <key-map field-name="partyId"/></member-entity>
+        <alias-all entity-alias="AGM"/>
+        <alias-all entity-alias="PTY">
+            <exclude field="comments"/>
+        </alias-all>
+        <alias-all entity-alias="ORG"/>
+        <alias name="partyComments" entity-alias="PTY" field="comments"/>
+
+    </view-entity>
+
+    <entity entity-name="AgreementServiceTime" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="serviceTimeTypeEnumId" type="id" is-pk="true"/>
+        <field name="workTimeFrom" type="time"/>
+        <field name="workTimeThru" type="time"/>
+        <field name="holidayFrom" type="time"/>
+        <field name="holidayThru" type="time"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" title="ServiceTimeType" related="moqui.basic.Enumeration" short-alias="type">
+            <key-map field-name="serviceTimeTypeEnumId"/></relationship>
+        <seed-data>
+            <!-- Service Time Type -->
+            <moqui.basic.EnumerationType description="Service Time Type" enumTypeId="ServiceTimeType"/>
+            <moqui.basic.LocalizedEntityField entityName="moqui.basic.EnumerationType" fieldName="description"
+                                              pkValue="ServiceTimeType" locale="zh_CN" localized="服务时间类型" />
+
+            <moqui.basic.Enumeration enumId="SvtServiceDesk" description="Service Desk" enumTypeId="ServiceTimeType"/>
+            <moqui.basic.Enumeration enumId="SvtOnField" description="On Field" enumTypeId="ServiceTimeType"/>
+            <moqui.basic.Enumeration enumId="SvtTechnicalSupport" description="Technical Support" enumTypeId="ServiceTimeType"/>
+            <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                              pkValue="SvtServiceDesk" locale="zh_CN" localized="服务台" />
+            <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                              pkValue="SvtOnField" locale="zh_CN" localized="现场" />
+            <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                              pkValue="SvtTechnicalSupport" locale="zh_CN" localized="技术支持" />
+
+        </seed-data>
+
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceTime" short-alias="serviceTimes">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <entity entity-name="AgreementServiceCategory" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="productCategoryId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" related="mantle.product.category.ProductCategory"/>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceCategory" short-alias="serviceCategories">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+    <view-entity entity-name="AgreementServiceCategoryDetail" package="mantle.party.agreement">
+        <member-entity entity-alias="ASCTG" entity-name="mantle.party.agreement.AgreementServiceCategory"/>
+        <member-entity entity-alias="PC" entity-name="mantle.product.category.ProductCategory" join-from-alias="ASCTG" join-optional="true">
+            <key-map field-name="productCategoryId"/>
+        </member-entity>
+        <alias-all entity-alias="ASCTG"/>
+        <alias-all entity-alias="PC"/>
+    </view-entity>
+
+    <entity entity-name="AgreementServiceLocation" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="serviceLocationPartyId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" related="mantle.party.Party">
+            <key-map field-name="serviceLocationPartyId"/>
+        </relationship>
+        <relationship type="one" related="mantle.party.Organization">
+            <key-map field-name="serviceLocationPartyId"/>
+        </relationship>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceLocation" short-alias="serviceLocations">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <view-entity entity-name="AgreementServiceLocationDetail" package="mantle.party.agreement">
+        <member-entity entity-alias="ASL" entity-name="mantle.party.agreement.AgreementServiceLocation"/>
+        <member-entity entity-alias="PTY" entity-name="mantle.party.Party" join-from-alias="ASL" join-optional="true">
+            <key-map field-name="serviceLocationPartyId" related="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="PER" entity-name="mantle.party.Person" join-from-alias="PTY" join-optional="true">
+            <key-map field-name="partyId"/></member-entity>
+        <member-entity entity-alias="ORG" entity-name="mantle.party.Organization" join-from-alias="PTY" join-optional="true">
+            <key-map field-name="partyId"/></member-entity>
+        <alias-all entity-alias="ASL"/>
+        <alias-all entity-alias="PTY">
+            <exclude field="comments"/>
+        </alias-all>
+        <alias-all entity-alias="PER"/>
+        <alias-all entity-alias="ORG"/>
+        <alias name="partyComments" entity-alias="PTY" field="comments"/>
+    </view-entity>
+
+    <entity entity-name="AgreementServiceProduct" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="productId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" related="mantle.product.Product"/>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceProduct" short-alias="serviceProducts">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <view-entity entity-name="AgreementServiceProductDetail" package="mantle.party.agreement">
+        <member-entity entity-alias="ASP" entity-name="mantle.party.agreement.AgreementServiceProduct"/>
+        <member-entity entity-alias="PD" entity-name="mantle.product.Product" join-from-alias="ASP" join-optional="true">
+            <key-map field-name="productId"/>
+        </member-entity>
+        <alias-all entity-alias="ASP"/>
+        <alias-all entity-alias="PD">
+            <exclude field="comments"/>
+        </alias-all>
+        <alias name="productComments" entity-alias="PD" field="comments"/>
+    </view-entity>
+
+    <entity entity-name="AgreementServiceLevel" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="serviceLevel" type="text-short" is-pk="true"/>
+        <field name="description" type="text-long"/>
+        <field name="example" type="text-long"/>
+        <field name="enabled" type="text-indicator" enable-audit-log="update" default="'Y'"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceLevel" short-alias="serviceLevel">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <entity entity-name="AgreementServiceLevelAgreement" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="processName" type="text-short" />
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceLevelAgreement" short-alias="serviceLevelAgreement">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <entity entity-name="AgreementServiceEscalateLevelDemandSide" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="escalateLevelEnumId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" related="mantle.party.Party"/>
+        <relationship type="one" related="mantle.party.Person"/>
+        <relationship type="one" title="SvcEscalateLevel" related="moqui.basic.Enumeration" >
+            <key-map field-name="escalateLevelEnumId"/></relationship>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelDemandSide" short-alias="escalateLevelDemandSide">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <entity entity-name="AgreementServiceEscalateLevelProvider" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="escalateLevelEnumId" type="text-short" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" related="mantle.party.Party"/>
+        <relationship type="one" related="mantle.party.Person"/>
+        <relationship type="one" title="SvcEscalateLevel" related="moqui.basic.Enumeration" >
+            <key-map field-name="escalateLevelEnumId"/></relationship>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelProvider" short-alias="escalateLevelProvider">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <entity entity-name="AgreementServiceEscalateLevelRule" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="serviceLevel" type="text-short" is-pk="true"/>
+        <field name="slaIndicatorEnumId" type="id" is-pk="true"/>
+        <field name="escalateTypeEnumId" type="id" is-pk="true"/>
+        <field name="escalateValue" type="number-decimal" is-pk="true"/>
+        <field name="escalateLevelEnumId" type="text-short"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" title="SLAIndicator" related="moqui.basic.Enumeration" >
+            <key-map field-name="slaIndicatorEnumId"/></relationship>
+        <relationship type="one" title="SvcEscalateType" related="moqui.basic.Enumeration" >
+            <key-map field-name="escalateTypeEnumId"/></relationship>
+        <relationship type="one" related="mantle.party.agreement.AgreementServiceLevel">
+            <key-map field-name="agreementId" />
+            <key-map field-name="serviceLevel"/>
+        </relationship>
+        <relationship type="one" title="SvcEscalateLevel" related="moqui.basic.Enumeration" >
+            <key-map field-name="escalateLevelEnumId"/></relationship>
+
+    </entity>
+
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelRule" short-alias="escalateLevelRule">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+</entities>

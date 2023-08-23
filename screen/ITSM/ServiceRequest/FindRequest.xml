@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-include="false">
+<!--服务请求
+    1、填写服务请求的次序：
+        a、确定服务请求方，（为当前用户所在的组织（该组织自己员工）或提供服务的组织（服务外包方代为提交请求），且组织属性为OrgServiceDemandSide）
+            添加到RequestParty中，roleTypeId为OrgServiceDemandSide
+        b、选择该服务请求方下面的服务地址facility，
+        c、输入紧急程度
+        d、输入到期时间
+        e、问题名称
+        f、问题描述
+        g、提供提交、存为草稿两个按钮，分别对应两个状态
+-->
+
+    <transition name="findRequest"><default-response url="."/></transition>
+    <transition name="editRequest"><default-response url="../EditRequest"/></transition>
+    <transition name="createRequest"><service-call name="beiyelin.request.RequestServices.create#ServiceRequest"/>
+        <default-response url="."/></transition>
+    <transition name="submitRequest">
+        <actions>
+            <message type="warning">context : ${context}</message>
+        </actions>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="projectSummary"><default-response url="//${appRoot}/Project/ProjectSummary"/></transition>
+    <transition name="editFacility"><default-response url="//${appRoot}/Facility/EditFacility"/></transition>
+    <transition name="editStore"><default-response url="//apps/${appRoot}/ProductStore/EditStore"/></transition>
+
+    <transition-include name="searchPartyList" location="component://SimpleScreens/template/party/PartyForms.xml"/>
+
+    <transition name="getPartyDetailFromRelationshipByToParty">
+        <parameter name="toPartyId" required="true"/>
+        <parameter name="toRoleTypeId" required="true"/>
+        <parameter name="relationshipTypeEnumId" required="true"/>
+        <parameter name="fromRoleTypeId"/>
+        <actions>
+            <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="fromPartyList">
+                <date-filter/>
+                <econdition field-name="toPartyId"/>
+                <econdition field-name="relationshipTypeEnumId"/>
+                <econdition field-name="toRoleTypeId" />
+                <econdition field-name="fromRoleTypeId" ignore-if-empty="true"/>
+            </entity-find>
+            <script>
+                def outList = []
+                for (def fromParty in fromPartyList)
+                    outList.add([value:fromParty.fromPartyId, label: ec.resource.expand("PartyNameTemplate","",fromParty)])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="getServiceLocationList">
+        <parameter name="serviceDemandSidePartyId" required="true"/>
+        <parameter name="term"/>
+        <actions>
+
+            <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="serviceLocationList" cache="false">
+                <econditions combine="or">
+                    <econdition field-name="pseudoId" operator="like" value="%${term}%" ignore-case="true"/>
+                    <econdition field-name="organizationName" operator="like" value="%${term}%" ignore-case="true"/>
+                </econditions>
+                <econdition field-name="toPartyId" from="serviceDemandSidePartyId"/>
+                <!--                <econdition field-name="toPartyId"/>-->
+                <econdition field-name="relationshipTypeEnumId" value="PrtOrgRollup"/>
+                <econdition field-name="toRoleTypeId" value="OrgServiceDemandSide"/>
+                <econdition field-name="fromRoleTypeId" value="OrgServiceLocation"/>
+            </entity-find>
+
+            <script>
+                def outList = []
+                for (def serviceLocation in serviceLocationList)
+                    outList.add([value:serviceLocation.fromPartyId, label: serviceLocation.pseudoId +':' + serviceLocation.organizationName])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <transition-include name="getFacilityList" location="component://SimpleScreens/template/facility/FacilityTransitions.xml"/>
+    <transition-include name="getProductList" location="component://SimpleScreens/template/product/ProductTransitions.xml"/>
+
+    <actions>
+<!--        <set field="partyId" from="partyId ?: findPartyId"/>-->
+<!--        <set field="requestTypeEnumId" value="RqtService"/>-->
+        <set field="ServiceDemandSideRoleTypeId" value="OrgServiceDemandSide"/>
+        <set field="ServiceRequestTypeId" value="RqtService"/>
+
+    </actions>
+    <widgets>
+        <container-dialog id="NewRequestContainer" button-text="New Service Request">
+            <form-single name="NewRequestForm" transition="createRequest">
+                <field name="requestTypeEnumId" from="ServiceRequestTypeId">
+                    <default-field title="Type"><hidden/></default-field>
+                </field>
+
+                <field name="requestOrganizationPartyId"><default-field title="Service Demand Side ">
+                    <drop-down ><dynamic-options transition="searchPartyList"
+                            parameter-map="[roleTypeId:ServiceDemandSideRoleTypeId,includeDisabled:false]"
+                    /></drop-down>
+                </default-field></field>
+                <field name="serviceLocationPartyId">
+                    <default-field title="Service Location">
+                        <drop-down >
+                            <dynamic-options transition="getServiceLocationList" >
+                                <depends-on field="requestOrganizationPartyId" parameter="serviceDemandSidePartyId"/>
+                            </dynamic-options>
+                        </drop-down>
+                    </default-field>
+                </field>
+
+<!--TODO                暂时先用ServiceDemandSide，应该改成ServiceLocation-->
+                <field name="reporterPartyId">
+                    <default-field title="Reporter">
+                        <drop-down >
+                            <dynamic-options transition="getPartyDetailFromRelationshipByToParty"
+                                             parameter-map="[toRoleTypeId:'OrgServiceDemandSide', relationshipTypeEnumId:'PrtEmployee']" >
+                                <depends-on field="requestOrganizationPartyId" parameter="toPartyId"/>
+                            </dynamic-options>
+                        </drop-down>
+                    </default-field>
+
+                </field>
+
+                <field name="facilityId"><default-field title="Facility">
+                    <drop-down allow-empty="true">
+                        <dynamic-options transition="getServiceLocationList" >
+                            <depends-on field="serviceLocationPartyId" parameter="ownerPartyId"/>
+                        </dynamic-options>
+
+<!--                        <entity-options key="${facilityId}" text="FacilityNameTemplate">-->
+<!--                            <entity-find entity-name="mantle.facility.Facility" list="facilityList">-->
+<!--                                <econdition field-name="facilityTypeEnumId" value="FcTpWarehouse"/>-->
+<!--                                <order-by field-name="facilityName"/>-->
+<!--                            </entity-find>-->
+<!--                        </entity-options>-->
+                    </drop-down></default-field>
+                </field>
+                <field name="productId"><default-field title="Product" tooltip="输入两个字符才能开始查询">
+                    <drop-down allow-empty="true" >
+
+                        <dynamic-options transition="getProductList" min-length="2" >
+                        </dynamic-options>
+                    </drop-down></default-field>
+
+                </field>
+
+
+<!--                <field name="statusId"><default-field title="Initial Status">-->
+<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusDropDown">-->
+<!--                        <set field="statusTypeId" value="Request"/><set field="noCurrentSelectedKey" value="ReqSubmitted"/></widget-template-include>-->
+<!--                </default-field></field>-->
+
+                <field name="requestName"><default-field title="Request Name"><text-line size="60"/></default-field></field>
+                <field name="description"><default-field title="Description"><text-area rows="10"/></default-field></field>
+
+                <field name="priority"><default-field>
+                    <drop-down no-current-selected-key="5"><option key="1"/><option key="2"/><option key="3"/><option key="4"/>
+                        <option key="5"/><option key="6"/><option key="7"/><option key="8"/><option key="9"/></drop-down>
+                </default-field></field>
+                <field name="responseRequiredDate"><default-field title="Due Date">
+                    <date-time type="date-time"/></default-field></field>
+
+                <field name="draftStatus"><default-field title="Save as Draft"><submit/></default-field></field>
+                <field name="submittedStatus"><default-field title="Save as Submitted">
+                    <submit />
+                </default-field></field>
+                <field-layout>
+                    <fields-not-referenced/>
+                    <field-col-row>
+                        <field-col md="6"><field-ref name="draftStatus"/></field-col>
+                        <field-col md="6" style="text-right"><field-ref name="submittedStatus"/></field-col>
+                    </field-col-row>
+<!--                    <field-row><field-ref name="submitButton"/><field-ref name="submitRequest"/></field-row>-->
+                </field-layout>
+            </form-single>
+        </container-dialog>
+
+        <form-list name="ListRequests" list="requestList" skip-form="true" header-dialog="true"
+                select-columns="true" saved-finds="true" show-page-size="true"  >
+            <entity-find entity-name="mantle.request.RequestAndParty" list="requestList" distinct="true">
+                <search-form-inputs default-order-by="priority,requestDate">
+                    <default-parameters statusId="ReqDraft,ReqSubmitted,ReqReviewed,ReqInProgress" statusId_op="in"/></search-form-inputs>
+<!--                <date-filter ignore="!partyId"/>-->
+                <econdition field-name="requestTypeEnumId" from="ServiceRequestTypeId"/>
+            </entity-find>
+            <row-actions>
+<!--                <entity-find entity-name="mantle.request.RequestParty" list="partyList">-->
+<!--                    <date-filter/><econdition field-name="requestId"/></entity-find>-->
+<!--                <set field="customerRp" from="partyList.find({ it.roleTypeId == 'Customer' })"/>-->
+<!--                <set field="assigneeRp" from="partyList.find({ it.roleTypeId == 'Assignee' })"/>-->
+            </row-actions>
+            <!-- called findPartyId instead of partyId so form-list.entity-find doesn't automatically select partyId
+                (don't want unless querying by partyId to avoid duplicate records from the RequestParty join) -->
+<!--            <field name="findPartyId"><header-field title="Party">-->
+<!--                <drop-down allow-empty="true"><dynamic-options transition="searchPartyList"-->
+<!--                                                               parameter-map="[roleTypeId:ServiceDemandSideRoleTypeId]" -->
+<!--                                                               server-search="true" min-length="2"/></drop-down>-->
+<!--            </header-field></field>-->
+<!--            <field name="roleTypeId"><header-field title="Has Role">-->
+<!--                <drop-down allow-empty="true">-->
+<!--                    <entity-options key="${roleTypeId}" text="${description}">-->
+<!--                        <entity-find entity-name="mantle.party.RoleGroupMemberAndType" cache="true">-->
+<!--                            <econdition field-name="roleGroupEnumId" value="RgpRequest"/>-->
+<!--                            <order-by field-name="description"/></entity-find></entity-options>-->
+<!--                </drop-down>-->
+<!--            </header-field></field>-->
+            <field name="requestOrganizationPartyId">
+                <header-field show-order-by="true" title="Service Demand Side">
+                    <drop-down allow-empty="true" ><dynamic-options transition="searchPartyList"
+                                                                   parameter-map="[roleTypeId:ServiceDemandSideRoleTypeId]"
+                                                                   /></drop-down>
+                </header-field>
+                <default-field><display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/>
+                </default-field>
+            </field>
+            <field name="serviceLocationPartyId">
+                <header-field show-order-by="true" title="Service Location">
+                    <drop-down allow-empty="true" allow-multiple="true" >
+                        <dynamic-options transition="getServiceLocationList" label-field="label" value-field="value"  >
+                            <depends-on field="requestOrganizationPartyId" parameter="serviceDemandSidePartyId"/>
+                        </dynamic-options>
+                    </drop-down>
+                </header-field>
+                <default-field><display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field>
+            </field>
+
+            <field name="priority">
+                <header-field show-order-by="true" title="Pri">
+                    <drop-down allow-empty="true"><option key="1"/><option key="2"/><option key="3"/><option key="4"/>
+                        <option key="5"/><option key="6"/><option key="7"/><option key="8"/><option key="9"/></drop-down>
+                </header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="requestId">
+                <header-field title="ID"><text-find size="10" hide-options="true"/></header-field>
+                <default-field><link url="editRequest" text="${requestId}" link-type="anchor"/></default-field>
+            </field>
+            <field name="requestName">
+                <header-field title="Name" show-order-by="true"><text-find size="30"/></header-field>
+                <default-field><link url="editRequest" text="${requestName}" link-type="anchor"/></default-field>
+            </field>
+
+
+            <field name="facilityId">
+                <header-field title="Facility"><drop-down allow-empty="true">
+                    <entity-options key="${facilityId}" text="FacilityNameTemplate">
+                        <entity-find entity-name="mantle.facility.Facility" list="facilityList">
+                            <econdition field-name="facilityTypeEnumId" value="FcTpWarehouse"/>
+                            <order-by field-name="facilityName"/></entity-find></entity-options>
+                </drop-down></header-field>
+                <default-field><link url="editFacility" entity-name="mantle.facility.Facility" text="FacilityNameTemplate" link-type="anchor"/></default-field>
+            </field>
+            <field name="productId">
+                <header-field title="Product">
+                    <drop-down allow-empty="true">
+                        <entity-options key="${productId}" text="${pseudoId}: ${productName}">
+                            <entity-find entity-name="mantle.product.Product">
+                                <order-by field-name="pseudoId"/></entity-find></entity-options>
+                    </drop-down>
+                </header-field>
+                <default-field><link url="." entity-name="mantle.product.Product" text="ProductNameTemplate" link-type="anchor"/></default-field>
+            </field>
+            <field name="assetId">
+                <header-field title="Asset">
+<!--                    <drop-down allow-empty="true">-->
+<!--                        <entity-options key="${productId}" text="${pseudoId}: ${productName}">-->
+<!--                            <entity-find entity-name="mantle.product.Product">-->
+<!--                                <order-by field-name="pseudoId"/></entity-find></entity-options>-->
+<!--                    </drop-down>-->
+                </header-field>
+                <default-field><link url="." entity-name="mantle.product.asset.Asset" text="${serialNumber} : ${assetName}" link-type="anchor"/></default-field>
+            </field>
+            <field name="requestChannelEnumId">
+                <header-field title="Request Channel" show-order-by="true">
+                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                        <set field="enumTypeId" value="RequestChannel"/><set field="allowEmpty" value="true"/>
+                        <set field="allowMultiple" value="true"/></widget-template-include>
+                </header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
+            </field>
+            <field name="statusId">
+                <header-field title="Status" show-order-by="true">
+                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusDropDown">
+                        <set field="statusTypeId" value="Request"/><set field="allowEmpty" value="true"/>
+                        <set field="allowMultiple" value="true"/></widget-template-include>
+                </header-field>
+                <default-field><display-entity entity-name="moqui.basic.StatusItem"/></default-field>
+            </field>
+            <field name="requestResolutionEnumId">
+                <header-field title="Resolution" show-order-by="true">
+                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                        <set field="enumTypeId" value="RequestResolution"/><set field="allowEmpty" value="true"/>
+                        <set field="allowMultiple" value="true"/></widget-template-include>
+                </header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
+            </field>
+            <field name="requestDate">
+                <header-field title="Request Date" show-order-by="true"><date-period allow-empty="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="responseRequiredDate">
+                <header-field title="Due Date" show-order-by="true"><date-period allow-empty="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+
+
+            <field name="submitButton"><header-field title="Find"><submit/></header-field></field>
+
+            <form-list-column><field-ref name="priority"/></form-list-column>
+            <form-list-column><field-ref name="requestDate"/><field-ref name="responseRequiredDate"/></form-list-column>
+            <form-list-column><field-ref name="requestName"/><field-ref name="requestId"/></form-list-column>
+            <form-list-column><field-ref name="requestOrganizationPartyId"/><field-ref name="serviceLocationPartyId"/><field-ref name="facilityId"/></form-list-column>
+            <form-list-column>
+                <field-ref name="productId"/><field-ref name="assetId"/>
+            </form-list-column>
+            <form-list-column><field-ref name="statusId"/><field-ref name="requestResolutionEnumId"/></form-list-column>
+        </form-list>
+    </widgets>
+</screen>

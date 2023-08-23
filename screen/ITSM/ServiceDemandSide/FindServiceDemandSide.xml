@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-include="false">
+
+<!--
+    1、新增需求方，需要按创建组织的方式创建，暂时先不考虑数据可见性问题
+
+-->
+    <transition name="editServiceDemandSide"><default-response url="../EditServiceDemandSide"/></transition>
+    <transition name="findAgreement"><default-response url="//${appRoot}/ServiceAgreement/FindAgreement"/></transition>
+
+
+    <transition name="createServiceDemandSide"><service-call name="mantle.party.PartyServices.create#Organization"/>
+        <default-response url="../EditServiceDemandSide"/></transition>
+
+    <transition-include name="searchPartyList" location="component://SimpleScreens/template/party/PartyForms.xml"/>
+    <transition-include name="getPartyClassificationList" location="component://SimpleScreens/template/party/PartyTransitions.xml"/>
+
+<!--    <pre-actions><set field="roleTypeId" value="Supplier"/></pre-actions>-->
+    <actions>
+        <service-call name="mantle.party.PartyServices.search#Party" in-map="context" out-map="context"/>
+    </actions>
+    <widgets>
+        <container-row>
+            <row-col md="6">
+                <container-dialog id="CreateServiceDemandSideDialog" button-text="New Service Demand Side">
+                    <form-single name="CreateServiceDemandSideForm" transition="createServiceDemandSide">
+                        <field name="roleTypeId"><default-field><hidden/></default-field></field>
+                        <field name="organizationName"><default-field><text-line size="60"/></default-field></field>
+                        <field name="pseudoId"><default-field title="ID"><text-line size="15"/></default-field></field>
+                        <field name="annualRevenue"><default-field title="Annual Revenue"><text-line size="60" input-type="number"/></default-field></field>
+                        <field name="numEmployees"><default-field title="Number of Employees"><text-line size="60" input-type="number"/></default-field></field>
+                        <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                        <field-layout>
+                            <field-ref name="roleTypeId"/>
+                            <field-ref name="pseudoId"/>
+                            <field-ref name="organizationName"/>
+                            <field-row>
+                                <field-ref name="annualRevenue"/>
+                                <field-ref name="numEmployees"/>
+                            </field-row>
+                            <field-ref name="submitButton"/>
+
+                        </field-layout>
+                    </form-single>
+                </container-dialog>
+
+                <link url="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax"
+                      url-type="plain" link-type="anchor" target-window="_blank" text="Search String Reference"/>
+
+            </row-col>
+            <row-col md="6" style="text-right">
+                <container-dialog id="AddExistOrganizationDialog" button-text="Add Exist Organization">
+                    <form-single name="CreateServiceDemandSideForm" transition="createServiceDemandSide">
+                        <field name="roleTypeId"><default-field><hidden/></default-field></field>
+                        <field name="organizationName"><default-field><text-line size="60"/></default-field></field>
+                        <field name="pseudoId"><default-field title="ID"><text-line size="15"/></default-field></field>
+                        <field name="annualRevenue"><default-field title="Annual Revenue"><text-line size="60" input-type="number"/></default-field></field>
+                        <field name="numEmployees"><default-field title="Number of Employees"><text-line size="60" input-type="number"/></default-field></field>
+                        <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                        <field-layout>
+                            <field-ref name="roleTypeId"/>
+                            <field-ref name="pseudoId"/>
+                            <field-ref name="organizationName"/>
+                            <field-row>
+                                <field-ref name="annualRevenue"/>
+                                <field-ref name="numEmployees"/>
+                            </field-row>
+                            <field-ref name="submitButton"/>
+
+                        </field-layout>
+                    </form-single>
+                </container-dialog>
+            </row-col>
+        </container-row>
+        <form-single name="OuterSearchForm" extends="component://SimpleScreens/screen/SimpleScreens/Party/FindParty.xml#OuterSearchForm"/>
+
+        <form-list name="SupplierListForm" list="documentList" skip-form="true" header-dialog="true"
+                extends="component://SimpleScreens/screen/SimpleScreens/Party/FindParty.xml#PartyListForm">
+            <field name="pseudoId"><default-field><link url="editServiceDemandSide" text="${pseudoId}" link-type="anchor"/></default-field></field>
+            <field name="combinedName"><default-field><link url="editServiceDemandSide" text="PartyNameOnlyTemplate" text-map="party" link-type="anchor"/></default-field></field>
+            <field name="username"><default-field>
+                <ignored/>
+            </default-field></field>
+            <field name="username"><default-field>
+                <ignored/>
+            </default-field></field>
+
+            <field name="submitButton">
+                <header-field title="Find"><submit/></header-field>
+<!--                <default-field><link url="findAgreement" text="Service Agreement" parameter-map="[organizationPartyId:partyId]"-->
+<!--                        link-type="anchor"/></default-field>-->
+            </field>
+
+            <form-list-column>
+                <field-ref name="pseudoId"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="combinedName"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="roleTypeId"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="disabled"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="matches"/>
+            </form-list-column>
+        </form-list>
+
+        <container-row><row-col md="2" style="text-right"><label text="Current Search String" type="strong"/></row-col>
+            <row-col><label text="${queryString?:'No Current Search'}"/></row-col></container-row>
+    </widgets>
+</screen>

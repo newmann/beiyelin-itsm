@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Edit Service Engineer" default-menu-index="2">
+
+    <parameter name="partyId" required="true"/>
+    <parameter name="subordinatePartyId" required="true"/>
+
+
+    <transition-include name="updateParty" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="createPartyRole" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="deletePartyRole" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+
+    <transition-include name="storePartyContactMech" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="removeContactInfo" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updateContactMechMutable" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="validateAddress" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+
+    <transition-include name="createContactMechOther" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updatePartyContactOther" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="getContactMechPurposesByType" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+    <transition-include name="createPartyNote" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updatePartyNote" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+    <transition-include name="createContent" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="updateContent" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+    <transition-include name="downloadContent" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+    <subscreens>
+        <subscreens-item name="UpdateContactInfo" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation/UpdateContactInfo.xml"/>
+        <subscreens-item name="ExpiredContactOther" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation/ExpiredContactOther.xml"/>
+        <subscreens-item name="ExpiredPostal" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation/ExpiredPostal.xml"/>
+<!--        <subscreens-item name="UpdatePaymentMethodInfo" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/UpdatePaymentMethodInfo.xml"/>-->
+<!--        <subscreens-item name="FindDuplicates" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/FindDuplicates.xml"/>-->
+    </subscreens>
+
+    <actions>
+        <set field="masterPartyId" from="partyId"/>
+
+        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="party" auto-field-map="[partyId: subordinatePartyId]"/>
+        <if condition="party == null"><return error="true" message="Service Supervisor not found with ID ${partyId}"/></if>
+
+
+    </actions>
+    <widgets>
+        <container-row><row-col lg="6">
+
+            <form-single name="EditPersonForm" map="party" transition="updateParty"
+                extends="component://beiyelin-itsm/screen/ITSM/ServiceProvider/ServiceEngineers/EditServiceEngineer.xml#EditPersonForm">
+            </form-single>
+
+            <section-include name="RolesSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+
+<!--            <section-include name="PartyIdentificationSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+        </row-col><row-col lg="6">
+            <section-include name="NotesSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+            <section-include name="ContactInfoSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+<!--            <section-include name="PaymentMethodSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+<!--            <section-include name="FinancialAccountSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+            <section-include name="ContentSection" location="component://beiyelin-itsm/screen/ITSM/ServiceDemandSide/ServiceLocations/EditServiceLocation.xml"/>
+        </row-col></container-row>
+    </widgets>
+</screen>

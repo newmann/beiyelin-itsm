@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+
+    <extend-entity entity-name="Request" package="mantle.request">
+        <field name="requestOrganizationPartyId" type="id"/>
+        <field name="serviceLocationPartyId" type="id"/>
+        <field name="productId" type="id"/>
+        <field name="assetId" type="id"/>
+        <field name="requestChannelEnumId" type="id"/>
+        <relationship type="one" title="RequestOrganization" related="mantle.party.Party" short-alias="requestOrganization">
+            <key-map field-name="requestOrganizationPartyId"/></relationship>
+        <relationship type="one" title="ServiceLocation" related="mantle.party.Party" short-alias="serviceLocation">
+            <key-map field-name="serviceLocationPartyId"/></relationship>
+        <relationship type="one" title="AssetProduct" related="mantle.product.Product" short-alias="assetProduct">
+            <key-map field-name="productId"/></relationship>
+        <relationship type="one" title="Asset" related="mantle.product.asset.Asset" short-alias="asset">
+            <key-map field-name="assetId"/></relationship>
+
+        <relationship type="one" title="RequestChannel" related="moqui.basic.Enumeration" short-alias="requestChannel">
+            <key-map field-name="requestChannelEnumId"/></relationship>
+    </extend-entity>
+
+
+</entities>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="SLA" default-menu-index="8">
+    <!--
+        1、设置SLA指标与计算公式
+        2、如果SLA自动计算，则condition定义会比较复杂，考虑到SLA的报表会通过定制的方式来实现，所以这里只需要字符串描述即可
+        3、指标项会记录到ticket中，判断条件是：ticketType、serviceLevel，fromDate，thruDate
+
+        20230819
+        由于SLA计算规则比较复杂， 且每家都不同，所以算法需要通过定制来满足，可以通过Drools来支持
+        设置SLA的目的有两个：1、工单执行的时候，知道这张工单的SLA要求，从而指导和提醒工程师按时完成。
+        2、定期统计工单的SLA满足情况，从而对服务质量进行评估。
+
+        针对目标1：系统根据定制的规则，分析工单符合哪条规则，符合SLA规则的条件
+        针对目标2：如果目标1已经实现，系统在每张工单上记录了SLA的标准和实际情况，就是个统计分析的过程。
+        所以重点在目标1如何实现
+
+        设计一个Drools算法，
+            输入是：工单、协议，
+            输出：服务等级、考核指标（基本范围是确定的），考核值（实际值小于等于该值即为满足SLA，大于则为不满足）
+
+        所以，本维护界面只需要保存算法名称即可，系统在处理工单时，根据确定的协议编号，找到算法名称，进行运算，返回结界，并保存到工单中。
+
+        考核指标的定义：指标名称，指标类型，指标单位
+                      响应时间，时间，分钟
+                      问题解决时间，时间，小时
+                      到达时间，时间，小时
+                      上门次数，计数，次
+    -->
+    <parameter name="agreementId" required="true"/>
+
+
+    <transition name="addSLA"><service-call name="create#mantle.party.agreement.AgreementServiceLevelAgreement"/>
+        <default-response url="."/></transition>
+    <transition name="updateSLA"><service-call name="update#mantle.party.agreement.AgreementServiceLevelAgreement"/>
+        <default-response url="."/></transition>
+    <transition name="deleteSLA"><service-call name="delete#mantle.party.agreement.AgreementServiceLevelAgreement"/>
+        <default-response url="."/></transition>
+
+    <actions>
+<!--        <script>-->
+<!--            slaList = [[agreementSlaItemId:'1',ticketType:'Normal',serviceLevel:'超紧急',indicator:'响应时间',uomId:'分钟',fromOperator:'大于等于', fromValue:'0',toValue:'5', toOperator:'小于等于', condition:'响应时间小于等5分钟', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
+<!--                       [agreementSlaItemId:'2',ticketType:'Normal',serviceLevel:'超紧急',indicator:'问题解决时间',uomId:'小时',fromOperator:'大于等于', fromValue:'0',toValue:'4', toOperator:'小于等于',condition:'服务距离30公里以内，则4小时以内解决', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
+<!--                       [agreementSlaItemId:'3',ticketType:'Normal',serviceLevel:'超紧急',indicator:'问题解决时间',uomId:'小时',fromOperator:'大于等于', fromValue:'0',toValue:'8', toOperator:'小于等于', condition:'服务距离超过30公里的，则8小时以内解决', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
+<!--                       [agreementSlaItemId:'4',ticketType:'Normal',serviceLevel:'P0',indicator:'响应时间',uomId:'分钟',fromOperator:'大于等于', fromValue:'0',toValue:'5', toOperator:'小于等于', condition:'响应时间小于等5分钟', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
+<!--                       [agreementSlaItemId:'5',ticketType:'Normal',serviceLevel:'P0',indicator:'问题解决时间',uomId:'小时',fromOperator:'大于等于', fromValue:'0',toValue:'4', toOperator:'小于等于', condition:'服务距离30公里以内，则4小时以内解决', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
+<!--            ]-->
+<!--        </script>-->
+
+    </actions>
+    <widgets>
+        <container-dialog id="AddSLA" button-text="Add SLA">
+            <form-single name="AddslaList" transition="addSLA">
+                <field name="agreementId"><default-field><hidden/></default-field></field>
+                <field name="processName"><default-field><text-line/></default-field></field>
+                <field name="comments"><default-field><text-area/></default-field></field>
+                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+
+        <form-list name="CategoriesForm" list="slaList" transition="updateSLA">
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceLevelAgreement" list="slaList">
+                <econdition field-name="agreementId"/>
+            </entity-find>
+
+            <field name="agreementId"><header-field><hidden/></header-field>
+                <default-field><hidden/></default-field>
+            </field>
+
+            <field name="processName">
+                <default-field>
+                    <text-line/>
+                </default-field>
+            </field>
+
+            <field name="comments">
+                <default-field title="Comments">
+                    <text-area/>
+                </default-field>
+            </field>
+
+            <field name="submitButton">
+                <header-field title="Actions">
+
+                </header-field>
+                <default-field title="Actions">
+                    <submit text="Update" />
+                    <link url="deleteSLA" text="Delete"/>
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

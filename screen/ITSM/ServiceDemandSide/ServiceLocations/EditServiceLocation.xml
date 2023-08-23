@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Location" default-menu-index="1">
+
+    <parameter name="partyId" required="true"/>
+    <parameter name="subordinatePartyId" required="true"/>
+
+    <transition name="updateParty"><service-call name="beiyelin.party.PartyServices.update#SubordinatePartyDetail"/>
+        <default-response url="." /></transition>
+
+    <transition name="createPartyRole"><service-call name="beiyelin.party.PartyServices.create#SubordinatePartyRole"/>
+        <default-response url="."/></transition>
+    <transition name="deletePartyRole"><service-call name="beiyelin.party.PartyServices.delete#SubordinatePartyRole"/>
+        <default-response url="."/></transition>
+
+<!--    <transition name="createPartyIdentification"><service-call name="create#mantle.party.PartyIdentification"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="updatePartyIdentification"><service-call name="update#mantle.party.PartyIdentification"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="deletePartyIdentification"><parameter name="partyIdTypeEnumId"/>-->
+<!--        <service-call name="delete#mantle.party.PartyIdentification"/><default-response url="."/></transition>-->
+
+<!--    <transition name="updatePaymentMethodInfo"><default-response url="UpdatePaymentMethodInfo"/></transition>-->
+<!--    <transition name="removePaymentMethod"><service-call name="mantle.account.PaymentMethodServices.delete#PaymentMethod"/>-->
+<!--        <default-response url="."/></transition>-->
+<!--    <transition name="findFinancialAccount"><default-response url="//${appRoot}/Accounting/FinancialAccount/FindFinancialAccount"/></transition>-->
+<!--    <transition name="editFinancialAccount"><default-response url="//${appRoot}/Accounting/FinancialAccount/EditFinancialAccount"/></transition>-->
+
+    <transition name="storePartyContactMech"><service-call name="beiyelin.party.ContactServices.store#SubordinatePartyContactMech"/>
+        <default-response url="."/></transition>
+    <transition name="removeContactInfo"><service-call name="beiyelin.party.ContactServices.delete#SubordinatePartyContactMech"/>
+        <default-response url="."/></transition>
+    <transition name="updateContactMechMutable"><service-call name="mantle.party.ContactServices.update#ContactMechMutable"/>
+        <default-response url="."/></transition>
+    <transition name="validateAddress"><service-call name="mantle.shipment.CarrierServices.validate#PostalAddress"/>
+        <default-response url="."/></transition>
+
+    <transition name="createContactMechOther"><service-call name="beiyelin.party.ContactServices.create#SubordinateContactMechOther"/>
+        <default-response url="."/></transition>
+    <transition name="updatePartyContactOther"><service-call name="beiyelin.party.ContactServices.update#SubordinatePartyContactOther"/>
+        <default-response url="."/></transition>
+    <transition-include name="getContactMechPurposesByType" location="component://SimpleScreens/template/party/PartyForms.xml"/>
+
+    <transition name="createPartyNote"><service-call name="beiyelin.party.PartyServices.create#SubordinatePartyNote"/>
+        <default-response url="."/></transition>
+    <transition name="updatePartyNote"><service-call name="beiyelin.party.PartyServices.update#SubordinatePartyNote"/>
+        <default-response url="."/></transition>
+
+    <transition name="createContent"><service-call name="beiyelin.party.PartyServices.create#SubordinatePartyContent"/>
+        <default-response url="."/></transition>
+    <transition name="updateContent"><service-call name="beiyelin.party.PartyServices.update#SubordinatePartyContent"/>
+        <default-response url="."/></transition>
+    <transition name="downloadContent" read-only="true">
+        <parameter name="partyContentId"/>
+        <actions><entity-find-one entity-name="mantle.party.PartyContent" value-field="partyContent"/>
+            <script>ec.web.sendResourceResponse(partyContent?.contentLocation)</script></actions>
+        <default-response type="none"/>
+    </transition>
+
+    <subscreens>
+<!--        <subscreens-item name="UpdateContactInfo" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/UpdateContactInfo.xml" no-sub-path="true"/>-->
+<!--        <subscreens-item name="ExpiredContactOther" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/ExpiredContactOther.xml"/>-->
+<!--        <subscreens-item name="ExpiredPostal" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/ExpiredPostal.xml"/>-->
+<!--        <subscreens-item name="UpdatePaymentMethodInfo" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/UpdatePaymentMethodInfo.xml"/>-->
+<!--        <subscreens-item name="FindDuplicates" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty/FindDuplicates.xml"/>-->
+    </subscreens>
+
+    <actions>
+<!--        <set field="partyId" from="subordinatePartyId"/>-->
+        <set field="masterPartyId" from="partyId"/>
+
+        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="party" auto-field-map="[partyId:subordinatePartyId]" />
+        <if condition="party == null"><return error="true" message="Service Location not found with ID ${partyId}"/></if>
+        <set field="ServiceLocationRoleType" value="OrgServiceLocation"/>
+
+<!--        <entity-find-one entity-name="mantle.party.PartyRole" value-field="partyRole">-->
+<!--            <field-map field-name="partyId" from="subordinatePartyId" /><field-map field-name="roleTypeId" from="ServiceLocationRoleType"/></entity-find-one>-->
+<!--        <if condition="partyRole == null"><return error="true" message="Party ${partyId} is not a ${ServiceLocationRoleType}"/></if>-->
+
+    </actions>
+    <widgets>
+        <container-row><row-col lg="6">
+
+<!--            <section-include name="EditPartySection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+            <section name="EditPartySection">
+                <widgets>
+                    <form-single name="EditOrganizationForm" map="party" transition="updateParty">
+                        <field name="partyId" from="masterPartyId"><default-field><hidden/></default-field></field>
+                        <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+                        <field name="pseudoId"><default-field title="ID"><text-line size="15"/></default-field></field>
+                        <field name="organizationName"><default-field><text-line size="60"/></default-field></field>
+<!--                        <field name="annualRevenue"><default-field title="Annual Revenue"><text-line size="60" input-type="number"/></default-field></field>-->
+<!--                        <field name="numEmployees"><default-field title="Number of Employees"><text-line size="60" input-type="number"/></default-field></field>-->
+<!--                        <field name="externalId"><default-field><text-line size="20"/></default-field></field>-->
+
+                        <field name="disabled"><default-field title="Disabled"><drop-down>
+                            <option key="N"/><option key="Y"/></drop-down></default-field></field>
+
+                        <field name="comments"><default-field title="Comments"><text-area rows="3" cols="120"/></default-field></field>
+<!--                        <field name="shippingInstructions"><default-field><text-area rows="5" cols="120"/></default-field></field>-->
+
+                        <field name="submitButton"><default-field title="Update Organization"><submit/></default-field></field>
+                    </form-single>
+                </widgets>
+            </section>
+
+            <section name="RolesSection"><actions>
+                <entity-find entity-name="mantle.party.PartyRole" list="partyRoleList">
+                    <econdition field-name="partyId" from="subordinatePartyId"/></entity-find>
+            </actions><widgets>
+                <container-box type="warning"><box-header title="Roles"/><box-toolbar>
+                    <container-dialog id="AddOtherRoleDialog" button-text="Add Other Role">
+                        <label text="Roles applied directly describe how the system should treat the Party, or what the Party is to users of the system." type="p"/>
+                        <label text="Any Role may be added here to organize parties for searching, etc but many are used to describe a Party's relationship to, or involvement with, other things in the system and have no effect when applied directly." type="p"/>
+                        <form-single name="AddOtherRoleForm" transition="createPartyRole">
+                            <field name="partyId" from="masterPartyId" ><default-field><hidden/></default-field></field>
+                            <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+                            <field name="roleTypeId"><default-field title="Role">
+                                <drop-down><entity-options key="${roleTypeId}" text="${description}">
+                                    <entity-find entity-name="mantle.party.RoleType"><order-by field-name="description"/></entity-find>
+                                </entity-options></drop-down>
+                            </default-field></field>
+                            <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                        </form-single>
+                    </container-dialog>
+                </box-toolbar><box-body-nopad>
+                    <form-list name="RolesForm" list="partyRoleList" transition="deletePartyRole" skip-header="true">
+                        <field name="partyId" from="masterPartyId"><default-field><hidden/></default-field></field>
+                        <field name="subordinatePartyId" from="subordinatePartyId"><default-field><hidden/></default-field></field>
+                        <field name="roleTypeId"><default-field title="Role">
+                            <display-entity entity-name="mantle.party.RoleType"/>
+                        </default-field></field>
+                        <field name="submitButton"><default-field title=""><submit icon="fa fa-trash" confirmation="Delete role?"/></default-field></field>
+                    </form-list>
+                </box-body-nopad></container-box>
+            </widgets></section>
+
+<!--            <section-include name="PartyIdentificationSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+        </row-col><row-col lg="6">
+            <section name="NotesSection"><actions>
+                <entity-find entity-name="mantle.party.PartyNote" list="partyNoteList">
+                    <econdition field-name="partyId" from="subordinatePartyId"/><order-by field-name="-noteDate"/></entity-find>
+            </actions><widgets>
+                <container-box><box-header title="Notes"/><box-toolbar>
+                    <container-dialog id="NewNoteDialog" button-text="Add Note">
+                        <form-single name="NewNoteForm" transition="createPartyNote">
+                            <field name="partyId"><default-field><hidden/></default-field></field>
+                            <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+                            <field name="noteText"><default-field title="Note"><text-area cols="60" rows="6"/></default-field></field>
+                            <field name="submitButton"><default-field title="Add Note"><submit/></default-field></field>
+                        </form-single>
+                    </container-dialog>
+                </box-toolbar><box-body>
+                    <section-iterate name="NoteIterateSection" list="partyNoteList" entry="partyNote"><actions>
+                        <entity-find-one entity-name="mantle.party.PersonWithUserAccount" value-field="paua">
+                            <field-map field-name="userId" from="partyNote.userId"/></entity-find-one>
+                    </actions><widgets>
+                        <label text="By ${paua?.firstName?:''} ${paua?.lastName?:''} (${paua?.username ?: partyNote.userId}) at ${ec.l10n.format(partyNote.noteDate, 'yyyy-MM-dd HH:mm')}" type="strong"/>
+                        <section name="UpdateNoteSection" condition="partyNote.userId == ec.user.userId || ec.user.isInGroup('ADMIN')"><widgets>
+                            <container-dialog id="UpdateNoteContainer" button-text="Edit Note">
+                                <form-single name="UpdateNoteForm" transition="updatePartyNote" map="partyNote">
+                                    <field name="partyId" from="masterPartyId"><default-field><hidden/></default-field></field>
+                                    <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+                                    <field name="noteDate"><default-field><hidden/></default-field></field>
+                                    <field name="noteText"><default-field title="Note"><text-area cols="60" rows="6"/></default-field></field>
+                                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                                </form-single>
+                            </container-dialog>
+                        </widgets></section>
+                        <label text="${partyNote.noteText}" type="p"/>
+                    </widgets></section-iterate>
+                </box-body></container-box>
+            </widgets></section>
+
+            <!-- Contact Information -->
+            <section name="ContactInfoSection"><actions>
+                <service-call name="mantle.party.ContactServices.get#PartyContactInfoList" out-map="contactOut"
+                              in-map="[partyId:subordinatePartyId, getAll:true]"/>
+                <!-- Find 'Other' ContactMechs -->
+                <set field="handledContactMechTypes" from="['CmtPostalAddress', 'CmtTelecomNumber', 'CmtEmailAddress', 'CmtWebAddress']"/>
+                <entity-find entity-name="mantle.party.contact.PartyContactMechInfo" list="otherPcmiList" limit="50">
+                    <date-filter/>
+                    <econdition field-name="partyId" from="subordinatePartyId"/>
+                    <!-- exclude the 4 types handled directly -->
+                    <econdition field-name="contactMechTypeEnumId" operator="not-in" from="handledContactMechTypes"/>
+                    <order-by field-name="contactMechTypeEnumId,fromDate"/>
+                </entity-find>
+            </actions><widgets>
+                <container-box type="info"><box-header title="Phone, Email, and Other"/><box-toolbar>
+                    <dynamic-dialog id="ExpiredOtherDialog" button-text="View Old" transition="ExpiredContactOther"
+                                    parameter-map="[partyId:subordinatePartyId]"/>
+
+                    <button-menu text="Add New" icon="fa fa-plus">
+                        <dynamic-dialog id="AddPhoneInfo" button-text="Phone" transition="UpdateContactInfo"
+                                        parameter-map="[partyId:partyId,subordinatePartyId:subordinatePartyId, createTelecom:'true']" />
+                        <dynamic-dialog id="AddEmailInfo" button-text="Email" transition="UpdateContactInfo"
+                                        parameter-map="[partyId:partyId,subordinatePartyId:subordinatePartyId,  createEmail:'true']"/>
+                        <dynamic-dialog id="AddWebUrlInfo" button-text="URL" transition="UpdateContactInfo"
+                                        parameter-map="[partyId:partyId,subordinatePartyId:subordinatePartyId,  createWeb:'true']"/>
+                        <container-dialog id="OtherCreateDialog" button-text="Other">
+                            <form-single name="OtherCreateForm" transition="createContactMechOther"
+                                         extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#OtherCreateForm">
+<!--                                <field name="partyId"><default-field><hidden/></default-field></field>-->
+                                <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                                <field name="contactMechTypeEnumId"><default-field title="Type">-->
+<!--                                    <drop-down><entity-options key="${enumId}" text="${description}">-->
+<!--                                        <entity-find entity-name="moqui.basic.Enumeration">-->
+<!--                                            <econdition field-name="enumTypeId" value="ContactMechType"/>-->
+<!--                                            <econdition field-name="enumId" operator="not-in" from="handledContactMechTypes"/>-->
+<!--                                            <order-by field-name="description"/>-->
+<!--                                        </entity-find>-->
+<!--                                    </entity-options></drop-down>-->
+<!--                                </default-field></field>-->
+<!--                                <field name="contactMechPurposeId"><default-field title="Purpose">-->
+<!--                                    <drop-down><dynamic-options transition="getContactMechPurposesByType">-->
+<!--                                        <depends-on field="contactMechTypeEnumId"/></dynamic-options></drop-down>-->
+<!--                                </default-field></field>-->
+<!--                                <field name="infoString"><default-field title="Value">-->
+<!--                                    <text-line size="60"/></default-field></field>-->
+<!--                                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>-->
+                            </form-single>
+                        </container-dialog>
+                    </button-menu>
+
+                </box-toolbar><box-body>
+                    <section-iterate name="PhoneInfoSection" list="contactOut.telecomNumberList" entry="contactInfo"><widgets>
+                        <container-row><row-col lg="6">
+                            <dynamic-dialog id="UpdatePhoneInfo" button-text="Update" transition="UpdateContactInfo"
+                                            parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId,
+                                            telecomContactMechId:contactInfo.telecomContactMechId,
+                                        telecomContactMechPurposeId:contactInfo.telecomContactMechPurposeId]"/>
+                            <container-dialog id="PhonePurposeDialog" button-text="Purpose">
+                                <form-single name="PhonePurposeForm" transition="storePartyContactMech"
+                                    extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#PhonePurposeForm">
+                                        <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                                    <field name="partyId"><default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechId" from="contactInfo.telecomContactMechId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="oldContactMechPurposeId" from="contactInfo.telecomContactMechPurposeId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechPurposeId" from="contactInfo.telecomContactMechPurposeId"><default-field title="Purpose">-->
+<!--                                        <drop-down><entity-options key="${contactMechPurposeId}" text="${description}">-->
+<!--                                            <entity-find entity-name="mantle.party.contact.ContactMechPurpose">-->
+<!--                                                <econdition field-name="contactMechTypeEnumId" value="CmtTelecomNumber"/>-->
+<!--                                                <order-by field-name="description"/>-->
+<!--                                            </entity-find>-->
+<!--                                        </entity-options></drop-down>-->
+<!--                                    </default-field></field>-->
+<!--                                    <field name="extension" from="contactInfo.telecomPartyContactMech?.extension">-->
+<!--                                        <default-field><text-line size="6" maxlength="8"/></default-field></field>-->
+<!--                                    <field name="updateButton"><default-field title="Update Purpose"><submit/></default-field></field>-->
+<!--                                    <field name="addButton"><default-field title="Add Purpose"><submit/></default-field></field>-->
+<!--                                    <field-layout><field-ref name="contactMechPurposeId"/><field-ref name="extension"/>-->
+<!--                                        <field-row-big><field-ref name="updateButton"/><field-ref name="addButton"/></field-row-big></field-layout>-->
+                                </form-single>
+                            </container-dialog>
+                            <link url="removeContactInfo" text=" " icon="fa fa-trash" confirmation="Remove phone number?"
+                                  parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId, contactMechId:contactInfo.telecomContactMechId,
+                                        contactMechPurposeId:contactInfo.telecomContactMechPurposeId]"/>
+                        </row-col><row-col lg="6">
+                            <label text="${contactInfo.telecomContactMechPurpose.description}" type="strong"/>
+                            <render-mode><text type="html,vuet,qvt" location="component://SimpleScreens/template/party/ContactInfo.html.gstring"/></render-mode>
+                        </row-col></container-row>
+                    </widgets></section-iterate>
+                    <section-iterate name="EmailInfoSection" list="contactOut.emailAddressList" entry="contactInfo"><widgets>
+                        <container-row><row-col lg="6">
+                            <dynamic-dialog id="UpdateEmailInfo" button-text="Update" transition="UpdateContactInfo"
+                                            parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId,
+                                            emailContactMechId:contactInfo.emailContactMechId,
+                                        emailContactMechPurposeId:contactInfo.emailContactMechPurposeId]"/>
+                            <container-dialog id="EmailPurposeDialog" button-text="Purpose">
+                                <form-single name="EmailPurposeForm" transition="storePartyContactMech"
+                                             extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#EmailPurposeForm">
+                                    <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                                    <field name="partyId"><default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechId" from="contactInfo.emailContactMechId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="oldContactMechPurposeId" from="contactInfo.emailContactMechPurposeId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechPurposeId" from="contactInfo.emailContactMechPurposeId"><default-field title="Purpose">-->
+<!--                                        <drop-down><entity-options key="${contactMechPurposeId}" text="${description}">-->
+<!--                                            <entity-find entity-name="mantle.party.contact.ContactMechPurpose">-->
+<!--                                                <econdition field-name="contactMechTypeEnumId" value="CmtEmailAddress"/>-->
+<!--                                                <order-by field-name="description"/>-->
+<!--                                            </entity-find>-->
+<!--                                        </entity-options></drop-down>-->
+<!--                                    </default-field></field>-->
+<!--                                    <field name="updateButton"><default-field title="Update Purpose"><submit/></default-field></field>-->
+<!--                                    <field name="addButton"><default-field title="Add Purpose"><submit/></default-field></field>-->
+<!--                                    <field-layout><field-ref name="contactMechPurposeId"/>-->
+<!--                                        <field-row-big><field-ref name="updateButton"/><field-ref name="addButton"/></field-row-big></field-layout>-->
+                                </form-single>
+                            </container-dialog>
+                            <link url="removeContactInfo" text=" " icon="fa fa-trash" confirmation="Remove email address?"
+                                  parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId, contactMechId:contactInfo.emailContactMechId,
+                                        contactMechPurposeId:contactInfo.emailContactMechPurposeId]"/>
+                        </row-col><row-col lg="6">
+                            <label text="${contactInfo.emailContactMechPurpose.description}" type="strong"/>
+                            <render-mode><text type="html,vuet,qvt" location="component://SimpleScreens/template/party/ContactInfo.html.gstring"/></render-mode>
+                        </row-col></container-row>
+                    </widgets></section-iterate>
+                    <section-iterate name="WebInfoSection" list="contactOut.webAddressList" entry="contactInfo"><widgets>
+                        <container-row><row-col lg="6">
+                            <dynamic-dialog id="UpdateWebInfo" button-text="Update" transition="UpdateContactInfo"
+                                            parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId,
+                                            webContactMechId:contactInfo.webContactMechId,
+                                        webContactMechPurposeId:contactInfo.webContactMechPurposeId]"/>
+                            <container-dialog id="WebPurposeDialog" button-text="Purpose">
+                                <form-single name="WebPurposeForm" transition="storePartyContactMech"
+                                             extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#WebPurposeForm">
+                                    <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                                    <field name="partyId"><default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechId" from="contactInfo.webContactMechId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="oldContactMechPurposeId" from="contactInfo.webContactMechPurposeId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechPurposeId" from="contactInfo.webContactMechPurposeId"><default-field title="Purpose">-->
+<!--                                        <drop-down><entity-options key="${contactMechPurposeId}" text="${description}">-->
+<!--                                            <entity-find entity-name="mantle.party.contact.ContactMechPurpose">-->
+<!--                                                <econdition field-name="contactMechTypeEnumId" value="CmtWebAddress"/>-->
+<!--                                                <order-by field-name="description"/>-->
+<!--                                            </entity-find>-->
+<!--                                        </entity-options></drop-down>-->
+<!--                                    </default-field></field>-->
+<!--                                    <field name="updateButton"><default-field title="Update Purpose"><submit/></default-field></field>-->
+<!--                                    <field name="addButton"><default-field title="Add Purpose"><submit/></default-field></field>-->
+<!--                                    <field-layout><field-ref name="contactMechPurposeId"/>-->
+<!--                                        <field-row-big><field-ref name="updateButton"/><field-ref name="addButton"/></field-row-big></field-layout>-->
+                                </form-single>
+                            </container-dialog>
+                            <link url="removeContactInfo" text=" " icon="fa fa-trash" confirmation="Remove Web URL?"
+                                  parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId, contactMechId:contactInfo.webContactMechId,
+                                        contactMechPurposeId:contactInfo.webContactMechPurposeId]"/>
+                        </row-col><row-col lg="6">
+                            <label text="${contactInfo.webContactMechPurpose.description}" type="strong"/>
+                            <render-mode><text type="html,vuet,qvt" location="component://SimpleScreens/template/party/ContactInfo.html.gstring"/></render-mode>
+                        </row-col></container-row>
+                    </widgets></section-iterate>
+                    <section-iterate name="OtherInfoSection" list="otherPcmiList" entry="otherPcmi"><actions>
+                        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="contactMechTypeEnum" cache="true">
+                            <field-map field-name="enumId" from="otherPcmi.contactMechTypeEnumId"/></entity-find-one>
+                        <entity-find-one entity-name="mantle.party.contact.ContactMechPurpose" value-field="contactMechPurpose" cache="true">
+                            <field-map field-name="contactMechPurposeId" from="otherPcmi.contactMechPurposeId"/></entity-find-one>
+                    </actions><widgets>
+                        <container-row><row-col lg="6">
+                            <container-dialog id="OtherUpdateDialog" button-text="Update">
+                                <form-single name="OtherUpdateForm" transition="updatePartyContactOther"
+                                             extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#OtherUpdateForm">
+<!--                                    <field name="partyId"><default-field><hidden/></default-field></field>-->
+                                    <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                                    <field name="contactMechId" from="otherPcmi.contactMechId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechPurposeId" from="otherPcmi.contactMechPurposeId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="infoString" from="otherPcmi.infoString"><default-field title="Value">-->
+<!--                                        <text-line size="60"/></default-field></field>-->
+<!--                                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>-->
+                                </form-single>
+                            </container-dialog>
+                            <container-dialog id="OtherPurposeDialog" button-text="Purpose">
+                                <form-single name="OtherPurposeForm" transition="storePartyContactMech"
+                                             extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#OtherPurposeForm">
+<!--                                    <field name="partyId"><default-field><hidden/></default-field></field>-->
+                                    <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                                    <field name="contactMechId" from="otherPcmi.contactMechId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="oldContactMechPurposeId" from="otherPcmi.contactMechPurposeId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechPurposeId" from="otherPcmi.contactMechPurposeId"><default-field title="Purpose">-->
+<!--                                        <drop-down>-->
+<!--                                            <entity-options key="${contactMechPurposeId}" text="${description}">-->
+<!--                                                <entity-find entity-name="mantle.party.contact.ContactMechPurpose">-->
+<!--                                                    <econdition field-name="contactMechTypeEnumId" from="otherPcmi.contactMechTypeEnumId" or-null="true"/>-->
+<!--                                                    <order-by field-name="description"/>-->
+<!--                                                </entity-find>-->
+<!--                                            </entity-options>-->
+<!--                                        </drop-down>-->
+<!--                                    </default-field></field>-->
+<!--                                    <field name="updateButton"><default-field title="Update Purpose"><submit/></default-field></field>-->
+<!--                                    <field name="addButton"><default-field title="Add Purpose"><submit/></default-field></field>-->
+<!--                                    <field-layout><field-ref name="contactMechPurposeId"/>-->
+<!--                                        <field-row-big><field-ref name="updateButton"/><field-ref name="addButton"/></field-row-big></field-layout>-->
+                                </form-single>
+                            </container-dialog>
+                            <link url="removeContactInfo" text=" " icon="fa fa-trash" confirmation="Remove Contact Info?"
+                                  parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId, contactMechId:otherPcmi.contactMechId,
+                                        contactMechPurposeId:otherPcmi.contactMechPurposeId]"/>
+                        </row-col><row-col lg="6">
+                            <label text="${contactMechTypeEnum.description} - ${contactMechPurpose.description}" type="strong"/>
+                            <container><label text="${otherPcmi.infoString}" type="i"/></container>
+                        </row-col></container-row>
+                    </widgets></section-iterate>
+                </box-body></container-box>
+
+                <container-box type="info"><box-header title="Postal Addresses"/><box-toolbar>
+                    <dynamic-dialog id="ExpiredPostalDialog" button-text="Old Addresses" transition="ExpiredPostal"
+                                    width="840" parameter-map="[partyId:partyId,subordinatePartyId: subordinatePartyId]"/>
+                    <dynamic-dialog id="AddAddressInfo" button-text="Add Address" transition="UpdateContactInfo"
+                                    width="840" parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId, createPostal:'true']"/>
+                </box-toolbar><box-body>
+                    <section-iterate name="PostalInfoSection" list="contactOut.postalAddressList" entry="contactInfo"><widgets>
+                        <container-row><row-col lg="6">
+                            <dynamic-dialog id="UpdatePostalInfo" button-text="Update" transition="UpdateContactInfo" width="840"
+                                            parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId,
+                                            postalContactMechId:contactInfo.postalContactMechId,
+                                        postalContactMechPurposeId:contactInfo.postalContactMechPurposeId]"/>
+                            <container-dialog id="PostalPurposeDialog" button-text="Purpose">
+                                <form-single name="PostalPurposeForm" transition="storePartyContactMech"
+                                             extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#PostalPurposeForm">
+<!--                                    <field name="partyId"><default-field><hidden/></default-field></field>-->
+                                    <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                                    <field name="contactMechId" from="contactInfo.postalContactMechId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="oldContactMechPurposeId" from="contactInfo.postalContactMechPurposeId">-->
+<!--                                        <default-field><hidden/></default-field></field>-->
+<!--                                    <field name="contactMechPurposeId" from="contactInfo.postalContactMechPurposeId"><default-field title="Purpose">-->
+<!--                                        <drop-down><entity-options key="${contactMechPurposeId}" text="${description}">-->
+<!--                                            <entity-find entity-name="mantle.party.contact.ContactMechPurpose">-->
+<!--                                                <econdition field-name="contactMechTypeEnumId" value="CmtPostalAddress"/>-->
+<!--                                                <order-by field-name="description"/>-->
+<!--                                            </entity-find>-->
+<!--                                        </entity-options></drop-down>-->
+<!--                                    </default-field></field>-->
+<!--                                    <field name="updateButton"><default-field title="Update Purpose"><submit/></default-field></field>-->
+<!--                                    <field name="addButton"><default-field title="Add Purpose"><submit/></default-field></field>-->
+<!--                                    <field-layout><field-ref name="contactMechPurposeId"/>-->
+<!--                                        <field-row-big><field-ref name="updateButton"/><field-ref name="addButton"/></field-row-big></field-layout>-->
+                                </form-single>
+                            </container-dialog>
+                            <link url="removeContactInfo" text=" " icon="fa fa-trash" confirmation="Remove Address?"
+                                  parameter-map="[partyId:partyId, subordinatePartyId:subordinatePartyId, contactMechId:contactInfo.postalContactMechId,
+                                        contactMechPurposeId:contactInfo.postalContactMechPurposeId]"/>
+                            <container>
+                                <label text="Trust: ${contactInfo.postalTrustLevelEnum?.description ?: 'New'}" type="strong"/>
+                                <link url="validateAddress" text="Validate" parameter-map="[partyId:partyId, contactMechId:contactInfo.postalContactMechId]"
+                                      condition="!contactInfo.postalContactMech.trustLevelEnumId || contactInfo.postalContactMech.trustLevelEnumId == 'CmtlNew'"/>
+                                <link url="updateContactMechMutable" text="Grey" parameter-map="[contactMechId:contactInfo.postalContactMechId, trustLevelEnumId:'CmtlGreylisted']"
+                                      condition="!(contactInfo.postalContactMech.trustLevelEnumId in ['CmtlGreylisted', 'CmtlBlacklisted'])"
+                                      confirmation="Really greylist this address?" btn-type="warning"/>
+                                <link url="updateContactMechMutable" text="Black" parameter-map="[contactMechId:contactInfo.postalContactMechId, trustLevelEnumId:'CmtlBlacklisted']"
+                                      condition="contactInfo.postalContactMech.trustLevelEnumId != 'CmtlBlacklisted'"
+                                      confirmation="Really blacklist this address?" btn-type="danger"/>
+                                <link url="updateContactMechMutable" text="Unlist" parameter-map="[contactMechId:contactInfo.postalContactMechId, trustLevelEnumId:'CmtlNew']"
+                                      condition="contactInfo.postalContactMech.trustLevelEnumId in ['CmtlGreylisted', 'CmtlBlacklisted']"
+                                      confirmation="Set trust level back to New?" btn-type="danger"/>
+                            </container>
+                            <label text="${contactInfo.postalContactMech.validateMessage?:''}" type="div"/>
+                        </row-col><row-col lg="6">
+                            <label text="${contactInfo.postalContactMechPurpose.description}" type="strong"/>
+                            <render-mode><text type="html,vuet,qvt" location="component://SimpleScreens/template/party/ContactInfo.html.gstring"/></render-mode>
+                        </row-col></container-row>
+                    </widgets></section-iterate>
+                </box-body></container-box>
+            </widgets></section>
+<!--            <section-include name="PaymentMethodSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+<!--            <section-include name="FinancialAccountSection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
+            <section name="ContentSection"><actions>
+                <entity-find entity-name="mantle.party.PartyContent" list="contentList">
+                    <econdition field-name="partyId" from="subordinatePartyId"/><order-by field-name="-contentDate"/></entity-find>
+            </actions><widgets>
+                <container-box><box-header title="Content"/><box-toolbar>
+                    <container-dialog id="NewContentDialog" button-text="Add Content">
+                        <form-single name="NewContentForm" transition="createContent"
+                                     extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#NewContentForm">
+                            <field name="partyId" from="masterPartyId"><default-field><hidden/></default-field></field>
+                            <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+<!--                            <field name="partyContentTypeEnumId"><default-field title="Content Type">-->
+<!--                                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                                    <set field="enumTypeId" value="PartyContentType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                            </default-field></field>-->
+<!--                            <field name="contentFile"><default-field><file/></default-field></field>-->
+<!--                            <field name="description"><default-field tooltip="Put text content here or upload">-->
+<!--                                <text-area cols="80"/></default-field></field>-->
+<!--                            <field name="submitButton"><default-field><submit text="Add"/></default-field></field>-->
+                        </form-single>
+                    </container-dialog>
+                </box-toolbar><box-body>
+                    <section-iterate name="ContentIterateSection" list="contentList" entry="content"><actions>
+                        <entity-find-one entity-name="mantle.party.PersonWithUserAccount" value-field="paua">
+                            <field-map field-name="userId" from="content.userId"/></entity-find-one>
+                        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="contentTypeEnum">
+                            <field-map field-name="enumId" from="content.partyContentTypeEnumId"/></entity-find-one>
+                    </actions><widgets>
+                        <container>
+                            <container><label text="${contentTypeEnum?.description?:'No Type'}" type="strong"/></container>
+                            <link url="downloadContent" condition="content.contentLocation"
+                                  parameter-map="[partyContentId:content.partyContentId]"
+                                  text="Download ${content.contentLocation.substring(content.contentLocation.lastIndexOf('/')+1)}"/>
+                            <container-dialog id="UpdateContentContainer" button-text="Edit Content">
+                                <form-single name="UpdateContentForm" transition="updateContent" map="content"
+                                             extends="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml#UpdateContentForm">
+                                    <field name="partyId" from="masterPartyId"><default-field><hidden/></default-field></field>
+                                    <field name="subordinatePartyId"><default-field><hidden/></default-field></field>
+
+<!--                                    <field name="partyContentId"><default-field><hidden/></default-field></field>-->
+<!--                                    <field name="partyId"><default-field><hidden/></default-field></field>-->
+<!--                                    <field name="partyContentTypeEnumId"><default-field title="Content Type">-->
+<!--                                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                                            <set field="enumTypeId" value="PartyContentType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                                    </default-field></field>-->
+<!--                                    <field name="contentFile"><default-field><file/></default-field></field>-->
+<!--                                    <field name="description"><default-field tooltip="Put text content here or upload">-->
+<!--                                        <text-area cols="80"/></default-field></field>-->
+<!--                                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>-->
+                                </form-single>
+                            </container-dialog>
+                            <container><label condition="paua" text="By ${ec.resource.expand('UsernameTemplate','',paua+[userId:content.userId])} at ${ec.l10n.format(content.contentDate, 'yyyy-MM-dd HH:mm')}"/></container>
+                            <label text="${content.description ?: 'No Description'}" type="p"/>
+                        </container>
+                    </widgets></section-iterate>
+                </box-body></container-box>
+            </widgets></section>
+        </row-col></container-row>
+    </widgets>
+</screen>

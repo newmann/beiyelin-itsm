@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Time" default-menu-index="2">
+    <!--
+        1、不同服务类型的工作时间，内置的服务时间类型有ServiceDesk、OnSite、TechnicalSupport
+    -->
+    <parameter name="agreementId" required="true"/>
+
+    <transition name="createServiceTime"><service-call name="create#mantle.party.agreement.AgreementServiceTime"/><default-response url="."/></transition>
+    <transition name="deleteServiceTime"><service-call name="delete#mantle.party.agreement.AgreementServiceTime"/><default-response url="."/></transition>
+
+    <actions>
+<!--        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>-->
+<!--        <set field="partyId" from="agreement?.otherPartyId"/>-->
+<!--        <script>-->
+<!--            serviceTimeList = [[agreementServiceTimeId:'1',serviceTimeType:'ServiceDesk',workTime:'9:00-21:00',holiday:'6:00-23:00'],-->
+<!--                           [agreementServiceTimeId:'2',serviceTimeType:'OnSite',workTime:'9:00-20:00',holiday:'10:00-22:00'],-->
+<!--                           [agreementServiceTimeId:'3',serviceTimeType:'TechnicalSupport',workTime:'9:00-21:00',holiday:'N/A']-->
+<!--            ]-->
+<!--        </script>-->
+    </actions>
+
+    <widgets>
+        <container-dialog id="AddAgreementServiceTimeDialog" button-text="Add Service Time">
+            <form-single name="AddAgreementServiceTime" transition="createServiceTime">
+                <field name="agreementId"><default-field><hidden/></default-field></field>
+                <field name="serviceTimeTypeEnumId"><default-field title="Service Time Type">
+                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                        <set field="enumTypeId" value="ServiceTimeType"/><set field="allowEmpty" value="false"/></widget-template-include>
+                </default-field></field>
+
+                <field name="workTimeFrom"><default-field title="Work Time From">
+                    <date-time type="time"/>
+                </default-field></field>
+                <field name="workTimeThru"><default-field title="Work Time Thru">
+                    <date-time type="time"/>
+                </default-field></field>
+                <field name="holidayFrom"><default-field title="Holiday From">
+                    <date-time type="time"/>
+                </default-field></field>
+                <field name="holidayThru"><default-field title="Holiday Thru">
+                    <date-time type="time"/>
+                </default-field></field>
+                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                <field-layout>
+                    <field-ref name="serviceTimeTypeEnumId"/>
+                    <field-row><field-ref name="workTimeFrom"/> <field-ref name="workTimeThru"/></field-row>
+                    <field-row><field-ref name="holidayFrom"/> <field-ref name="holidayThru"/></field-row>
+                    <field-ref name="submitButton"/>
+                </field-layout>
+            </form-single>
+        </container-dialog>
+            <form-list name="ServiceTime" list="serviceTimeList" transition="deleteServiceTime">
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceTime" list="serviceTimeList">
+                    <econdition field-name="agreementId"/>
+                </entity-find>
+                <field name="agreementServiceTimeId"><default-field><hidden/></default-field></field>
+                <field name="serviceTimeTypeEnumId"><default-field title="Service Time Type">
+                    <display-entity entity-name="moqui.basic.Enumeration"/>
+                </default-field></field>
+
+
+                <field name="workTimeFrom"><default-field><hidden/></default-field></field>
+                <field name="workTimeThru"><default-field><hidden/></default-field></field>
+                <field name="workTime"><default-field title="Work Time"><display text="${workTimeFrom} - ${workTimeThru}"/></default-field></field>
+                <field name="holidayFrom"><default-field><hidden/></default-field></field>
+                <field name="holidayThru"><default-field><hidden/></default-field></field>
+                <field name="holiday"><default-field title="Holiday"><display text="${holidayFrom} - ${holidayThru}"/></default-field></field>
+
+                <field name="actions">
+                    <default-field >
+                        <submit text="Delete"/>
+                    </default-field>
+                </field>
+            </form-list>
+
+    </widgets>
+</screen>

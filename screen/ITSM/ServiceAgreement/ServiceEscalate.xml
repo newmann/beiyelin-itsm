@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Escalate" default-menu-index="9">
+    <!--
+        1、定义管理层级，提供10个层级，每个层级可以添加多个人
+        2、服务需求方和服务提供方在每个层级对应人员，不用角色，降低复杂性
+        3、层级升级规则，指定服务等级，考核指标，临近指标多少时间
+    -->
+
+    <parameter name="agreementId" required="true"/>
+
+
+    <transition name="createServiceEscalateLevelDemandSide">
+        <service-call name="create#mantle.party.agreement.AgreementServiceEscalateLevelDemandSide"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deleteServiceEscalateLevelDemandSide">
+        <service-call name="delete#mantle.party.agreement.AgreementServiceEscalateLevelDemandSide"/>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="createServiceEscalateLevelProvider">
+        <service-call name="create#mantle.party.agreement.AgreementServiceEscalateLevelProvider"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deleteServiceEscalateLevelProvider">
+        <service-call name="delete#mantle.party.agreement.AgreementServiceEscalateLevelProvider"/>
+        <default-response url="."/>
+    </transition>
+    
+    <transition name="createServiceEscalateLevelRule">
+        <service-call name="create#mantle.party.agreement.AgreementServiceEscalateLevelRule"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="updateServiceEscalateLevelRule">
+        <service-call name="update#mantle.party.agreement.AgreementServiceEscalateLevelRule"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deleteServiceEscalateLevelRule">
+        <service-call name="delete#mantle.party.agreement.AgreementServiceEscalateLevelRule"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="getSlaIndicatorUom">
+        <parameter name="slaIndicatorEnumId" required="true"/>
+        <actions>
+            <entity-find-one entity-name="moqui.basic.Enumeration" value-field="enumeration">
+                <field-map field-name="enumId" from="slaIndicatorEnumId"/>
+            </entity-find-one>
+            <if condition="enumeration == null"><return error="true" message="Enumeration not found with ID ${slaIndicatorEnumId}" /></if>
+
+
+            <entity-find-one entity-name="moqui.basic.Uom" value-field="uom">
+                <field-map field-name="uomId" from="enumeration.enumCode"/>
+            </entity-find-one>
+<!--            <message type="info">uom: ${uom}</message>-->
+            <if condition="uom == null"><return error="true" message="Uom not found with ID ${enumeration.optionValue}" /></if>
+            <script>ec.web.sendTextResponse(uom.description)</script>
+<!--            <if condition="productId"><then>-->
+<!--                <if condition="!priceFormat"><set field="priceFormat" value="#,##0.000"/></if>-->
+<!--                <service-call name="mantle.product.PriceServices.get#OrderProductPrice" in-map="context" out-map="priceOut"/>-->
+<!--                <if condition="priceOut.price &gt; 0.0"><then>-->
+<!--                    <script>ec.web.sendTextResponse(ec.l10n.format(priceOut.price, priceFormat))</script>-->
+<!--                </then><else>-->
+<!--                    <script>ec.web.sendTextResponse('')</script>-->
+<!--                </else></if>-->
+<!--            </then><else>-->
+<!--                <script>ec.web.sendTextResponse('')</script>-->
+<!--            </else></if>-->
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <actions>
+<!--        <script>-->
+
+
+<!--//            managementLevelList = [[agreementManagementLevel:'1',serviceDemandSideRols:'店铺经理',serviceProviderRoles:'HelpDesk组长'],-->
+<!--//                                   [agreementManagementLevel:'2',serviceDemandSideRols:'区域IT组长',serviceProviderRoles:'SMC经理,客户服务经理'],-->
+<!--//                                   [agreementManagementLevel:'3',serviceDemandSideRols:'总部IT经理',serviceProviderRoles:'服务部总监'],-->
+<!--//                                   [agreementManagementLevel:'4',serviceDemandSideRols:'CIO',serviceProviderRoles:'服务部总经理']-->
+<!--//            ]-->
+<!--            slaOne = [agreementSLAId:'1',ticketType:'Normal',serviceLevel:'超紧急',indicator:'响应时间',uomId:'分钟',fromOperator:'大于等于', fromValue:'0',toValue:'5', toOperator:'小于等于', condition:'响应时间小于等5分钟', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:'']-->
+
+<!--            escalateRuleOneList = [[escalateType:'临近SLA',escalateValue:'2',uomId:'分钟',agreementManagementLevel:'2',description:''],-->
+<!--                                   [escalateType:'超SLA',escalateValue:'0',uomId:'分钟',agreementManagementLevel:'3',description:''],-->
+<!--                                   [escalateType:'超SLA',escalateValue:'2',uomId:'分钟',agreementManagementLevel:'4',description:''],-->
+<!--            ]-->
+<!--            slaTwo = [agreementSLAId:'2',ticketType:'Normal',serviceLevel:'超紧急',indicator:'问题解决时间',uomId:'小时',fromOperator:'大于等于', fromValue:'0',toValue:'4', toOperator:'小于等于',condition:'服务距离30公里以内，则4小时以内解决', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:'']-->
+<!--            escalateRuleTwoList = [[escalateType:'临近SLA',escalateValue:'1',uomId:'小时',agreementManagementLevel:'2',description:''],-->
+<!--                                   [escalateType:'超SLA',escalateValue:'0',uomId:'小时',agreementManagementLevel:'3',description:''],-->
+<!--                                   [escalateType:'超SLA',escalateValue:'2',uomId:'小时',agreementManagementLevel:'4',description:''],-->
+<!--            ]-->
+<!--        </script>-->
+        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>
+        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
+
+
+        <set field="ServiceProviderRoleType" value="OrgServiceProvider"/>
+        <set field="ServiceDemandSideRoleType" value="OrgServiceDemandSide"/>
+        <set field="relationshipTypeEnumId" value="PrtEmployee"/>
+        <set field="ServiceEngineerRoleType" value="ServiceEngineer"/>
+        <set field="ServiceSupervisorRoleType" value="ServiceSupervisor"/>
+        <set field="SlaIndicatorEnumType" value="SLAIndicator"/>
+        <set field="EscalateTypeEnumType" value="SvcEscalateType"/>
+        <set field="EscalateLevelEnumType" value="SvcEscalateLevel"/>
+
+
+        <entity-find entity-name="mantle.party.agreement.AgreementServiceLevel" list="serviceLevelList">
+            <econdition field-name="agreementId"/>
+            <econdition field-name="enabled" value="Y"/>
+        </entity-find>
+
+        <entity-find entity-name="moqui.basic.Enumeration" list="escalateLevelList">
+            <econdition field-name="enumTypeId" from="EscalateLevelEnumType"/>
+            <order-by field-name="optionValue"/>
+        </entity-find>
+
+
+    </actions>
+    <widgets>
+
+        <container-row>
+            <row-col lg="6" md="6" >
+                <container-box>
+                    <box-header title="管理层级对照关系"></box-header>
+                    <box-body>
+                        <section-iterate name="EscalateLevelSection" list="escalateLevelList" entry="escalateLevelItem">
+                            <widgets>
+                                <container-box>
+                                    <box-header title="${escalateLevelItem.description}"></box-header>
+                                    <box-toolbar>
+
+
+                                    </box-toolbar>
+                                    <box-body>
+                                        <container-row>
+                                            <row-col md="6">
+                                                <form-list name="EscalateLevelDemandSideForm" list="escalateLevelDemandSideList" transition=".">
+                                                    <entity-find entity-name="mantle.party.agreement.AgreementServiceEscalateLevelDemandSide" list="escalateLevelDemandSideList">
+                                                        <econdition field-name="agreementId"/>
+                                                        <econdition field-name="escalateLevelEnumId" from="escalateLevelItem.enumId"/>
+                                                    </entity-find>
+                                                    <row-actions>
+                                                        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+
+                                                        </entity-find-one>
+                                                    </row-actions>
+                                                    <field name="agreementId">
+                                                        <header-field><hidden/></header-field>
+                                                        <default-field><hidden/></default-field>
+                                                    </field>
+                                                    <field name="escalateLevelEnumId" from="escalateLevelItem.enumId">
+                                                        <header-field><hidden/></header-field>
+                                                        <default-field><hidden/></default-field>
+                                                    </field>
+                                                    <field name="partyId">
+                                                        <header-field><hidden/></header-field>
+                                                        <default-field><hidden/></default-field>
+                                                    </field>
+                                                    <field name="name" >
+                                                        <default-field title="Service Demand Side">
+                                                            <display text="${partyDetail.firstName} ${partyDetail.lastName}"/>
+                                                        </default-field>
+                                                    </field>
+                                                    <field name="submitButton">
+                                                        <default-field>
+                                                            <submit text="" icon="fa fa-trash" type="warning"/>
+                                                        </default-field>
+                                                    </field>
+                                                </form-list>
+                                                <container-dialog id="AddServiceEscalateLevelDemandSide" button-text="Add Service Demand Side">
+                                                    <form-single name="AddServiceLocationForm" transition="createServiceEscalateLevelDemandSide">
+                                                        <field name="agreementId">
+                                                            <default-field><hidden/></default-field>
+                                                        </field>
+                                                        <field name="escalateLevelEnumId" from="escalateLevelItem.enumId">
+                                                            <default-field><hidden/></default-field>
+                                                        </field>
+                                                        <field name="partyId"><default-field title="Service Supervisor">
+                                                            <drop-down>
+                                                                <entity-options key="${fromPartyId}" text="PartyNameTemplate">
+                                                                    <entity-find entity-name="mantle.party.PartyFromAndRelationship">
+                                                                        <date-filter/>
+                                                                        <econdition field-name="toPartyId" from="agreement.organizationPartyId"/>
+                                                                        <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
+                                                                        <econdition field-name="toRoleTypeId" from="ServiceDemandSideRoleType"/>
+                                                                        <order-by field-name="pseudoId"/>
+                                                                    </entity-find>
+                                                                </entity-options>
+                                                            </drop-down>
+                                                        </default-field></field>
+                                                        <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                                                    </form-single>
+                                                </container-dialog>
+                                            </row-col>
+                                            <row-col md="6">
+                                                <form-list name="EscalateLevelProviderForm" list="escalateLevelProviderList" transition=".">
+                                                    <entity-find entity-name="mantle.party.agreement.AgreementServiceEscalateLevelProvider" list="escalateLevelProviderList">
+                                                        <econdition field-name="agreementId"/>
+                                                        <econdition field-name="escalateLevelEnumId" from="escalateLevelItem.enumId"/>
+                                                    </entity-find>
+                                                    <row-actions>
+                                                        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+
+                                                        </entity-find-one>
+                                                    </row-actions>
+                                                    <field name="agreementId">
+                                                        <header-field><hidden/></header-field>
+                                                        <default-field><hidden/></default-field>
+                                                    </field>
+                                                    <field name="escalateLevelEnumId" from="escalateLevelItem.enumId">
+                                                        <header-field><hidden/></header-field>
+                                                        <default-field><hidden/></default-field>
+                                                    </field>
+                                                    <field name="partyId">
+                                                        <header-field><hidden/></header-field>
+                                                        <default-field><hidden/></default-field>
+                                                    </field>
+                                                    <field name="name">
+                                                        <default-field title="Service Provider">
+                                                            <display text="${partyDetail.firstName} ${partyDetail.lastName}"/>
+                                                        </default-field>
+                                                    </field>
+                                                    <field name="submitButton">
+                                                        <default-field>
+                                                            <submit text="" icon="fa fa-trash" type="warning"/>
+                                                        </default-field>
+                                                    </field>
+                                                </form-list>
+                                                <container-dialog id="AddServiceEscalateLevelProvider" button-text="Add Service Provider">
+                                                    <form-single name="AddServiceEscalateLevelProviderForm" transition="createServiceEscalateLevelProvider">
+                                                        <field name="agreementId">
+                                                            <default-field><hidden/></default-field>
+                                                        </field>
+                                                        <field name="escalateLevelEnumId" from="escalateLevelItem.enumId">
+                                                            <default-field><hidden/></default-field>
+                                                        </field>
+                                                        <field name="partyId"><default-field title="Service Engineer">
+                                                            <drop-down>
+                                                                <entity-options key="${fromPartyId}" text="PartyNameTemplate">
+                                                                    <entity-find entity-name="mantle.party.PartyFromAndRelationship">
+                                                                        <date-filter/>
+                                                                        <econdition field-name="toPartyId" from="agreement.otherPartyId"/>
+                                                                        <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
+                                                                        <econdition field-name="toRoleTypeId" from="ServiceProviderRoleType"/>
+                                                                        <order-by field-name="pseudoId"/>
+                                                                    </entity-find>
+                                                                </entity-options>
+                                                            </drop-down>
+                                                        </default-field></field>
+                                                        <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                                                    </form-single>
+                                                </container-dialog>
+                                            </row-col>
+                                        </container-row>
+
+                                    </box-body>
+                                </container-box>
+                            </widgets>
+                        </section-iterate>
+                    </box-body>
+                </container-box>
+
+            </row-col>
+            <row-col lg="6" md="6" >
+                <section name="noServiceLevel" condition="serviceLevelList.size() == 0">
+                    <widgets>
+                        <label text="当前没有定义服务等级，请"/>
+                        <link url="//${appRoot}/ServiceAgreement/ServiceLevel" parameter-map="[agreementId:agreementId]" text="添加>>>" link-type="anchor"/>
+
+                    </widgets>
+                </section>
+                <section-iterate name="escalateRule" list="serviceLevelList" entry="serviceLevelItem" condition="serviceLevelList.size() > 0 ">
+                    <widgets>
+                        <container-box>
+                            <box-header title="${serviceLevelItem.serviceLevel}">
+
+                            </box-header>
+                            <box-toolbar>
+                                <container-dialog id="AddServiceEscalateLevelRule" button-text="Add Rule">
+                                    <form-single name="AddServiceEscalateLevelRuleForm" transition="createServiceEscalateLevelRule">
+                                        <field name="agreementId">
+                                            <default-field><hidden/></default-field>
+                                        </field>
+                                        <field name="serviceLevel" from="serviceLevelItem.serviceLevel">
+                                            <default-field><hidden/></default-field>
+                                        </field>
+
+                                        <field name="slaIndicatorEnumId"><default-field>
+                                            <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                                                <set field="enumTypeId" from="SlaIndicatorEnumType"/>
+                                                <set field="allowEmpty" value="true"/>
+                                            </widget-template-include>
+                                        </default-field></field>
+
+                                        <field name="uom">
+                                            <default-field >
+                                                <display dynamic-transition="getSlaIndicatorUom" >
+                                                    <depends-on field="slaIndicatorEnumId"/></display>
+                                            </default-field>
+                                        </field>
+
+                                        <field name="escalateTypeEnumId">
+                                            <default-field>
+                                                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                                                    <set field="enumTypeId" from="EscalateTypeEnumType"/></widget-template-include>
+
+                                            </default-field>
+                                        </field>
+                                        <field name="escalateValue">
+                                            <default-field>
+                                                <text-line input-type="number"/>
+                                            </default-field>
+                                        </field>
+                                        <field name="escalateLevelEnumId">
+                                            <default-field title="Escalate Level">
+                                                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                                                    <set field="enumTypeId" from="EscalateLevelEnumType"/></widget-template-include>
+                                            </default-field></field>
+
+                                        <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                                    </form-single>
+                                </container-dialog>
+                            </box-toolbar>
+                            <box-body>
+                                <label text="${serviceLevelItem.description}"/>
+                                <form-list name="EscalateRuleForm" list="serviceEscalateLevelRuleList" transition="deleteServiceEscalateLevelRule">
+                                    <entity-find entity-name="mantle.party.agreement.AgreementServiceEscalateLevelRule" list="serviceEscalateLevelRuleList">
+                                        <econdition field-name="agreementId"/>
+                                        <econdition field-name="serviceLevel" from="serviceLevelItem.serviceLevel"/>
+                                    </entity-find>
+                                    <field name="agreementId"><header-field><hidden/></header-field>
+                                        <default-field><hidden/></default-field>
+                                    </field>
+                                    <field name="serviceLevel" from="serviceLevelItem.serviceLevel"><header-field><hidden/></header-field>
+                                        <default-field><hidden/></default-field>
+                                    </field>
+
+                                    <field name="slaIndicatorEnumId"><default-field title="SLA Indicator">
+                                        <display-entity entity-name="moqui.basic.Enumeration" use-cache="true"/>
+                                    </default-field></field>
+
+                                    <field name="escalateTypeEnumId">
+                                        <default-field title="Escalate Type">
+
+                                           <display-entity entity-name="moqui.basic.Enumeration" use-cache="true"/>
+                                        </default-field>
+                                    </field>
+                                    <field name="escalateValue">
+                                        <default-field><display/></default-field>
+                                    </field>
+                                    <field name="escalateLevelEnumId">
+                                        <default-field title="Escalate Level">
+                                            <display-entity entity-name="moqui.basic.Enumeration" use-cache="true"/>
+                                        </default-field></field>
+
+                                    <field name="submitButton">
+                                        <default-field title="Actions">
+                                            <submit text="" icon="fa fa-trash" type="warning"/>
+<!--                                            <link  url="deleteServiceEscalateLevelRule" text="Delete"/>-->
+
+                                        </default-field>
+                                    </field>
+                                </form-list>
+                            </box-body>
+                        </container-box>
+
+                    </widgets>
+
+                </section-iterate>
+            </row-col>
+        </container-row>
+    </widgets>
+
+</screen>

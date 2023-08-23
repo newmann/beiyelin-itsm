@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entity-facade-xml type="demo">
+
+    <!-- 运营方-->
+    <parties partyId="AW"  pseudoId="AW" partyTypeEnumId="PtyOrganization">
+        <Organization organizationName="航信德利"/>
+        <roles roleTypeId="OrgServiceDemandSide"/>
+        <roles roleTypeId="OrgServiceProvider"/>
+        <mantle.party.contact.ContactMech contactMechId="CustAWTeln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="61689589"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustAWAddr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="AW" attnName="" address1="上海市徐汇区宜山路1388号民润大厦16层" address2="" unitNumber="355"
+                           city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustAWTeln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+
+    <parties partyId="100102" pseudoId="Newmann" partyTypeEnumId="PtyPerson">
+        <person firstName="新生" middleName="" lastName="胡"/>
+        <roles roleTypeId="Employee"/>
+        <fromRelationships partyRelationshipId="100102-AW-employee" relationshipTypeEnumId="PrtEmployee" fromRoleTypeId="Employee" toPartyId="AW" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01"/>
+        <users userId="NewmannHU" username="newmann.hu" userFullName="Newmann HU"
+                currentPassword="16ac58bbfa332c1c55bd98b53e60720bfa90d394" passwordHashType="SHA"
+                passwordHint="framework name, lowercase" currencyUomId="CNY" locale="zh_CN" timeZone="Asia/ShangHai"
+                emailAddress="xinsheng_hu@aisino-wincor.org">
+            <groups userGroupId="ADMIN" fromDate="2023-01-01" />
+            <groups userGroupId="ALL_USERS" fromDate="2023-01-01"/>
+        </users>
+    </parties>
+
+    <!-- 需求方 -->
+    <parties partyId="100103"  pseudoId="Haagen-Dazs" partyTypeEnumId="PtyOrganization">
+        <Organization organizationName="哈根达斯"/>
+        <roles roleTypeId="OrgServiceDemandSide"/>
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazsTeln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="22237777"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazsAddr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="小哈" attnName="" address1="虹桥路355号城开大厦8楼" address2="" unitNumber="355"
+                           city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustHaagenDazsTeln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+    <parties partyId="Dazs" pseudoId="Dazs" partyTypeEnumId="PtyPerson">
+        <person firstName="达斯" middleName="" lastName="哈根"/>
+        <roles roleTypeId="Employee"/>
+        <fromRelationships partyRelationshipId="Dazs-100103-employee" relationshipTypeEnumId="PrtEmployee" fromRoleTypeId="Employee" toPartyId="100103" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01"/>
+        <users userId="dazs" username="haagendazs" userFullName="哈根达斯"
+               currentPassword="16ac58bbfa332c1c55bd98b53e60720bfa90d394" passwordHashType="SHA"
+               passwordHint="framework name, lowercase" currencyUomId="CNY" locale="zh_CN" timeZone="Asia/ShangHai"
+               emailAddress="dazs@aisino-wincor.org">
+            <groups userGroupId="ALL_USERS" fromDate="2023-01-01"/>
+        </users>
+    </parties>
+
+    <parties partyId="100103-001" pseudoId="HaagenDazs-001"   partyTypeEnumId="PtyOrganization" ownerPartyId="100103">
+        <Organization organizationName="哈根达斯(上海松江万达店）"/>
+        <roles roleTypeId="OrgServiceLocation"/>
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs001Teln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="67629063"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs001Addr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="小哈" attnName="" address1="松江区广富林路658弄松江万达广场1层1038" address2="" unitNumber="355"
+                           city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustHaagenDazs001Teln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+    <facilities facilityId="100103-001" pseudoId="HaagenDazs-001" facilityTypeEnumId="FcTpRetailStore" ownerPartyId="100103-001" facilityName="哈根达斯(上海松江万达店）">
+<!--        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs001Teln" contactMechTypeEnumId="CmtTelecomNumber">-->
+<!--            <telecomNumber countryCode="86" areaCode="021" contactNumber="67629063"/>-->
+<!--        </mantle.party.contact.ContactMech>-->
+
+<!--        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs001Addr" contactMechTypeEnumId="CmtPostalAddress">-->
+<!--            <postalAddress toName="小哈" attnName="" address1="松江区广富林路658弄松江万达广场1层1038" address2="" unitNumber="355"-->
+<!--                           city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"-->
+<!--                           telecomContactMechId="CustHaagenDazs001Teln"/>-->
+<!--        </mantle.party.contact.ContactMech>-->
+
+    </facilities>
+    <mantle.facility.FacilityContactMech facilityId="100103-001" contactMechId="CustHaagenDazs001Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+    <mantle.facility.FacilityContactMech facilityId="100103-001" contactMechId="CustHaagenDazs001Addr" contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+
+    <parties partyId="100103-002" pseudoId="HaagenDazs-002"   partyTypeEnumId="PtyOrganization"  ownerPartyId="100103">
+        <Organization organizationName="哈根达斯(松江印象城店）"/>
+        <roles roleTypeId="OrgServiceLocation"/>
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs002Teln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="67629063"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs002Addr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="小哈" attnName="" address1="松江区广富林路1788弄松江印象城1层" address2="" unitNumber="355"
+                           city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustHaagenDazs002Teln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+
+    <facilities facilityId="100103-002" pseudoId="HaagenDazs-002" facilityTypeEnumId="FcTpRetailStore" ownerPartyId="100103-002" facilityName="哈根达斯(松江印象城店）"/>
+<!--    <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs002Teln" contactMechTypeEnumId="CmtTelecomNumber">-->
+<!--        <telecomNumber countryCode="86" areaCode="021" contactNumber="67629063"/>-->
+<!--    </mantle.party.contact.ContactMech>-->
+<!--    <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs002Addr" contactMechTypeEnumId="CmtPostalAddress">-->
+<!--        <postalAddress toName="小哈" attnName="" address1="松江区广富林路1788弄松江印象城1层" address2="" unitNumber="355"-->
+<!--                       city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"-->
+<!--                       telecomContactMechId="CustHaagenDazs002Teln"/>-->
+<!--    </mantle.party.contact.ContactMech>-->
+
+    <mantle.facility.FacilityContactMech facilityId="100103-002" contactMechId="CustHaagenDazs002Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+    <mantle.facility.FacilityContactMech facilityId="100103-002" contactMechId="CustHaagenDazs002Addr" contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+    <parties partyId="100103-003" pseudoId="HaagenDazs-003"   partyTypeEnumId="PtyOrganization"  ownerPartyId="100103">
+        <Organization organizationName="哈根达斯(上海莘庄店）"/>
+        <roles roleTypeId="OrgServiceLocation"/>
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs003Teln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="34633325"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs003Addr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="小哈" attnName="" address1="闵行区都市路5001号仲盛世界商城1层GF11" address2="" unitNumber="355"
+                           city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustHaagenDazs003Teln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+
+    <facilities facilityId="100103-003" pseudoId="HaagenDazs-003" facilityTypeEnumId="FcTpRetailStore" ownerPartyId="100103-003" facilityName="哈根达斯(上海莘庄店）">
+<!--        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs003Teln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="34633325"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustHaagenDazs003Addr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="小哈" attnName="" address1="闵行区都市路5001号仲盛世界商城1层GF11" address2="" unitNumber="355"
+                           city="上海" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustHaagenDazs003Teln"/>
+        </mantle.party.contact.ContactMech>-->
+
+    </facilities>
+    <mantle.facility.FacilityContactMech facilityId="100103-003" contactMechId="CustHaagenDazs003Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+    <mantle.facility.FacilityContactMech facilityId="100103-003" contactMechId="CustHaagenDazs003Addr" contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+
+    <!--    组织架构定义-->
+    <mantle.party.PartyRelationship partyRelationshipId="100103-100103-001" relationshipTypeEnumId="PrtOrgRollup" fromPartyId="100103-001" fromRoleTypeId="OrgServiceLocation" toPartyId="100103" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01" />
+    <mantle.party.PartyRelationship partyRelationshipId="100103-100103-002" relationshipTypeEnumId="PrtOrgRollup" fromPartyId="100103-002" fromRoleTypeId="OrgServiceLocation" toPartyId="100103" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01" />
+    <mantle.party.PartyRelationship partyRelationshipId="100103-100103-003" relationshipTypeEnumId="PrtOrgRollup" fromPartyId="100103-003" fromRoleTypeId="OrgServiceLocation" toPartyId="100103" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01" />
+
+    <parties partyId="Sephora"  pseudoId="Sephora" partyTypeEnumId="PtyOrganization">
+        <Organization organizationName="丝芙兰"/>
+        <roles roleTypeId="OrgServiceDemandSide"/>
+        <mantle.party.contact.ContactMech contactMechId="CustSephoraTeln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber contactNumber="4006700055"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+
+        <mantle.party.contact.ContactMech contactMechId="CustSephoraAddr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="Joe Q. Public" attnName="" address1="上海市静安区南京西路993号丝芙兰旗舰店3层" address2="" unitNumber="188"
+                           city="shanghai" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustSephoraTeln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+    <parties partyId="XiaoLan" pseudoId="XiaoLan" partyTypeEnumId="PtyPerson">
+        <person firstName="兰" middleName="" lastName="小"/>
+        <roles roleTypeId="Employee"/>
+        <fromRelationships partyRelationshipId="XiaoLan-Sephora-employee" relationshipTypeEnumId="PrtEmployee" fromRoleTypeId="Employee" toPartyId="Sephora" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01"/>
+        <users userId="XiaoLan" username="XiaoLan" userFullName="小兰"
+               currentPassword="16ac58bbfa332c1c55bd98b53e60720bfa90d394" passwordHashType="SHA"
+               passwordHint="framework name, lowercase" currencyUomId="CNY" locale="zh_CN" timeZone="Asia/ShangHai"
+               emailAddress="xiao_lan@aisino-wincor.org">
+            <groups userGroupId="ALL_USERS" fromDate="2023-01-01"/>
+        </users>
+    </parties>
+<!-- 服务提供方-->
+    <parties partyId="Much"  pseudoId="Much" partyTypeEnumId="PtyOrganization">
+        <Organization organizationName="上海码驰信息科技有限公司"/>
+        <roles roleTypeId="OrgServiceProvider"/>
+        <mantle.party.contact.ContactMech contactMechId="CustMuchTeln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="0755" contactNumber="29657495"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustMuchAddr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="Much" attnName="" address1="上海市闵行区七莘路3599号华商时代广场10号楼406室" address2="" unitNumber="188"
+                           city="shanghai" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustMuchTeln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+    <parties partyId="XiaoMa" pseudoId="XiaoMa" partyTypeEnumId="PtyPerson">
+        <person firstName="码" middleName="" lastName="小"/>
+        <roles roleTypeId="Employee"/>
+        <fromRelationships relationshipTypeEnumId="PrtEmployee" fromRoleTypeId="Employee" toPartyId="Much" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01"/>
+        <users userId="XiaoMa" username="XiaoMa" userFullName="小码"
+               currentPassword="16ac58bbfa332c1c55bd98b53e60720bfa90d394" passwordHashType="SHA"
+               passwordHint="framework name, lowercase" currencyUomId="CNY" locale="zh_CN" timeZone="Asia/ShangHai"
+               emailAddress="xiao_ma@aisino-wincor.org">
+            <groups userGroupId="ALL_USERS" fromDate="2023-01-01"/>
+        </users>
+    </parties>
+
+    <parties partyId="Much-001" pseudoId="Much-001" partyTypeEnumId="PtyOrganization" ownerPartyId="Much">
+        <Organization organizationName="码驰松江服务站"/>
+        <roles roleTypeId="OrgServiceStation"/>
+        <mantle.party.contact.ContactMech contactMechId="CustMuch001Teln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="29657495"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustMuch001Addr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="Much" attnName="" address1="上海市闵行区七莘路3599号华商时代广场10号楼406室" address2="" unitNumber="188"
+                           city="shanghai" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustMuch001Teln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+
+    <parties partyId="Much-002" pseudoId="Much-002" partyTypeEnumId="PtyOrganization" ownerPartyId="Much">
+        <Organization organizationName="码驰闵行服务站"/>
+        <roles roleTypeId="OrgServiceStation"/>
+        <mantle.party.contact.ContactMech contactMechId="CustMuch002Teln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="021" contactNumber="29657495"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustMuch002Addr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="Much" attnName="" address1="上海市松江区广富林路600号" address2="" unitNumber="188"
+                           city="shanghai" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustMuch002Teln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+<!--    组织架构定义-->
+    <mantle.party.PartyRelationship partyRelationshipId="Much-001" relationshipTypeEnumId="PrtOrgRollup" fromPartyId="Much-001" fromRoleTypeId="OrgServiceStation" toPartyId="Much" toRoleTypeId="OrgServiceProvider" fromDate="2023-08-01" />
+    <mantle.party.PartyRelationship partyRelationshipId="Much-002" relationshipTypeEnumId="PrtOrgRollup" fromPartyId="Much-002" fromRoleTypeId="OrgServiceStation" toPartyId="Much" toRoleTypeId="OrgServiceProvider" fromDate="2023-08-01" />
+
+    <parties partyId="Csoftech"  pseudoId="Csoftech" partyTypeEnumId="PtyOrganization">
+        <Organization organizationName="上海京朗网络科技有限公司"/>
+        <roles roleTypeId="OrgServiceProvider"/>
+        <mantle.party.contact.ContactMech contactMechId="CustCsoftechTeln" contactMechTypeEnumId="CmtTelecomNumber">
+            <telecomNumber countryCode="86" areaCode="020" contactNumber="66671666"/>
+            <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+        </mantle.party.contact.ContactMech>
+
+        <mantle.party.contact.ContactMech contactMechId="CustCsoftechAddr" contactMechTypeEnumId="CmtPostalAddress">
+            <postalAddress toName="京朗网络" attnName="" address1="上海市武宁路509号901室" address2="" unitNumber="17"
+                           city="shanghai" stateProvinceGeoId="CHN_31" countryGeoId="CHN"
+                           telecomContactMechId="CustCsoftechTeln"/>
+            <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
+        </mantle.party.contact.ContactMech>
+    </parties>
+    <parties partyId="XiaoJing" pseudoId="XiaoJing" partyTypeEnumId="PtyPerson">
+        <person firstName="京" middleName="" lastName="小"/>
+        <roles roleTypeId="Employee"/>
+        <fromRelationships relationshipTypeEnumId="PrtEmployee" fromRoleTypeId="Employee" toPartyId="Csoftech" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01"/>
+        <users userId="XiaoJing" username="XiaoJing" userFullName="小京"
+               currentPassword="16ac58bbfa332c1c55bd98b53e60720bfa90d394" passwordHashType="SHA"
+               passwordHint="framework name, lowercase" currencyUomId="CNY" locale="zh_CN" timeZone="Asia/ShangHai"
+               emailAddress="xiao-jing@aisino-wincor.org">
+            <groups userGroupId="ALL_USERS" fromDate="2023-01-01"/>
+        </users>
+    </parties>
+
+
+
+<!--    服务关系定义-->
+    <mantle.party.PartyRelationship partyRelationshipId="AW-100103" relationshipTypeEnumId="PrtService" fromPartyId="AW" fromRoleTypeId="OrgServiceProvider" toPartyId="100103" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01" />
+    <mantle.party.PartyRelationship partyRelationshipId="AW-Sephora" relationshipTypeEnumId="PrtService" fromPartyId="AW" fromRoleTypeId="OrgServiceProvider" toPartyId="Sephora" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01" />
+
+    <mantle.party.PartyRelationship partyRelationshipId="Much-AW" relationshipTypeEnumId="PrtService" fromPartyId="Much" fromRoleTypeId="OrgServiceProvider" toPartyId="AW" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01" />
+    <mantle.party.PartyRelationship partyRelationshipId="Csoftech-AW" relationshipTypeEnumId="PrtService" fromPartyId="Csoftech" fromRoleTypeId="OrgServiceProvider" toPartyId="AW" toRoleTypeId="OrgServiceDemandSide" fromDate="2023-08-01" />
+
+    <products productId="HPDC8000" pseudoId="HPDC8000" productTypeEnumId="PtAsset" productName="HP DC 8000"
+              ownerPartyId="100103"  >
+    </products>
+    <products productId="PeopleCounter" pseudoId="PeopleCounter" productTypeEnumId="PtAsset" productName="Winner（汇纳科技）IPVA"
+              ownerPartyId="100103"  >
+    </products>
+
+    <products productId="Switch16" pseudoId="Switch16" productTypeEnumId="PtAsset" productName="TP Link 16 Port Switch"
+              ownerPartyId="100103"  >
+    </products>
+    <products productId="HHT3090" pseudoId="HHT3090" productTypeEnumId="PtAsset" productName="Symbol MC3090"
+              ownerPartyId="100103"  >
+    </products>
+
+    <!-- 产品分类，型号为产品小类，物料号为产品代码，先采用产品目录PctCatalog来管理 -->
+<!--    <moqui.basic.Enumeration description="样机" enumId="PctTestMachine" enumTypeId="ProductCategoryType"/>-->
+
+<!--    <categories productCategoryId="SelfProduct" productCategoryTypeEnumId="PctCatalog" categoryName="自有产品">-->
+<!--    </categories>-->
+
+<!--    <categories productCategoryId="SelfPOS" productCategoryTypeEnumId="PctCatalog" categoryName="自有收款机">-->
+<!--    </categories>-->
+<!--    <categories productCategoryId="SelfPeripheral" productCategoryTypeEnumId="PctCatalog" categoryName="自有外设">-->
+<!--    </categories>-->
+<!--    <mantle.product.category.ProductCategoryRollup productCategoryId="SelfPOS" -->
+<!--    	parentProductCategoryId="SelfProduct" fromDate="2022-11-01">-->
+<!--    </mantle.product.category.ProductCategoryRollup>-->
+<!--    <mantle.product.category.ProductCategoryRollup productCategoryId="SelfPeripheral" -->
+<!--    	parentProductCategoryId="SelfProduct" fromDate="2022-11-01">-->
+<!--    </mantle.product.category.ProductCategoryRollup>-->
+<!--        -->
+<!--    <categories productCategoryId="AW-I-318" productCategoryTypeEnumId="PctCatalog" categoryName="AW I-318">-->
+<!--    </categories>-->
+<!--    <categories productCategoryId="AW-I-316" productCategoryTypeEnumId="PctCatalog" categoryName="AW I-316">-->
+<!--    </categories>-->
+<!--    <categories productCategoryId="AW-I-328" productCategoryTypeEnumId="PctCatalog" categoryName="AW I-328">-->
+<!--    </categories>-->
+<!--    <categories productCategoryId="AW-I-172" productCategoryTypeEnumId="PctCatalog" categoryName="AW I-172">-->
+<!--    </categories>-->
+<!--    -->
+<!--    <mantle.product.category.ProductCategoryRollup productCategoryId="AW-I-318" -->
+<!--    	parentProductCategoryId="SelfPOS" fromDate="2022-11-01">-->
+<!--    </mantle.product.category.ProductCategoryRollup>-->
+<!--    <mantle.product.category.ProductCategoryRollup productCategoryId="AW-I-316" -->
+<!--    	parentProductCategoryId="SelfPOS" fromDate="2022-11-01">-->
+<!--    </mantle.product.category.ProductCategoryRollup>-->
+<!--    <mantle.product.category.ProductCategoryRollup productCategoryId="AW-I-328" -->
+<!--    	parentProductCategoryId="SelfPOS" fromDate="2022-11-01">-->
+<!--    </mantle.product.category.ProductCategoryRollup>-->
+<!--    <mantle.product.category.ProductCategoryRollup productCategoryId="AW-I-172" -->
+<!--    	parentProductCategoryId="SelfPOS" fromDate="2022-11-01">-->
+<!--    </mantle.product.category.ProductCategoryRollup>-->
+
+<!--    <categories productCategoryId="3PartyProduct" productCategoryTypeEnumId="PctCatalog" categoryName="第三方产品">-->
+<!--    </categories>-->
+<!--    -->
+<!--   	&lt;!&ndash; 物料号为产品代码,产品组合 &ndash;&gt;-->
+<!--    <products productId="100102" pseudoId="WA01900001032" productTypeEnumId="PtAsset" productName="AW I-318 标配" -->
+<!--	    description="AW I-318：D921 主板，Intel® Celeron® N3160，Fan less cooler，4GB RAM ，500GB HDD ,主屏电阻触摸屏 ,  刷卡器  ,第二屏10.1”非触摸显示器  " >-->
+<!--	    <categories productCategoryId="AW-I-318" fromDate="2022-11-01"/>-->
+<!--    </products>  -->
+<!--     -->
+<!--    <products productId="100103" pseudoId="WA01900001030" productTypeEnumId="PtAsset" productName="AW I-318 配置2" -->
+<!--	    description="AW I-318 ,AIO POS System ,15“ R Touch 显示器，N3160 CPU ,三轨刷卡器，VFD 客显,RAM 4G , 500GB HDD" >-->
+<!--	    <categories productCategoryId="AW-I-318" fromDate="2022-11-01"/>-->
+<!--    </products>      -->
+<!--    -->
+<!--    <products productId="100000" pseudoId="WA01940000448" productTypeEnumId="PtAsset" productName="AW I-328 标配" -->
+<!--	    description="AW I-328-触控一体机，J1900-8G-256G" >-->
+<!--	    <categories productCategoryId="AW-I-328" fromDate="2022-11-01"/>-->
+<!--    </products>-->
+
+</entity-facade-xml>

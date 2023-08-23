@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Category" default-menu-index="3">
+
+<!--
+    1、服务目录通过ProductCategory来保存
+    2、服务目录的ownerPartyId为ServiceDemandSide
+    3、服务目录可以在不同的agreement中出现，但需要提醒冲突
+-->
+
+    <parameter name="agreementId" required="true"/>
+
+
+
+    <transition name="createServiceCategory"><service-call name="create#mantle.party.agreement.AgreementServiceCategory"/>
+        <default-response url="."/></transition>
+    <transition name="updateServiceCategory"><service-call name="update#mantle.party.agreement.AgreementServiceCategory"/>
+        <default-response url="."/></transition>
+    <transition name="deleteServiceCategory"><service-call name="delete#mantle.party.agreement.AgreementServiceCategory"/>
+        <default-response url="."/></transition>
+
+    <actions>
+<!--        <script>-->
+<!--            categoryList = [[agreementServiceCategoryId:'1',productCategoryId:'01',pseudoId:'01',categoryName:'主机故障',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--                            [agreementServiceCategoryId:'2',productCategoryId:'02',pseudoId:'02',categoryName:'电源及数据线故障',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--                            [agreementServiceCategoryId:'3',productCategoryId:'03',pseudoId:'03',categoryName:'外设故障',description:'键盘、鼠标等故障', fromDate:'2023-08-01',thruDate:''],-->
+<!--                            [agreementServiceCategoryId:'4',productCategoryId:'04',pseudoId:'04',categoryName:'网络故障',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--                            [agreementServiceCategoryId:'5',productCategoryId:'05',pseudoId:'05',categoryName:'屏幕故障',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--            ]-->
+<!--        </script>-->
+        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>
+        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
+
+
+        <set field="productCategoryTypeEnumId" value="PctService"/>
+    </actions>
+    <widgets>
+        <container-row>
+            <row-col md="6">
+                <container-dialog id="NewCategoryDialog" button-text="Add Service Category">
+                    <form-single name="NewCategoryForm" transition="createServiceCategory">
+                        <field name="agreementId"><default-field>
+                            <hidden/>
+                        </default-field></field>
+                        <field name="productCategoryId"><default-field title="Service Category">
+                            <drop-down>
+                                <entity-options key="${productCategoryId}" text="ProductCategoryNameTemplate">
+                                    <entity-find entity-name="mantle.product.category.ProductCategory">
+                                        <econdition field-name="ownerPartyId" from="agreement.organizationPartyId"/>
+                                        <econdition field-name="productCategoryTypeEnumId" />
+                                        <order-by field-name="pseudoId"/></entity-find>
+                                </entity-options>
+                            </drop-down>
+                        </default-field></field>
+                        <field name="fromDate">
+                            <default-field title="From Date">
+                                <date-time />
+                            </default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+
+            </row-col>
+            <row-col md="6" style="text-right">
+                <link url="../../ServiceDemandSide/ServiceCategory" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Category"/>
+            </row-col>
+        </container-row>
+
+        <form-list name="CategoriesForm" list="categoryList" transition="updateServiceCategory">
+
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceCategoryDetail" list="categoryList" cache="false">
+                <search-form-inputs default-order-by="sequenceNum"/>
+                <econdition field-name="agreementId"/>
+            </entity-find>
+            <field name="agreementId"><header-field><hidden/></header-field>
+                <default-field><hidden/></default-field>
+            </field>
+            <field name="pseudoId" >
+                <header-field title="Category ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="categoryName" >
+                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+<!--            <field name="productCategoryTypeEnumId">-->
+<!--                <header-field title="Category Type" show-order-by="true">-->
+<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+<!--                </header-field>-->
+<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+<!--            </field>-->
+<!--            <field name="ownerPartyId">-->
+<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+<!--                            <order-by field-name="organizationName"/>-->
+<!--                        </entity-find>-->
+<!--                    </entity-options>-->
+<!--                </drop-down></header-field>-->
+<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+<!--            </field>-->
+            <field name="fromDate">
+                <header-field title="From Date" show-order-by="case-insensitive">
+                    <date-time type="date"/>
+                </header-field>
+                <default-field title="From Date">
+                <display/>
+            </default-field></field>
+            <field name="thruDate">
+                <header-field title="Thru Date" show-order-by="case-insensitive">
+                    <date-time type="date"/>
+                </header-field>
+
+                <default-field title="Thru Date">
+                <date-time type="date"/>
+            </default-field></field>
+            <field name="submitButton"><header-field title="Find">
+                <submit/>
+            </header-field>
+                <default-field title="Actions">
+                    <submit text="Update" />
+                    <link  url="deleteServiceCategory" text="Delete" />
+
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

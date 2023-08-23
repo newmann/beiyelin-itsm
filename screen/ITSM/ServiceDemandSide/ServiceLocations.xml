@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Locations" default-menu-index="2">
+<!--
+    1、通过Party来管理服务网点
+    2、服务站通过PartyRelationship来获取,toPartyId为serviceDemandSidePartyId，toRoleTypeId为 OrgServiceDemandSide，fromRoleTypeId为OrgServiceLocation
+    3、可以关闭服务网点，需要设置PartyRelationship和对应服务协议中的到效日期
+
+-->
+    <parameter name="partyId" required="true"/>
+
+
+    <subscreens default-item="FindServiceLocation"/>
+
+    <widgets><subscreens-active/></widgets>
+
+
+</screen>

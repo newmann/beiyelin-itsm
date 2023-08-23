@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- No copyright or license for configuration file, details here are not considered a creative work. -->
+<moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-3.xsd">
+    <screen-facade>
+<!--        <screen location="component://webroot/screen/webroot.xml">-->
+<!--            <subscreens-item name="tmmstatic" menu-include="false" location="component://TestMachineMgnt/screen/tmmstatic.xml"/>-->
+<!--        </screen>-->
+<!--        <screen location="component://webroot/screen/webroot.xml">-->
+<!--            <subscreens-item name="site" location="component://example/screen/ExampleSite.xml"/>-->
+<!--        </screen>-->
+        <screen location="component://webroot/screen/webroot/apps.xml">
+            <subscreens-item name="ITSM" menu-title="IT服务管理" menu-index="97" location="component://beiyelin-itsm/screen/ITSM.xml"/>
+        </screen>
+<!--        <screen location="component://webroot/screen/webroot/apps.xml">-->
+<!--            <subscreens-item name="ServiceRequest" menu-title="服务请求管理" menu-index="97" location="component://beiyelin-itsm/screen/ServiceRequest.xml"/>-->
+<!--        </screen>-->
+<!--        <screen location="component://webroot/screen/webroot/apps.xml">-->
+<!--            <subscreens-item name="ServiceTicket" menu-title="服务工单管理" menu-index="97" location="component://beiyelin-itsm/screen/ServiceTicket.xml"/>-->
+<!--        </screen>-->
+    </screen-facade>
+</moqui-conf>
