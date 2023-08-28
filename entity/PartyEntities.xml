@@ -158,15 +158,22 @@ along with this software (see the LICENSE.md file). If not, see
     </view-entity>
 
     <entity entity-name="AgreementServiceLevel" package="mantle.party.agreement">
-        <field name="agreementId" type="id" is-pk="true"/>
-        <field name="serviceLevel" type="text-short" is-pk="true"/>
+        <field name="agreementServiceLevelId" type="id" is-pk="true"/>
+        <field name="agreementId" type="id" />
+        <field name="pseudoId" type="id" default="agreementServiceLevelId"/>
+        <field name="serviceLevelName" type="text-short"/>
         <field name="description" type="text-long"/>
         <field name="example" type="text-long"/>
         <field name="enabled" type="text-indicator" enable-audit-log="update" default="'Y'"/>
         <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <index name="AGREEMENT_ID_PSEUDO" unique="true">
+            <index-field name="agreementId"/>
+            <index-field name="pseudoId"/>
+        </index>
     </entity>
+
     <extend-entity entity-name="Agreement" package="mantle.party.agreement">
-        <relationship type="many" related="mantle.party.agreement.AgreementServiceLevel" short-alias="serviceLevel">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceLevel" short-alias="serviceLevels">
             <key-map field-name="agreementId"/></relationship>
     </extend-entity>
 
@@ -177,7 +184,7 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="mantle.party.agreement.Agreement"/>
     </entity>
     <extend-entity entity-name="Agreement" package="mantle.party.agreement">
-        <relationship type="many" related="mantle.party.agreement.AgreementServiceLevelAgreement" short-alias="serviceLevelAgreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceLevelAgreement" short-alias="serviceLevelAgreements">
             <key-map field-name="agreementId"/></relationship>
     </extend-entity>
 
@@ -192,7 +199,7 @@ along with this software (see the LICENSE.md file). If not, see
             <key-map field-name="escalateLevelEnumId"/></relationship>
     </entity>
     <extend-entity entity-name="Agreement" package="mantle.party.agreement">
-        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelDemandSide" short-alias="escalateLevelDemandSide">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelDemandSide" short-alias="escalateLevelDemandSides">
             <key-map field-name="agreementId"/></relationship>
     </extend-entity>
 
@@ -207,34 +214,58 @@ along with this software (see the LICENSE.md file). If not, see
             <key-map field-name="escalateLevelEnumId"/></relationship>
     </entity>
     <extend-entity entity-name="Agreement" package="mantle.party.agreement">
-        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelProvider" short-alias="escalateLevelProvider">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelProvider" short-alias="escalateLevelProviders">
             <key-map field-name="agreementId"/></relationship>
     </extend-entity>
 
     <entity entity-name="AgreementServiceEscalateLevelRule" package="mantle.party.agreement">
-        <field name="agreementId" type="id" is-pk="true"/>
-        <field name="serviceLevel" type="text-short" is-pk="true"/>
-        <field name="slaIndicatorEnumId" type="id" is-pk="true"/>
-        <field name="escalateTypeEnumId" type="id" is-pk="true"/>
-        <field name="escalateValue" type="number-decimal" is-pk="true"/>
-        <field name="escalateLevelEnumId" type="text-short"/>
+        <field name="agreementServiceEscalateLevelRuleId" type="id" is-pk="true"/>
+        <field name="agreementId" type="id" />
+        <field name="agreementServiceLevelId" type="id"/>
+        <field name="slaIndicatorEnumId" type="id" />
+        <field name="escalateTypeEnumId" type="id" />
+        <field name="escalateValue" type="number-decimal" />
+        <field name="escalateLevelEnumId" type="id"/>
         <relationship type="one" related="mantle.party.agreement.Agreement"/>
         <relationship type="one" title="SLAIndicator" related="moqui.basic.Enumeration" >
             <key-map field-name="slaIndicatorEnumId"/></relationship>
         <relationship type="one" title="SvcEscalateType" related="moqui.basic.Enumeration" >
             <key-map field-name="escalateTypeEnumId"/></relationship>
         <relationship type="one" related="mantle.party.agreement.AgreementServiceLevel">
-            <key-map field-name="agreementId" />
-            <key-map field-name="serviceLevel"/>
+            <key-map field-name="agreementServiceLevelId" />
         </relationship>
         <relationship type="one" title="SvcEscalateLevel" related="moqui.basic.Enumeration" >
             <key-map field-name="escalateLevelEnumId"/></relationship>
-
+        <index name="AGREEMENT_UNIQUE_RULE" unique="true">
+            <index-field name="agreementId"/>
+            <index-field name="agreementServiceLevelId"/>
+            <index-field name="slaIndicatorEnumId"/>
+            <index-field name="escalateTypeEnumId"/>
+            <index-field name="escalateValue"/>
+        </index>
     </entity>
 
     <extend-entity entity-name="Agreement" package="mantle.party.agreement">
-        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelRule" short-alias="escalateLevelRule">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceEscalateLevelRule" short-alias="escalateLevelRules">
             <key-map field-name="agreementId"/></relationship>
     </extend-entity>
 
+    <entity entity-name="AgreementTicketType" package="mantle.party.agreement">
+        <field name="agreementTicketTypeId" type="id" is-pk="true"/>
+        <field name="agreementId" type="id"/>
+        <field name="pseudoId" type="id" default="agreementTicketTypeId" />
+        <field name="ticketTypeName" type="text-medium"/>
+        <field name="description" type="text-very-long"/>
+        <field name="enabled" type="text-indicator" enable-audit-log="update" default="'Y'"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <index name="AGREEMENTID_PSEUDOID" unique="true">
+            <index-field name="agreementId"/>
+            <index-field name="pseudoId"/>
+        </index>
+    </entity>
+
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementTicketType" short-alias="ticketTypes">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
 </entities>

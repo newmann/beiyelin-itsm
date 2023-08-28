@@ -23,98 +23,471 @@ along with this software (see the LICENSE.md file). If not, see
 
     <parameter name="workEffortId" required="true"/>
 
-    <transition name="updateTask">
-        <service-call name="mantle.work.TaskServices.update#Task" in-map="context"/>
+    <transition name="updateTicket">
+        <service-call name="update#mantle.work.effort.WorkEffort" in-map="context" out-map="context"/>
         <default-response url="."/>
     </transition>
-    <transition name="projectSummary"><default-response url="../../Project/ProjectSummary"/></transition>
-    <transition name="milestoneSummary"><default-response url="../../Project/MilestoneSummary"/></transition>
-    <transition name="taskSummary"><default-response url="../TaskSummary"/></transition>
 
-    <transition-include name="getUserProjectList" location="component://SimpleScreens/template/work/WorkTransitions.xml"/>
-    <transition-include name="getProjectMilestones" location="component://SimpleScreens/template/work/WorkTransitions.xml"/>
-    <transition-include name="getTaskList" location="component://SimpleScreens/template/work/WorkTransitions.xml"/>
+    <transition name="approveTicket">
+        <service-call name="beiyelin.work.TicketServices.approve#Ticket" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="addTicketParty"><service-call name="create#mantle.work.effort.WorkEffortParty"/><default-response url="."/></transition>
+    <transition name="updateTicketParty"><service-call name="update#mantle.work.effort.WorkEffortParty"/><default-response url="."/></transition>
+
+
+    <transition-include name="getProductList" location="component://SimpleScreens/template/product/ProductTransitions.xml"/>
+    <transition-include name="getAssetList" location="component://beiyelin-itsm/screen/ITSM/ServiceRequest/FindRequest.xml"/>
+    <transition name="calcSLA">
+        <service-call name="beiyelin.work.TicketServices.run#CalcSLA" in-map="context" out-map="context"/>
+        <default-response url="."/>
+
+    </transition>
+    <transition name="getValidServiceAgreements">
+        <parameter name="serviceDemandSidePartyId" required="true"/>
+        <parameter name="serviceLocationPartyId" required="true"/>
+        <actions>
+            <service-call name="beiyelin.work.TicketServices.get#ValidServiceAgreements" in-map="[
+                    serviceDemandSidePartyId:serviceDemandSidePartyId,
+                    serviceLocationPartyId:serviceLocationPartyId
+                        ]" out-map="out"/>
+<!--            <message type="warning">out.agreements: ${out.agreements}</message>-->
+            <script>
+                def outList = []
+                for (def agreement in out.agreements)
+                    outList.add([value:agreement.agreementId, label: agreement.description])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <transition name="getAgreementServiceCategories">
+        <parameter name="agreementId"/>
+        <actions>
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceCategoryDetail" list="serviceCategoryList">
+                <date-filter/>
+                <econdition field-name="agreementId"/>
+
+            </entity-find>
+            <script>
+                def outList = []
+                for (def serviceCategory in serviceCategoryList)
+                    outList.add([value:serviceCategory.productCategoryId, label: serviceCategory.pseudoId +':' + serviceCategory.categoryName])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="getAgreementTicketTypes">
+        <parameter name="agreementId"/>
+        <actions>
+            <entity-find entity-name="mantle.party.agreement.AgreementTicketType" list="ticketTypeList">
+                <econdition field-name="agreementId" />
+                <econdition field-name="enabled" value="Y"/>
+                <order-by field-name="pseudoId"/></entity-find>
+            <script>
+                def outList = []
+                for (def ticketType in ticketTypeList)
+                    outList.add([value:ticketType.agreementTicketTypeId, label: ticketType.pseudoId +':' + ticketType.ticketTypeName])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="getAgreementServiceLevels">
+        <parameter name="agreementId"/>
+        <actions>
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceLevel" list="serviceLevelList">
+                <econdition field-name="agreementId" />
+                <econdition field-name="enabled" value="Y"/>
+                <order-by field-name="pseudoId"/></entity-find>
+            <script>
+                def outList = []
+                for (def serviceLevel in serviceLevelList)
+                    outList.add([value:serviceLevel.agreementServiceLevelId, label: serviceLevel.pseudoId +':' + serviceLevel.serviceLevelName])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
 
     <actions>
-        <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="task"/>
-        <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="project">
-            <field-map field-name="workEffortId" from="task.rootWorkEffortId"/></entity-find-one>
+        <service-call name="beiyelin.work.TicketServices.get#TicketDisplayInfo" in-map="[workEffortId:workEffortId]" out-map="context"/>
+<!--        <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="ticket"/>-->
+        <if condition="ticket == null"><return error="true" message="Ticket not found with ID ${workEffortId}"/></if>
 
-        <entity-find entity-name="mantle.work.effort.WorkEffortAssoc" list="milestoneAssocList">
-            <date-filter/>
-            <econdition field-name="toWorkEffortId" from="task.workEffortId"/>
-            <econdition field-name="workEffortAssocTypeEnumId" value="WeatMilestone"/>
-        </entity-find>
-        <set field="milestoneAssoc" from="milestoneAssocList?.getAt(0)"/>
-        <set field="statusFlowId" from="(task.statusFlowId ?: project?.statusFlowId) ?: 'Default'"/>
+        <set field="statusFlowId" value="ServiceTicket"/>
+        <set field="statusId" from="ticket.statusId"/>
+        <set field="changedEntityName" value="mantle.work.effort.WorkEffort"/>
+        <set field="pkPrimaryValue" from="workEffortId"/>
+<!--        <message type="warning">requestDetail: ${requestDetail}</message>-->
     </actions>
     <widgets>
-        <form-single name="EditTask" transition="updateTask" map="task">
-            <field name="workEffortId"><default-field title="Task ID"><display/></default-field></field>
-            <field name="rootWorkEffortId"><default-field title="Project">
-                <drop-down allow-empty="true">
-                    <dynamic-options transition="getUserProjectList" server-search="true" min-length="0"/></drop-down>
-                <link text="Edit ${project.workEffortId}" url="projectSummary" link-type="anchor" condition="project">
-                    <parameter name="workEffortId" from="project.workEffortId"/></link>
-            </default-field></field>
-            <field name="milestoneWorkEffortId" from="milestoneAssoc?.workEffortId"><default-field title="Milestone">
-                <drop-down allow-empty="true">
-                    <dynamic-options transition="getProjectMilestones" value-field="workEffortId" label-field="milestoneLabel">
-                        <depends-on field="rootWorkEffortId"/></dynamic-options>
-                </drop-down>
-                <link text="Edit ${milestoneAssoc.workEffortId}" url="milestoneSummary" link-type="anchor" condition="milestoneAssoc">
-                    <parameter name="milestoneWorkEffortId" from="milestoneAssoc?.workEffortId"/></link>
-            </default-field></field>
-            <field name="parentWorkEffortId"><default-field title="Parent Task">
-                <drop-down allow-empty="true">
-                    <dynamic-options transition="getTaskList" min-length="2" server-search="true" depends-optional="true">
-                        <depends-on field="rootWorkEffortId"/></dynamic-options>
-                </drop-down>
-                <link text="Edit ${parentWorkEffortId}" url="taskSummary" link-type="anchor" condition="parentWorkEffortId">
-                    <parameter name="workEffortId" from="parentWorkEffortId"/></link>
-            </default-field></field>
-            <field name="workEffortName"><default-field title="Task Name"><text-line size="60"/></default-field></field>
-            <field name="priority"><default-field>
-                <drop-down no-current-selected-key="5">
-                    <option key="1"/><option key="2"/><option key="3"/><option key="4"/><option key="5"/>
-                    <option key="6"/><option key="7"/><option key="8"/><option key="9"/></drop-down>
-            </default-field></field>
-            <field name="purposeEnumId"><default-field title="Purpose">
-                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                    <set field="enumTypeId" value="WorkEffortPurpose"/><set field="parentEnumId" value="WetTask"/></widget-template-include>
-            </default-field></field>
-            <field name="statusId"><default-field title="Status">
-                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusTransitionWithFlowDropDown">
-                    <set field="currentDescription" from="task?.'WorkEffort#moqui.basic.StatusItem'?.description"/>
-                    <set field="statusId" from="task.statusId"/></widget-template-include>
-            </default-field></field>
-            <field name="resolutionEnumId"><default-field title="Resolution">
-                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                    <set field="enumTypeId" value="WorkEffortResolution"/></widget-template-include>
-            </default-field></field>
-            <field name="estimatedCompletionDate">
-                <default-field title="Due Date"><date-time type="date" format="yyyy-MM-dd"/></default-field>
-            </field>
-            <field name="estimatedWorkTime"><default-field title="Estimated Hours"><text-line size="5"/></default-field></field>
-            <field name="remainingWorkTime"><default-field title="Remaining Hours"><text-line size="5"/></default-field></field>
-            <field name="actualWorkTime"><default-field title="Actual Hours"><display format="0.00"/></default-field></field>
-            <field name="totalTimeAllowed">
-                <conditional-field title="Hours Budget" condition="!task.parentWorkEffortId">
-                    <text-line size="5"/></conditional-field>
-                <default-field><ignored/></default-field>
-            </field>
-            <field name="description"><default-field title="Description"><text-area rows="20" cols="100"/></default-field></field>
-            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
-            
-            <field-layout>
-                <fields-not-referenced/>
-                <field-row><field-ref name="purposeEnumId"/><field-ref name="priority"/></field-row>
-                <field-row><field-ref name="statusId"/><field-ref name="estimatedCompletionDate"/></field-row>
-                <field-ref name="resolutionEnumId"/>
-                <field-row><field-ref name="estimatedWorkTime"/><field-ref name="remainingWorkTime"/></field-row>
-                <field-row><field-ref name="actualWorkTime"/><field-ref name="totalTimeAllowed"/></field-row>
-                <field-ref name="description"/><field-ref name="submitButton"/>
-            </field-layout>
-        </form-single>
+        <container-row>
+            <row-col md="7">
+<!--                <label text="Ticket #${workEffortId}" type="h4"/>-->
+                <form-single name="EditTicketRequest" transition="updateTicket" map="ticket">
+                    <field name="workEffortId"><default-field>
+                        <hidden/>
+                    </default-field></field>
+                    
+<!--                    <field name="requestId"><default-field title="Request ID"><display/></default-field></field>-->
+
+                    <field name="ownerPartyId" >
+                        <default-field title="Service Demand Side">
+                            <display text="PartyNameTemplate" text-map="ownerPartyDetail"/>
+                        </default-field>
+                    </field>
+                    <field name="serviceLocationPartyId" >
+                        <default-field title="Service Location">
+                            <display text="PartyNameTemplate" text-map="serviceLocationPartyDetail"/>
+                        </default-field>
+                    </field>
+
+
+                    <field name="facilityId" ><default-field title="Facility">
+<!--                        <display text="FacilityNameTemplate" text-map="facilityDetail"/>-->
+                        <drop-down allow-empty="true">
+                        <entity-options key="${facilityId}" text="FacilityNameTemplate">
+                            <entity-find entity-name="mantle.facility.Facility" list="facilityList">
+                                <econdition field-name="ownerPartyId" from="serviceLocationPartyId"/>
+                                <order-by field-name="facilityName"/></entity-find></entity-options>
+                    </drop-down>
+                    </default-field></field>
+
+
+                    <field name="productId">
+                        <default-field title="Product" >
+<!--                            <display text="ProductNameTemplate" text-map="productDetail"/>-->
+                            <drop-down allow-empty="true" >
+                                <dynamic-options transition="getProductList" min-length="2" >
+                                </dynamic-options>
+                            </drop-down>
+                        </default-field>
+                    </field>
+                    <field name="assetId"><default-field title="Asset">
+<!--                            <display text="AssetNameTemplate" text-map="assetDetail"/>-->
+                        <drop-down allow-empty="true" >
+                            <dynamic-options transition="getAssetList" >
+                                <depends-on field="facilityId" />
+                                <depends-on field="productId"/>
+                            </dynamic-options>
+                        </drop-down>
+                    </default-field>
+                    </field>
+
+                    <field name="workEffortName"><default-field title="Brief Demands"><text-line/></default-field></field>
+                    <field name="priority"><default-field>
+                        <drop-down no-current-selected-key="5">
+                            <option key="1"/><option key="2"/><option key="3"/><option key="4"/><option key="5"/>
+                            <option key="6"/><option key="7"/><option key="8"/><option key="9"/></drop-down>
+                    </default-field></field>
+<!--                    <field name="agreementId" ><default-field title="Applicable Agreement">-->
+<!--                        <drop-down allow-empty="true">-->
+<!--                            <dynamic-options transition="getValidServiceAgreements" >-->
+<!--                                <depends-on field="ownerPartyId" parameter="serviceDemandSidePartyId"/>-->
+<!--                                <depends-on field="serviceLocationPartyId" parameter="serviceLocationPartyId"/>-->
+<!--                            </dynamic-options>-->
+<!--                        </drop-down>-->
+<!--                    </default-field></field>-->
+<!--                    <field name="serviceCategoryId" ><default-field title="Service Category">-->
+<!--                        <drop-down allow-empty="true">-->
+<!--                            <dynamic-options transition="getAgreementServiceCategories">-->
+<!--                                <depends-on field="agreementId"/>-->
+<!--                            </dynamic-options>-->
+<!--                        </drop-down>-->
+<!--                    </default-field></field>-->
+<!--                    <field name="agreementTicketTypeId" ><default-field title="Ticket Type">-->
+<!--                        <drop-down allow-empty="true">-->
+<!--                            <dynamic-options transition="getAgreementTicketTypes">-->
+<!--                                <depends-on field="agreementId"/>-->
+<!--                            </dynamic-options>-->
+<!--                        </drop-down>-->
+<!--                    </default-field></field>-->
+
+<!--                    <field name="workTypeEnumId"><default-field title="Work Type">-->
+<!--                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumGroupDropDown">-->
+<!--                            <set field="enumGroupEnumId" value="ServiceWorkType"/></widget-template-include>-->
+<!--                    </default-field></field>-->
+
+
+                    <field name="estimatedCompletionDate">
+                        <default-field title="Due Date">
+                            <date-time  type="date-time"/>
+                        </default-field>
+                    </field>
+<!--                    <field name="estimatedWorkTime"><default-field title="Estimated Hours"><text-line size="5"/></default-field></field>-->
+<!--                    <field name="remainingWorkTime"><default-field title="Remaining Hours"><text-line size="5"/></default-field></field>-->
+<!--                    <field name="actualWorkTime"><default-field title="Actual Hours"><display format="0.00"/></default-field></field>-->
+<!--                    <field name="totalTimeAllowed">-->
+<!--                        <conditional-field title="Hours Budget" condition="!ticket.parentWorkEffortId">-->
+<!--                            <text-line size="5"/></conditional-field>-->
+<!--                        <default-field><ignored/></default-field>-->
+<!--                    </field>-->
+                    <field name="description"><default-field title="Detailed Demands"><text-area rows="10" cols="100"/></default-field></field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+
+                    <field-layout>
+
+                        <field-ref name="ownerPartyId"/>
+                        <field-ref name="serviceLocationPartyId"/>
+                        <field-ref name="facilityId"/>
+                        <field-row><field-ref name="productId"/><field-ref name="assetId"/></field-row>
+                        <field-ref name="workEffortName"/>
+                        <field-ref name="description"/>
+
+
+<!--                            <field-ref name="agreementId"/>-->
+<!--                            <field-row><field-ref name="serviceCategoryId"/><field-ref name="agreementTicketTypeId"/></field-row>-->
+
+                        <field-row><field-ref name="priority"/><field-ref name="estimatedCompletionDate"/></field-row>
+
+                        <fields-not-referenced/>
+
+<!--                        <field-row><field-ref name="estimatedWorkTime"/><field-ref name="remainingWorkTime"/></field-row>-->
+<!--                        <field-row><field-ref name="actualWorkTime"/><field-ref name="totalTimeAllowed"/></field-row>-->
+<!--                        <field-ref name="description"/><field-ref name="submitButton"/>-->
+                    </field-layout>
+                </form-single>
+                <container-box>
+                    <box-header title="Demand Analysis"></box-header>
+                    <box-body-nopad>
+                        <form-single name="EditDemandAnalysis" transition="updateTicket" map="ticket">
+                            <field name="workEffortId"><default-field title="Task ID"><hidden/></default-field></field>
+
+                            <field name="agreementId" ><default-field title="Applicable Agreement">
+                                <drop-down allow-empty="true">
+                                    <dynamic-options transition="getValidServiceAgreements" parameter-map="[
+                                            serviceDemandSidePartyId: ownerPartyId,
+                                            serviceLocationPartyId: serviceLocationPartyId
+                                            ]" >
+                                        <!--                                        -->
+                                        <!--                                        <depends-on field="ownerPartyId" parameter="serviceDemandSidePartyId"/>-->
+                                        <!--                                        <depends-on field="serviceLocationPartyId" parameter="serviceLocationPartyId"/>-->
+                                    </dynamic-options>
+                                </drop-down>
+                            </default-field></field>
+                            <field name="serviceCategoryId" ><default-field title="Service Category">
+                                <drop-down allow-empty="true">
+                                    <dynamic-options transition="getAgreementServiceCategories">
+                                        <depends-on field="agreementId"/>
+                                    </dynamic-options>
+                                </drop-down>
+                            </default-field></field>
+                            <field name="agreementTicketTypeId" ><default-field title="Ticket Type">
+                                <drop-down allow-empty="true">
+                                    <dynamic-options transition="getAgreementTicketTypes">
+                                        <depends-on field="agreementId"/>
+                                    </dynamic-options>
+                                </drop-down>
+                            </default-field></field>
+
+                            <field name="workTypeEnumId"><default-field title="Work Type">
+                                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumGroupDropDown">
+                                    <set field="enumGroupEnumId" value="ServiceWorkType"/></widget-template-include>
+                            </default-field></field>
+
+                            <field name="agreementServiceLevelId" ><default-field title="Service Level">
+                                <drop-down allow-empty="true">
+                                    <dynamic-options transition="getAgreementServiceLevels">
+                                        <depends-on field="agreementId"/>
+                                    </dynamic-options>
+                                </drop-down>
+                            </default-field></field>
+                            <!--                    <field name="statusId"><default-field title="Status">-->
+                            <!--                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusTransitionWithFlowDropDown">-->
+                            <!--                            <set field="currentDescription" from="ticket?.'WorkEffort#moqui.basic.StatusItem'?.description"/>-->
+                            <!--                            <set field="statusId" from="ticket.statusId"/></widget-template-include>-->
+                            <!--                    </default-field></field>-->
+                            <!--                    <field name="resolutionEnumId"><default-field title="Resolution">-->
+                            <!--                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+                            <!--                            <set field="enumTypeId" value="WorkEffortResolution"/></widget-template-include>-->
+                            <!--                    </default-field></field>-->
+
+                            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+
+                            <field-layout>
+
+                                <field-ref name="agreementId"/>
+                                <field-row><field-ref name="serviceCategoryId"/><field-ref name="agreementTicketTypeId"/></field-row>
+                                <fields-not-referenced/>
+
+                                <field-ref name="submitButton"/>
+                            </field-layout>
+                        </form-single>
+                    </box-body-nopad>
+                </container-box>
+
+            </row-col>
+            <row-col md="5">
+<!--                <section-include name="StatusChangeSection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>-->
+                <container style="shaded-area condensed" type="span">
+                    <container style="float-plain condensed" type="ul">
+                        <container type="li">
+                            <container><label text="Status" type="strong"/></container>
+                            <container><label text="${statusItem?.description ?: ''}" type="strong" style="text-info"/></container>
+                        </container>
+                        <section name="InPlaningStatusSection" condition="statusId in ['WeInPlanning']">
+                            <widgets>
+
+                                <container type="li">
+                                    <link url="approveTicket" text="Approve"
+                                          confirmation="Approve Ticket： ${workEffortId}?"/>
+                                </container>
+
+                            </widgets>
+                        </section>
+
+                        <section name="InPlaningStatusSection" condition="statusId == 'WeApproved'">
+                            <actions>
+                                <entity-find entity-name="moqui.basic.EnumAndGroup" list="dispatchRoleTypeList">
+                                    <econdition field-name="enumGroupEnumId" value="RgpDispatchTicket"/>
+                                </entity-find>
+                                <set field="dispatchRolTypeIdList" from="dispatchRoleTypeList.enumId"/>
+                                <iterate list="ticketPartyList" entry="ticketParty">
+                                    <if condition="(ticketParty.roleTypeId in  dispatchRolTypeIdList) &amp;&amp; (ticketParty.statusId == 'WeptOffered')">
+                                        <set field="curServiceParty" from="ticketParty"/>
+                                    </if>
+                                </iterate>
+                            </actions>
+                            <widgets>
+
+                                <container type="li">
+                                    <container-dialog id="DispatchTicketContainer" button-text="Dispatch">
+                                        <form-single name="NewTicketForm" transition="createTicket" map="ticketParty">
+                                            <field name="workEffortId"><default-field><hidden/></default-field></field>
+                                            <field name="fromPartyId" from="partyId"><default-field><hidden/></default-field></field>
+
+
+                                            <field name="submitButton"><default-field title="Dispatch"><submit/></default-field></field>
+                                        </form-single>
+                                    </container-dialog>
+                                </container>
+                                <container type="li">
+                                    <link url="cancelTicket" text="Cancel"
+                                          confirmation="Cancel Ticket： ${workEffortId}?"/>
+                                </container>
+                                <container type="li">
+                                    <link url="holdTicket" text="Hold"
+                                          confirmation="Hold Ticket： ${workEffortId}?"/>
+                                </container>
+
+                            </widgets>
+                        </section>
+
+                        <section name="SpecialStatusSection" condition="statusId in ['ReqReviewed','ReqInProgress']">
+                            <widgets>
+                                <container type="li">
+                                    <link url="generateTicket" text="Generate Ticket"
+                                          parameter-map="[requestId:requestId]"
+                                          confirmation="Generate a new Ticket ?"/>
+                                </container>
+                            </widgets>
+                        </section>
+
+                    </container>
+                </container>
+                <section-include name="StatusHistorySection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>
+                <container-box>
+                    <box-header title="SLA"></box-header>
+                    <box-toolbar>
+                        <link url="calcSLA" text="Calc SLA"/>
+                    </box-toolbar>
+                    <box-body-nopad>
+                        <section name="TicketSLASection" condition="slaList">
+                            <widgets>
+                                <form-list name="TicketSLA" list="slaList" >
+                                    <field name="workEffortId"><default-field><hidden/></default-field></field>
+                                    <field name="slaIndicatorEnumId">
+                                        <default-field title="SLA Indicator">
+                                            <display text="${description}"/>
+                                        </default-field>
+                                    </field>
+                                    <field name="slaValue">
+                                        <default-field title="SLA Value">
+                                            <display/>
+                                        </default-field>
+                                    </field>
+                                </form-list>
+
+                            </widgets>
+                            <fail-widgets>
+                                <label text="No any SLA."/>
+                            </fail-widgets>
+                        </section>
+
+                    </box-body-nopad>
+                </container-box>
+                <container-box>
+                    <box-header title="Time"></box-header>
+                    <box-body-nopad>
+                        <container><label text="Due Date: " type="strong"/><label text="${ticket.estimatedCompletionDate ?: ''}"/></container>
+                        <container><label text="Estimated Hours: " type="strong"/><label text="${ticket.estimatedWorkTime ?: ''}"/></container>
+                        <container><label text="Actual Hours: " type="strong"/><label text="${ticket.actualWorkTime ?: ''}"/></container>
+                        <container><label text="Remaining Hours: " type="strong"/><label text="${ticket.remainingWorkTime ?: ''}"/></container>
+                    </box-body-nopad>
+                </container-box>
+                <container-box>
+                    <box-header title="Solutions"></box-header>
+                    <box-body>
+
+                    </box-body>
+                </container-box>
+<!--                <container-box>-->
+<!--                    <box-header title="Parties"/><box-toolbar>-->
+<!--                    <container-dialog id="AddPartyDialog" button-text="Add Party">-->
+<!--                        <form-single name="AddPartyForm" transition="addTicketParty">-->
+<!--                            <field name="workEffortId"><default-field><hidden/></default-field></field>-->
+
+<!--                            <field name="partyId"><default-field title="Party">-->
+<!--                                <drop-down allow-empty="true"><dynamic-options transition="searchPartyList" server-search="true" min-length="2"/></drop-down>-->
+<!--                            </default-field></field>-->
+<!--                            <field name="roleTypeId"><default-field title="Role">-->
+<!--                                <drop-down><entity-options key="${roleTypeId}" text="${description}">-->
+<!--                                    <entity-find entity-name="mantle.party.RoleGroupMemberAndType" cache="true">-->
+<!--                                        <econdition field-name="roleGroupEnumId" value="RgpTicket"/>-->
+<!--                                        <order-by field-name="description"/></entity-find>-->
+<!--                                </entity-options></drop-down>-->
+<!--                            </default-field></field>-->
+
+<!--                            &lt;!&ndash; <field name="receiveNotifications"><default-field>-->
+<!--                                <drop-down no-current-selected-key="N"><option key="Y"/><option key="N"/></drop-down>-->
+<!--                            </default-field></field> &ndash;&gt;-->
+<!--                            <field name="submitButton"><default-field title="Add Party"><submit/></default-field></field>-->
+<!--                        </form-single>-->
+<!--                    </container-dialog>-->
+<!--                </box-toolbar><box-body-nopad>-->
+<!--                    <form-list name="UpdatePartyForm" list="rpapList" transition="updateTicketParty">-->
+<!--                        <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="rpapList">-->
+<!--                            <date-filter/><econdition field-name="workEffortId"/><order-by field-name="roleTypeId"/></entity-find>-->
+
+<!--                        <field name="workEffortId"><default-field><hidden/></default-field></field>-->
+<!--                        <field name="fromDate"><default-field><hidden/></default-field></field>-->
+<!--                        <field name="thruDate" from="ec.user.nowTimestamp"><default-field><hidden/></default-field></field>-->
+
+<!--                        <field name="roleTypeId"><default-field title="Role">-->
+<!--                            <display-entity entity-name="mantle.party.RoleType" text="${description}"/></default-field>-->
+<!--                        </field>-->
+<!--                        <field name="partyId"><default-field title="Name">-->
+<!--                            <link url="editParty" text="PartyNameTemplate" entity-name="mantle.party.PartyDetail" link-type="anchor"/>-->
+<!--                            <display text=""/>-->
+<!--                        </default-field></field>-->
+<!--                        &lt;!&ndash; <field name="username"><default-field><link url="editParty" text="${username}" link-type="anchor" condition="username"/></default-field></field> &ndash;&gt;-->
+
+<!--                        &lt;!&ndash; <field name="receiveNotifications"><default-field title="Notify"><display/></default-field></field> &ndash;&gt;-->
+<!--                        <field name="submitButton"><default-field title=""><submit icon="fa fa-trash"/></default-field></field>-->
+<!--                    </form-list>-->
+<!--                </box-body-nopad>-->
+<!--                </container-box>-->
+            </row-col>
+        </container-row>
+
     </widgets>
 </screen>

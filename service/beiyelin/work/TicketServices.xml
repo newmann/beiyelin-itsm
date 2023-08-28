@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <service verb="create" noun="Ticket">
+        <in-parameters>
+            <auto-parameters entity-name="mantle.work.effort.WorkEffort" include="nonpk"/>
+            <parameter name="ownerPartyId" required="true"/>
+            <parameter name="serviceLocationPartyId" required="true"/>
+            <parameter name="statusId" default="WeInPlanning"/>
+            <parameter name="priority" type="Long" default="5"/>
+            <parameter name="workEffortTypeEnumId" default-value="RqtService"/>
+            <parameter name="requestDate" default="ec.user.nowTimestamp"/>
+            <parameter name="filedByPartyId" default="ec.user.userAccount?.partyId"/>
+            <parameter name="reporterPartyId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="workEffortId"/>
+        </out-parameters>
+        <actions>
+
+            <service-call name="create#mantle.work.effort.WorkEffort" out-map="context" in-map="context"/>
+            <if condition="reporterPartyId">
+                <service-call name="create#mantle.work.effort.WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, partyId:reporterPartyId, roleTypeId:'Reporter', fromDate:ec.user.nowTimestamp]"/>
+            </if>
+        </actions>
+    </service>
+
+<!--    在生效的时候，需要根据服务协议将服务方写入WorkEffortParty-->
+    <service verb="approve" noun="Ticket">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+        </in-parameters>
+        <actions>
+            <set field="toStatusId" value="WeApproved"/>
+<!--            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="workEffort"/>-->
+<!--            -->
+            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="workEffort" for-update="true"/>
+            <if condition="workEffort == null ">
+                <return error="true" message="Ticket not found with ID: ${workEffortId}"/>
+            </if>
+
+            <if condition="workEffort.statusId != 'WeInPlanning'">
+                <return error="true" message="Ticket status is not in Planning ,cannot approved."/>
+            </if>
+
+            <service-call name="update#mantle.work.effort.WorkEffort" in-map="[workEffortId:workEffortId,statusId:toStatusId]"/>
+            <if condition="workEffort.agreementId">
+                <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement">
+                    <field-map field-name="agreementId" from="workEffort.agreementId"/>
+                </entity-find-one>
+
+                <service-call name="create#mantle.work.effort.WorkEffortParty" in-map="[
+                    workEffortId:workEffortId,partyId:agreement.otherPartyId,
+                    roleTypeId:'OrgServiceProvider',fromDate:ec.user.nowTimestamp,statusId:'WeptOffered',
+                ]"/>
+            </if>
+            
+        </actions>
+    </service>
+
+<!--    支持第一次分派和多次转派-->
+    <service verb="dispatch" noun="Ticket">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+            <parameter name="fromPartyId" required="true"/>
+            <parameter name="fromRoleTypeId" required="true"/>
+            <parameter name="fromDate" type="date-time" required="true"/>
+            <parameter name="toPartyId" required="true"/>
+            <parameter name="toRoleTypeId" required="true"/>
+            <parameter name="delegateReasonEnumId" required="true" default="WepdrServiceDispatch"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="workEffort" />
+            <if condition="workEffort.statusId == 'WeApproved'">
+                <service-call name="update#mantle.work.effort.WorkEffort" in-map="[workEffortId:workEffortId,statusId:'WeDispatched']"/>
+            </if>
+
+            <set field="curDate" from="ec.user.nowTimestamp"/>
+            <service-call name="update#mantle.work.effort.WorkEffortParty" in-map="[
+                workEffortId:workEffortId,partyId:fromPartyId,
+                roleType:fromRoleTypeId,fromDate:curDate,
+                statusId:'Unassigned',delegateReasonEnumId:delegateReasonEnumId,delegatePartyId: toPartyId
+                ]"/>
+
+            <service-call name="create#mantle.work.effort.WorkEffortParty" in-map="[
+                workEffortId:workEffortId,partyId:toPartyId,
+                roleType:toRoleTypeId,fromDate:curDate,
+                statusId:'WeptOffered',roleTypeId:toRoleTypeId
+                ]"/>
+
+        </actions>
+    </service>
+    <service verb="get" noun="TicketDisplayInfo">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="workEffortId"/>
+            <parameter name="ticket" type="Map"><auto-parameters entity-name="mantle.work.effort.WorkEffort"/> </parameter>
+            <parameter name="statusItem" type="Map"><auto-parameters entity-name="moqui.basic.StatusItem"/></parameter>
+            <parameter name="editableStatusIds" type="Set"><parameter name="statusId"/></parameter>
+            <parameter name="ticketEditable" type="Boolean"/>
+<!--            <parameter name="placeWarnings" type="List"><parameter name="placeWarning"/></parameter>-->
+
+            <parameter name="workEffortTypeEnum" type="Map">
+                <auto-parameters entity-name="moqui.basic.Enumeration"/></parameter>
+            <parameter name="resolutionEnum" type="Map">
+                <auto-parameters entity-name="moqui.basic.Enumeration"/></parameter>
+            <parameter name="workTypeEnum" type="Map">
+                <auto-parameters entity-name="moqui.basic.Enumeration"/></parameter>
+
+            <parameter name="ticketCategoryDetail" type="Map">
+                <auto-parameters entity-name="mantle.work.effort.WorkEffortCategoryDetail"/></parameter>
+
+
+            <parameter name="ownerPartyDetail" type="Map"><auto-parameters entity-name="mantle.party.PartyDetail"/></parameter>
+            <parameter name="serviceLocationPartyDetail" type="Map"><auto-parameters entity-name="mantle.party.PartyDetail"/></parameter>
+            <parameter name="facilityDetail" type="Map"><auto-parameters entity-name="mantle.facility.Facility"/></parameter>
+            <parameter name="productDetail" type="Map"><auto-parameters entity-name="mantle.product.Product"/></parameter>
+            <parameter name="assetDetail" type="Map"><auto-parameters entity-name="mantle.product.asset.Asset"/></parameter>
+            <parameter name="agreementServiceLevel" type="Map"><auto-parameters entity-name="mantle.party.agreement.AgreementServiceLevel"/> </parameter>
+            <parameter name="agreementTicketType" type="Map"><auto-parameters entity-name="mantle.party.agreement.AgreementTicketType"/> </parameter>
+            <parameter name="serviceCategory" type="Map"><auto-parameters entity-name="mantle.party.agreement.AgreementServiceCategoryDetail"/> </parameter>
+
+<!--            <parameter name="requestChannelEnum" type="Map">-->
+<!--                <auto-parameters entity-name="moqui.basic.Enumeration"/></parameter>-->
+            <parameter name="requestDetail" type="Map">
+                <auto-parameters entity-name="mantle.request.WorkEffortRequestDetail"/>
+                <parameter name="statusItem" type="Map"><auto-parameters entity-name="moqui.basic.StatusItem"/></parameter>
+                <parameter name="ownerPartyDetail" type="Map"><auto-parameters entity-name="mantle.party.PartyDetail"/></parameter>
+                <parameter name="serviceLocationPartyDetail" type="Map"><auto-parameters entity-name="mantle.party.PartyDetail"/></parameter>
+                <parameter name="facilityDetail" type="Map"><auto-parameters entity-name="mantle.facility.Facility"/></parameter>
+                <parameter name="productDetail" type="Map"><auto-parameters entity-name="mantle.product.Product"/></parameter>
+                <parameter name="assetDetail" type="Map"><auto-parameters entity-name="mantle.product.asset.Asset"/></parameter>
+            </parameter>
+
+            <parameter name="ticketPartyList" type="List">
+                <parameter name="partyItem" type="Map">
+                    <auto-parameters entity-name="mantle.work.effort.WorkEffortPartyAndPerson"/></parameter>
+            </parameter>
+
+            <parameter name="slaList" type="List">
+                <parameter name="slaItem" type="Map">
+                    <auto-parameters entity-name="mantle.work.effort.WorkEffortServiceLevelAgreementAndEnumeration"/>
+                </parameter>
+            </parameter>
+        </out-parameters>
+        <actions>
+<!--            <set field="placeWarnings" from="[]"/>-->
+
+            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="ticket"/>
+            <if condition="ticket == null"><return error="true" message="Ticket not found with ID ${workEffortId}"/></if>
+            <set field="statusItem" from="ticket.status"/>
+
+            <set field="editableStatusIds" from="new HashSet(['WeInPlanning'])"/>
+            <set field="ticketEditable" from="editableStatusIds.contains(ticket.statusId)"/>
+
+            <set field="workEffortTypeEnum" from="ticket.type"/>
+            <set field="resolutionEnum" from="ticket.resolution"/>
+            <set field="workTypeEnum" from="ticket.workType"/>
+
+            <entity-find-one entity-name="mantle.work.effort.WorkEffortCategoryDetail" value-field="ticketCategoryDetail">
+                <field-map field-name="workEffortId" />
+            </entity-find-one>
+
+            <if condition="ticket.ownerPartyId">
+                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="ownerPartyDetail">
+                    <field-map field-name="partyId" from="ticket.ownerPartyId"/>
+                </entity-find-one>
+            </if>
+            <if condition="ticket.serviceLocationPartyId">
+                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="serviceLocationPartyDetail">
+                    <field-map field-name="partyId" from="ticket.serviceLocationPartyId"/>
+                </entity-find-one>
+            </if>
+            <set field="facilityDetail" from="ticket.facility"/>
+            <set field="productDetail" from="ticket.product"/>
+            <set field="assetDetail" from="ticket.asset"/>
+            <entity-find-one entity-name="mantle.party.agreement.AgreementServiceLevel" value-field="agreementServiceLevel">
+                <field-map field-name="agreementServiceLevelId" from="ticket.agreementServiceLevelId"/>
+            </entity-find-one>
+            <entity-find-one entity-name="mantle.party.agreement.AgreementTicketType" value-field="agreementTicketType">
+                <field-map field-name="agreementTicketTypeId" from="ticket.agreementTicketTypeId"/>
+            </entity-find-one>
+            <entity-find-one entity-name="mantle.party.agreement.AgreementServiceCategoryDetail" value-field="serviceCategory">
+                <field-map field-name="agreementId" from="ticket.agreementId"/>
+                <field-map field-name="productCategoryId" from="ticket.serviceCategoryId"/>
+            </entity-find-one>
+
+            <entity-find-one entity-name="mantle.request.WorkEffortRequestDetail" value-field="request">
+                <field-map field-name="workEffortId"/>
+            </entity-find-one>
+
+            <if condition="request">
+                <entity-find-one entity-name="moqui.basic.StatusItem" value-field="requestStatusItem">
+                    <field-map field-name="statusId" from="request.statusId"/>
+                </entity-find-one>
+
+                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="requestOwnerPartyDetail">
+                    <field-map field-name="partyId" from="request.ownerPartyId"/>
+                </entity-find-one>
+
+                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="requestServiceLocationPartyDetail">
+                    <field-map field-name="partyId" from="request.serviceLocationPartyId"/>
+                </entity-find-one>
+                <entity-find-one entity-name="mantle.facility.Facility" value-field="requestFacilityDetail">
+                    <field-map field-name="facilityId" from="request.facilityId"/>
+                </entity-find-one>
+                <entity-find-one entity-name="mantle.product.Product" value-field="requestProductDetail">
+                    <field-map field-name="productId" from="request.productId"/>
+                </entity-find-one>
+                <entity-find-one entity-name="mantle.product.asset.Asset" value-field="requestAssetDetail">
+                    <field-map field-name="assetId" from="request.assetId"/>
+                </entity-find-one>
+            </if>
+            <script>
+                requestDetail = new HashMap()
+                requestDetail.putAll(request.getMap())
+                requestDetail.putAll([
+                        statusItem:requestStatusItem,
+                        ownerPartyDetail:requestOwnerPartyDetail,
+                        serviceLocationPartyDetail:requestServiceLocationPartyDetail,
+                        facilityDetail: requestFacilityDetail,
+                        productDetail: requestProductDetail,
+                        assetDetail:requestAssetDetail
+                ])
+//                ec.message.addMessage(requestDetail.toString(), "warning")
+            </script>
+<!--            <message type="warning">request.getMap():${request.getMap()}</message>-->
+<!--            <message type="warning">requestDetail:${requestDetail}</message>-->
+
+            <entity-find entity-name="mantle.work.effort.WorkEffortPartyAndPerson" list="ticketPartyList">
+                <econdition field-name="workEffortId"/>
+            </entity-find>
+            <entity-find entity-name="mantle.work.effort.WorkEffortServiceLevelAgreementAndEnumeration" list="slaList">
+                <econdition field-name="workEffortId"/>
+            </entity-find>
+        </actions> 
+    </service>
+
+<!--    找到当前生效的服务协议
+    1、根据需求方筛选当前有效的agreementId
+    2、根据服务网点缩小agreementId的范围
+    3、根据服务目录缩小agreementId的范围
+    4、根据产品缩小agreementId的范围
+-->
+    <service verb="get" noun="ValidServiceAgreements">
+        <in-parameters>
+            <parameter name="serviceDemandSidePartyId" required="true"/>
+            <parameter name="serviceLocationPartyId" required="true"/>
+            <parameter name="serviceCategoryId" />
+            <parameter name="serviceProductId" />
+        </in-parameters>
+        <out-parameters>
+            <parameter name="agreements" type="List">
+                <parameter name="agreementItem" type="Map">
+                    <auto-parameters entity-name="mantle.party.agreement.Agreement"/></parameter>
+            </parameter>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.party.agreement.Agreement" list="agreementList">
+                <date-filter/>
+                <econdition field-name="organizationPartyId" from="serviceDemandSidePartyId"/>
+                <econdition field-name="statusId" value="SAInForce"/>
+                <select-field field-name="agreementId"/>
+            </entity-find>
+            <if condition="agreementList == null"><return /></if>
+            <set field="agreementIdList" from="agreementList.agreementId"/>
+
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceLocation" list="locationAgreementList" distinct="true">
+                <date-filter/>
+                <econdition field-name="agreementId" operator="in" from="agreementIdList"/>
+                <econdition field-name="serviceLocationPartyId"/>
+                <select-field field-name="agreementId"/>
+            </entity-find>
+            <if condition="locationAgreementList == null"><return /></if>
+            <set field="agreementIdList" from="locationAgreementList.agreementId"/>
+
+
+            <if condition="serviceCategoryId">
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceCategory" list="categoryAgreementList" distinct="true">
+                    <date-filter/>
+                    <econdition field-name="agreementId" operator="in" from="agreementIdList"/>
+                    <econdition field-name="productCategoryId" from="serviceCategoryId"/>
+                    <select-field field-name="agreementId"/>
+                </entity-find>
+                <if condition="categoryAgreementList == null"><return /></if>
+                <set field="agreementIdList" from="categoryAgreementList.agreementId"/>
+            </if>
+
+            <if condition="serviceProductId">
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceProduct" list="productAgreementList" distinct="true">
+                    <date-filter/>
+                    <econdition field-name="agreementId" operator="in" from="agreementIdList"/>
+                    <econdition field-name="productId" from="serviceProductId"/>
+                    <select-field field-name="agreementId"/>
+                </entity-find>
+                <if condition="productAgreementList == null"><return /></if>
+                <set field="agreementIdList" from="productAgreementList.agreementId"/>
+            </if>
+
+            <entity-find entity-name="mantle.party.agreement.Agreement" list="agreements" distinct="true">
+                <econdition field-name="agreementId" operator="in" from="agreementIdList"/>
+            </entity-find>
+
+        </actions>
+    </service>
+<!--    根据Drools，计算Ticket的SLA-->
+    <service verb="run" noun="CalcSLA">
+        <in-parameters>
+            <parameter name="workEffortId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="slaList" type="List">
+                <parameter name="slaItem" type="Map">
+                    <parameter name="workEffortId" type="id"/>
+                    <parameter name="slaIndicatorEnumId" type="id"/>
+                    <parameter name="slaValue" type="number-decimal"/>
+                </parameter>
+            </parameter>
+        </out-parameters>
+        <actions>
+            <!-- run the ProductPriceKS knowledge session rules -->
+<!--            <set field="slaList" from="[]" type="List"/>-->
+
+            <service-call name="beiyelin.work.TicketServices.get#TicketDisplayInfo" in-map="context" out-map="context"/>
+            <script>
+                slaList = []
+            </script>
+
+
+<!--            <message type="warning">now in CalcSLA procedure,slaList: ${slaList.getClass()}</message>-->
+<!--            <message type="warning">now in CalcSLA procedure,slaItem: ${slaItem.getClass()}</message>-->
+<!--            <message type="warning">now in CalcSLA procedure,agreementServiceLevel: ${agreementServiceLevel}</message>-->
+<!--            <message type="warning">now in CalcSLA procedure,agreementTicketType: ${agreementTicketType}</message>-->
+<!--            <message type="warning">now in CalcSLA procedure</message>-->
+            <if condition="ec.factory.getToolFactory('KIE')"><then>
+                <set field="kieSession" from="ec.getTool('KIE', null)?.getStatelessKieSession('CalcSLAKS')"/>
+                <if condition="kieSession != null"><then>
+                    <script>kieSession.execute([])</script>
+                </then><else>
+                    <return error="true" message="KIE was found but CalcSLAKS KIE Session, not running CalcSLAKS!"/>
+                </else></if>
+            </then><else>
+                <return error="true" message="KIE not found, Please configure correctly!"/>
+            </else></if>
+<!--            <message type="warning">calc end. slaItem: ${slaItem}</message>-->
+<!--            <message type="warning">calc end. slaList: ${slaList}</message>-->
+<!--            先将以前的记录删除，再将计算好的记录保存-->
+            <entity-delete-by-condition entity-name="mantle.work.effort.WorkEffortServiceLevelAgreement">
+                <econdition field-name="workEffortId"/>
+            </entity-delete-by-condition>
+            <iterate list="slaList" entry="slaItem">
+                <service-call name="create#mantle.work.effort.WorkEffortServiceLevelAgreement" in-map="slaItem"/>
+            </iterate>
+
+        </actions>
+    </service>
+
+</services>

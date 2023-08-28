@@ -23,11 +23,11 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="findProduct"><default-response url="."/></transition>
     <transition name="editProduct"><default-response url="../EditCategory"/></transition>
 
-    <transition name="createTicketType"><service-call name="create#mantle.work.effort.WorkEffortCategory"/>
+    <transition name="createTicketType"><service-call name="create#mantle.party.agreement.AgreementTicketType"/>
         <default-response url="."/></transition>
-    <transition name="updateTicketType"><service-call name="update#mantle.work.effort.WorkEffortCategory"/>
+    <transition name="updateTicketType"><service-call name="update#mantle.party.agreement.AgreementTicketType"/>
         <default-response url="."/></transition>
-    <transition name="deleteTicketType"><service-call name="delete#mantle.work.effort.WorkEffortCategory"/>
+    <transition name="deleteTicketType"><service-call name="delete#mantle.party.agreement.AgreementTicketType"/>
         <default-response url="."/></transition>
     <actions>
 <!--        <script>-->
@@ -39,16 +39,15 @@ along with this software (see the LICENSE.md file). If not, see
         <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
     </actions>
     <widgets>
-        <container-dialog id="AddServiceLocation" button-text="Add Service Location">
-            <form-single name="AddServiceLocationForm" transition="createTicketType">
+        <container-dialog id="AddTicketType" button-text="Add Ticket Type">
+            <form-single name="AddTicketTypeForm" transition="createTicketType">
                 <field name="agreementId">
                     <default-field>
                         <hidden/>
                     </default-field>
                 </field>
-                <field name="ownerPartyId" from="agreement.organizationPartyId"><default-field><hidden/></default-field></field>
                 <field name="pseudoId"><default-field title="Ticket Type ID"><text-line/></default-field></field>
-                <field name="categoryName"><default-field title="Ticket Type Name"><text-line/></default-field></field>
+                <field name="ticketTypeName"><default-field title="Ticket Type Name"><text-line/></default-field></field>
                 <field name="description"><default-field title="Description"><text-area/></default-field></field>
 
                 <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
@@ -56,15 +55,15 @@ along with this software (see the LICENSE.md file). If not, see
         </container-dialog>
 
         <form-list name="TicketTypeForm" list="ticketTypeList" transition="updateTicketType">
-            <entity-find entity-name="mantle.work.effort.WorkEffortCategory" list="ticketTypeList">
+            <entity-find entity-name="mantle.party.agreement.AgreementTicketType" list="ticketTypeList">
                 <search-form-inputs default-order-by="pseudoId"/>
-                <econdition field-name="ownerPartyId" from="agreement.organizationPartyId"/>
+                <econdition field-name="agreementId"/>
             </entity-find>
-            <field name="agreementId">
+            <field name="agreementTicketTypeId">
                 <header-field><hidden/></header-field>
                 <default-field><hidden/></default-field>
             </field>
-            <field name="workEffortCategoryId">
+            <field name="agreementId">
                 <header-field><hidden/></header-field>
                 <default-field><hidden/></default-field>
             </field>
@@ -72,12 +71,12 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="pseudoId">
                 <header-field show-order-by="true"/>
                 <default-field title="Ticket Type ID">
-                <display/>
+                <text-line/>
             </default-field></field>
-            <field name="categoryName">
+            <field name="ticketTypeName">
                 <header-field show-order-by="true"/>
                 <default-field title="Ticket Type Name">
-                <display/>
+                <text-line/>
             </default-field></field>
 
             <field name="description">

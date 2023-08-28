@@ -285,7 +285,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <section-iterate name="escalateRule" list="serviceLevelList" entry="serviceLevelItem" condition="serviceLevelList.size() > 0 ">
                     <widgets>
                         <container-box>
-                            <box-header title="${serviceLevelItem.serviceLevel}">
+                            <box-header title="${serviceLevelItem.pseudoId} : ${serviceLevelItem.serviceLevelName}">
 
                             </box-header>
                             <box-toolbar>
@@ -294,7 +294,7 @@ along with this software (see the LICENSE.md file). If not, see
                                         <field name="agreementId">
                                             <default-field><hidden/></default-field>
                                         </field>
-                                        <field name="serviceLevel" from="serviceLevelItem.serviceLevel">
+                                        <field name="agreementServiceLevelId" from="serviceLevelItem.agreementServiceLevelId">
                                             <default-field><hidden/></default-field>
                                         </field>
 
@@ -339,12 +339,12 @@ along with this software (see the LICENSE.md file). If not, see
                                 <form-list name="EscalateRuleForm" list="serviceEscalateLevelRuleList" transition="deleteServiceEscalateLevelRule">
                                     <entity-find entity-name="mantle.party.agreement.AgreementServiceEscalateLevelRule" list="serviceEscalateLevelRuleList">
                                         <econdition field-name="agreementId"/>
-                                        <econdition field-name="serviceLevel" from="serviceLevelItem.serviceLevel"/>
+                                        <econdition field-name="agreementServiceLevelId" from="serviceLevelItem.agreementServiceLevelId"/>
                                     </entity-find>
                                     <field name="agreementId"><header-field><hidden/></header-field>
                                         <default-field><hidden/></default-field>
                                     </field>
-                                    <field name="serviceLevel" from="serviceLevelItem.serviceLevel"><header-field><hidden/></header-field>
+                                    <field name="agreementServiceLevelId" from="serviceLevelItem.agreementServiceLevelId"><header-field><hidden/></header-field>
                                         <default-field><hidden/></default-field>
                                     </field>
 

@@ -15,12 +15,52 @@ along with this software (see the LICENSE.md file). If not, see
 <entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
 
-    <extend-entity entity-name="WorkEffortCategory" package="mantle.work.effort">
-        <field name="pseudoId" type="text-short" default="workEffortCategoryId"/>
-        <field name="categoryName" type="text-medium"/>
-        <field name="enabled" type="text-indicator" enable-audit-log="update" default="'Y'"/>
-        <index name="CATEGORY_ID_PSEUDO" unique="true"><index-field name="pseudoId"/><index-field name="ownerPartyId"/></index>
+<!--    <extend-entity entity-name="WorkEffortCategory" package="mantle.work.effort">-->
+<!--        <field name="pseudoId" type="text-short" default="workEffortCategoryId"/>-->
+<!--        <field name="categoryName" type="text-medium"/>-->
+<!--        <field name="enabled" type="text-indicator" enable-audit-log="update" default="'Y'"/>-->
+<!--        <index name="CATEGORY_ID_PSEUDO" unique="true"><index-field name="pseudoId"/><index-field name="ownerPartyId"/></index>-->
+<!--    </extend-entity>-->
+
+    <extend-entity entity-name="WorkEffort" package="mantle.work.effort">
+        <field name="serviceLocationPartyId" type="id"/>
+        <field name="productId" type="id"/>
+        <field name="assetId" type="id"/>
+        <field name="agreementId" type="id"/>
+        <field name="agreementTicketTypeId" type="id"><description>related to AgreementServiceCategory's productCategoryId</description></field>
+        <field name="serviceCategoryId" type="id"><description>related to AgreementServiceCategory's productCategoryId</description></field>
+        <field name="dispatchDate" type="date-time"/>
+        <field name="agreementServiceLevelId" type="id"/>
+
+        <relationship type="one" title="ServiceLocation" related="mantle.party.Party" short-alias="serviceLocation">
+            <key-map field-name="serviceLocationPartyId"/></relationship>
+        <relationship type="one" title="Product" related="mantle.product.Product" short-alias="product">
+            <key-map field-name="productId"/></relationship>
+        <relationship type="one" title="Asset" related="mantle.product.asset.Asset" short-alias="asset" >
+            <key-map field-name="assetId"/></relationship>
+        <relationship type="one" title="Agreement" related="mantle.party.agreement.Agreement" short-alias="agreement" >
+            <key-map field-name="agreementId"/></relationship>
+
     </extend-entity>
 
+    <entity entity-name="WorkEffortServiceLevelAgreement" package="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="slaIndicatorEnumId" type="id" is-pk="true"/>
+        <field name="slaValue" type="number-decimal"/>
+    </entity>
+    
+    <extend-entity entity-name="WorkEffortParty" package="mantle.work.effort">
+        <field name="delegatePartyId" type="id"/>
+
+        <relationship title="DelegateParty" type="one" related="mantle.party.Party" short-alias="delegateParty">
+            <key-map field-name="delegatePartyId" related="partyId"/>
+        </relationship>
+        <relationship title="DelegatePerson" type="one-nofk" related="mantle.party.Person" short-alias="delegatePerson">
+            <key-map field-name="delegatePartyId" related="partyId"/>
+        </relationship>
+        <relationship title="DelegateOrganization" type="one-nofk" related="mantle.party.Organization" short-alias="delegateOrganization">
+            <key-map field-name="delegatePartyId" related="partyId"/>
+        </relationship>
+    </extend-entity>
 
 </entities>

@@ -44,6 +44,27 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition-include name="searchPartyList" location="component://SimpleScreens/template/party/PartyForms.xml"/>
 
+    <transition name="getAssetList">
+        <parameter name="facilityId" required="true"/>
+        <parameter name="productId" />
+        <actions>
+            <entity-find entity-name="mantle.product.asset.Asset" list="assetList">
+                <econdition field-name="facilityId"/>
+<!--&lt;!&ndash;                TODO 现在设置为只有设备类的固定资产才能报修，可以根据具体情况进行调整&ndash;&gt;-->
+                <econdition field-name="assetTypeEnumId" value="AstTpEquipment"/>
+                <econdition field-name="productId" ignore-if-empty="true"/>
+            </entity-find>
+            <script>
+                def outList = []
+                for (def asset in assetList)
+                    outList.add([value:asset.assetId, label:"${asset.assetId} ${asset.assetName ? ": " + asset.assetName : '' } ${asset.serialNumber ?' [SN: '+asset.serialNumber + ']' : '' }".toString()])
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
     <transition name="getPartyDetailFromRelationshipByToParty">
         <parameter name="toPartyId" required="true"/>
         <parameter name="toRoleTypeId" required="true"/>
@@ -112,7 +133,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <default-field title="Type"><hidden/></default-field>
                 </field>
 
-                <field name="requestOrganizationPartyId"><default-field title="Service Demand Side ">
+                <field name="ownerPartyId"><default-field title="Service Demand Side ">
                     <drop-down ><dynamic-options transition="searchPartyList"
                             parameter-map="[roleTypeId:ServiceDemandSideRoleTypeId,includeDisabled:false]"
                     /></drop-down>
@@ -121,7 +142,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <default-field title="Service Location">
                         <drop-down >
                             <dynamic-options transition="getServiceLocationList" >
-                                <depends-on field="requestOrganizationPartyId" parameter="serviceDemandSidePartyId"/>
+                                <depends-on field="ownerPartyId" parameter="serviceDemandSidePartyId"/>
                             </dynamic-options>
                         </drop-down>
                     </default-field>
@@ -133,7 +154,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <drop-down >
                             <dynamic-options transition="getPartyDetailFromRelationshipByToParty"
                                              parameter-map="[toRoleTypeId:'OrgServiceDemandSide', relationshipTypeEnumId:'PrtEmployee']" >
-                                <depends-on field="requestOrganizationPartyId" parameter="toPartyId"/>
+                                <depends-on field="ownerPartyId" parameter="toPartyId"/>
                             </dynamic-options>
                         </drop-down>
                     </default-field>
@@ -142,7 +163,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <field name="facilityId"><default-field title="Facility">
                     <drop-down allow-empty="true">
-                        <dynamic-options transition="getServiceLocationList" >
+                        <dynamic-options transition="getFacilityList" >
                             <depends-on field="serviceLocationPartyId" parameter="ownerPartyId"/>
                         </dynamic-options>
 
@@ -163,7 +184,15 @@ along with this software (see the LICENSE.md file). If not, see
 
                 </field>
 
+                <field name="assetId"><default-field title="Asset">
+                    <drop-down allow-empty="true" >
+                        <dynamic-options transition="getAssetList" >
+                            <depends-on field="facilityId" />
+                            <depends-on field="productId"/>
+                        </dynamic-options>
+                    </drop-down></default-field>
 
+                </field>
 <!--                <field name="statusId"><default-field title="Initial Status">-->
 <!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusDropDown">-->
 <!--                        <set field="statusTypeId" value="Request"/><set field="noCurrentSelectedKey" value="ReqSubmitted"/></widget-template-include>-->
@@ -223,7 +252,7 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                            <order-by field-name="description"/></entity-find></entity-options>-->
 <!--                </drop-down>-->
 <!--            </header-field></field>-->
-            <field name="requestOrganizationPartyId">
+            <field name="ownerPartyId">
                 <header-field show-order-by="true" title="Service Demand Side">
                     <drop-down allow-empty="true" ><dynamic-options transition="searchPartyList"
                                                                    parameter-map="[roleTypeId:ServiceDemandSideRoleTypeId]"
@@ -236,7 +265,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field show-order-by="true" title="Service Location">
                     <drop-down allow-empty="true" allow-multiple="true" >
                         <dynamic-options transition="getServiceLocationList" label-field="label" value-field="value"  >
-                            <depends-on field="requestOrganizationPartyId" parameter="serviceDemandSidePartyId"/>
+                            <depends-on field="ownerPartyId" parameter="serviceDemandSidePartyId"/>
                         </dynamic-options>
                     </drop-down>
                 </header-field>
@@ -328,7 +357,7 @@ along with this software (see the LICENSE.md file). If not, see
             <form-list-column><field-ref name="priority"/></form-list-column>
             <form-list-column><field-ref name="requestDate"/><field-ref name="responseRequiredDate"/></form-list-column>
             <form-list-column><field-ref name="requestName"/><field-ref name="requestId"/></form-list-column>
-            <form-list-column><field-ref name="requestOrganizationPartyId"/><field-ref name="serviceLocationPartyId"/><field-ref name="facilityId"/></form-list-column>
+            <form-list-column><field-ref name="ownerPartyId"/><field-ref name="serviceLocationPartyId"/><field-ref name="facilityId"/></form-list-column>
             <form-list-column>
                 <field-ref name="productId"/><field-ref name="assetId"/>
             </form-list-column>

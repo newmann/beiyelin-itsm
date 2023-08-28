@@ -128,6 +128,8 @@ along with this software (see the LICENSE.md file). If not, see
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
                                       pkValue="WetTicket" locale="zh_CN" localized="工单" />
 
+
+
     <moqui.basic.Enumeration description="Advice to answer" enumId="WktpFAQ" enumTypeId="WorkType"/>
     <moqui.basic.Enumeration description="On Field Service" enumId="WktpOnField" enumTypeId="WorkType"/>
     <moqui.basic.Enumeration description="Remote Support" enumId="WktpRemote" enumTypeId="WorkType"/>
@@ -137,6 +139,13 @@ along with this software (see the LICENSE.md file). If not, see
                                       pkValue="WktpOnField" locale="zh_CN" localized="现场服务" />
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
                                       pkValue="WktpRemote" locale="zh_CN" localized="远程服务" />
+
+    <moqui.basic.Enumeration description="Service Work Type" enumId="ServiceWorkType" enumTypeId="EnumGroup"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.EnumerationType" fieldName="description"
+                                      pkValue="ServiceWorkType" locale="zh_CN" localized="服务工作类型" />
+    <moqui.basic.EnumGroupMember enumGroupEnumId="ServiceWorkType" enumId="WktpFAQ" sequenceNum="1"/>
+    <moqui.basic.EnumGroupMember enumGroupEnumId="ServiceWorkType" enumId="WktpOnField" sequenceNum="2"/>
+    <moqui.basic.EnumGroupMember enumGroupEnumId="ServiceWorkType" enumId="WktpRemote" sequenceNum="3"/>
 
 <!--    <moqui.basic.StatusType description="Work Effort Status" statusTypeId="WorkEffort"/>-->
 <!--    <moqui.basic.StatusItem description="In Planning" sequenceNum="1" statusId="WeInPlanning" statusTypeId="WorkEffort"/>-->
@@ -202,6 +211,48 @@ along with this software (see the LICENSE.md file). If not, see
                                       toStatusId="WeOnHold" transitionName="Restore"/>
     <moqui.basic.StatusFlowTransition statusFlowId="ServiceTicket" statusId="WeCancelled"
                                       toStatusId="WeInProgress" transitionName="Restore"/>
+
+    <moqui.basic.Enumeration description="Ticket" enumId="RgpTicket" enumTypeId="RoleGroup"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="RgpTicket" locale="zh_CN" localized="服务工单" />
+
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="Manager"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="Assignee"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="Reporter"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="Watcher"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="ServiceEngineer"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="ServiceTeamLeader"/>
+
+<!--    转派原因-->
+    <moqui.basic.Enumeration description="Service Dispatch" enumId="WepdrServiceDispatch" enumTypeId="WorkEffortPartyDelegateReason"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="WepdrServiceDispatch" locale="zh_CN" localized="服务派单" />
+
+    <moqui.basic.Enumeration description="Dispatch Ticket" enumId="RgpDispatchTicket" enumTypeId="RoleGroup"/>
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="RgpDispatchTicket" locale="zh_CN" localized="转派工单" />
+
+
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="OrgServiceProvider"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="OrgServiceStation"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="ServiceEngineer"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="ServiceTeamLeader"/>
+
+
+<!--    onField ticket-->
+    <moqui.basic.Enumeration description="OnField Ticket" enumId="WetOnFieldTicket" enumTypeId="WorkEffortType" />
+    <moqui.basic.LocalizedEntityField entityName="moqui.basic.Enumeration" fieldName="description"
+                                      pkValue="WetOnFieldTicket" locale="zh_CN" localized="上门服务工单" />
+    <moqui.basic.StatusFlow statusFlowId="ServiceOnFieldTicket" description="status transitions for OnField Service Ticket"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceOnFieldTicket" statusId="WeInPlanning"
+                                      toStatusId="WeApproved" transitionName="Contacted"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceOnFieldTicket" statusId="WeApproved"
+                                      toStatusId="WeInProgress" transitionName="SetOut"/>
+
+    <moqui.basic.StatusFlowTransition statusFlowId="ServiceOnFieldTicket" statusId="WeInProgress"
+                                      toStatusId="WeComplete" transitionName="Arrived"/>
+
 <!--    Service Supervisor-->
     <mantle.party.RoleType description="Service Supervisor" roleTypeId="ServiceSupervisor"/>
     <moqui.basic.LocalizedEntityField entityName="mantle.party.RoleType" fieldName="description"

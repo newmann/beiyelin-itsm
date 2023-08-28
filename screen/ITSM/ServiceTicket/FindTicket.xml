@@ -18,8 +18,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="findTicket"><default-response url="."/></transition>
     <transition name="editTicket"><default-response url="../TicketSummary"/></transition>
-    <transition name="projectSummary"><default-response url="../../Project/ProjectSummary"/></transition>
-    <transition name="milestoneSummary"><default-response url="../../Project/MilestoneSummary"/></transition>
+
 
     <transition name="createTicket"><service-call name="mantle.work.TaskServices.create#Task" in-map="context"/>
         <default-response url="../TicketSummary"/></transition>
@@ -101,25 +100,28 @@ along with this software (see the LICENSE.md file). If not, see
     <pre-actions><set field="html_title" value="Find Ticket"/></pre-actions>
     
     <actions>
-        <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="myProjectList">
-            <econditions combine="or">
-                <econdition field-name="visibilityEnumId" operator="in" value="WevGeneral,WevAllUsers"/>
-                <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
-            </econditions>
-            <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
-            <order-by field-name="workEffortId"/>
-        </entity-find>
-        <set field="myProjectIds" from="myProjectList.workEffortId"/>
+        <set field="ticketWorkEffortTypeEnum" value="WetTicket"/>
+
+<!--        <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="myTicketList">-->
+<!--            <date-filter/>-->
+<!--            <econdition field-name="partyId" from="ec.user.userAccount.partyId"/>-->
+<!--            <econdition field-name="workEffortTypeEnumId" from="ticketWorkEffortTypeEnum"/>-->
+<!--            <order-by field-name="workEffortId"/>-->
+<!--        </entity-find>-->
+
+<!--        <set field="myProjectIds" from="myTicketList.workEffortId"/>-->
 
         <if condition="!queryString"><then>
             <!-- pure DB query -->
-            <entity-find entity-name="mantle.work.effort.PartyTaskSummary" list="taskList">
+            <entity-find entity-name="mantle.work.effort.TicketDetailAndPartyDetail" list="ticketList">
                 <search-form-inputs default-order-by="priority,workEffortId">
                     <default-parameters statusId="WeInPlanning,WeApproved,WeInProgress,WeOnHold,WeComplete" statusId_op="in"/></search-form-inputs>
-                <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
-                <econdition field-name="rootWorkEffortId" operator="in" from="myProjectIds" or-null="true"/><!-- only tasks in allowed projects -->
-                <select-field field-name="rootWorkEffortId,milestoneWorkEffortId,parentWorkEffortId,workEffortId"/>
-                <select-field field-name="workEffortName,priority,purposeEnumId,statusId,resolutionEnumId"/>
+                <econdition field-name="workEffortTypeEnumId" from="ticketWorkEffortTypeEnum"/>
+                <econdition field-name="assignedPartyId" from="ec.user.userAccount.partyId"/>
+                <select-field field-name="parentWorkEffortId,workEffortId,workEffortName,priority"/>
+                <select-field field-name="purposeEnumId,statusId,resolutionEnumId,ownerPartyId,serviceLocationId"/>
+                <select-field field-name="assignedPartyId,firstName,lastName"/>
+                <select-field field-name="demandSidePseudoId,demandSideOrganizationName,serviceLocationPseudoId,serviceLocationOrganizationName"/>
                 <select-field field-name="estimatedCompletionDate,estimatedWorkTime,remainingWorkTime,actualWorkTime,lastUpdatedStamp"/>
             </entity-find>
         </then><else>
@@ -155,7 +157,7 @@ along with this software (see the LICENSE.md file). If not, see
                     in-map="context + [indexName:'mantle', documentType:'MantleTask']"/>
 
             <set field="workEffortIdList" from="documentList._id"/>
-            <entity-find entity-name="mantle.work.effort.PartyTaskSummary" list="taskList">
+            <entity-find entity-name="mantle.work.effort.PartyTaskSummary" list="ticketList">
                 <search-form-inputs default-order-by="priority,workEffortId" input-fields-map="searchInputs"/>
                 <econdition field-name="workEffortId" operator="in" from="workEffortIdList"/>
                 <econdition field-name="rootWorkEffortId" operator="in" from="myProjectIds" or-null="true"/><!-- only tasks in allowed projects -->
@@ -168,7 +170,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <!-- for future use with saved task filters: <container><label text="${groovy.json.JsonOutput.toJson(ec.web.requestParameters)}"/></container> -->
-        <container-row><row-col md="6">
+        <container-row style="dense"><row-col md="6">
             <form-single name="SearchOptions" transition="findTicket" focus-field="queryString">
                 <field name="queryString" from="ec.web.parameters.queryString"><default-field title=""><text-line size="40"/></default-field></field>
                 <field name="submitButton"><default-field title="Text Search"><submit/></default-field></field>
@@ -178,7 +180,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container-dialog id="NewTicketContainer" button-text="New Ticket">
                 <form-single name="NewTicketForm" transition="createTicket">
                     <field name="rootWorkEffortId"><default-field title="Project"><drop-down allow-empty="true">
-                        <list-options list="myProjectList" key="${workEffortId}" text="WorkEffortNameTemplate"/>
+                        <list-options list="myTicketList" key="${workEffortId}" text="WorkEffortNameTemplate"/>
                     </drop-down></default-field></field>
                     <field name="milestoneWorkEffortId"><default-field title="Milestone">
                         <drop-down allow-empty="true">
@@ -237,7 +239,7 @@ along with this software (see the LICENSE.md file). If not, see
             </container-dialog>
         </row-col></container-row>
 
-        <form-list name="ListTickets" list="taskList" skip-form="true" header-dialog="true" saved-finds="true" select-columns="true"
+        <form-list name="ListTickets" list="ticketList" skip-form="true" header-dialog="true" saved-finds="true" select-columns="true"
                 show-page-size="true" show-csv-button="true" show-xlsx-button="true">
             <row-actions>
                 <entity-find entity-name="mantle.work.effort.WorkEffortAndPartyDetail" list="weapdList">
@@ -309,7 +311,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </default-field></field>
                         <field name="rootWorkEffortId"><default-field title="Project">
                             <drop-down allow-empty="true">
-                                <list-options list="myProjectList" key="${workEffortId}" text="WorkEffortNameTemplate"/></drop-down>
+                                <list-options list="myTicketList" key="${workEffortId}" text="WorkEffortNameTemplate"/></drop-down>
                         </default-field></field>
                         <field name="milestoneWorkEffortId"><default-field title="Milestone">
                             <drop-down allow-empty="true">
@@ -363,13 +365,23 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field title="Name" show-order-by="true"><text-find/></header-field>
                 <default-field><link text="${workEffortName}" url="editTicket" link-type="anchor"/></default-field>
             </field>
-            <field name="rootWorkEffortId">
-                <header-field title="Project" show-order-by="true"><drop-down allow-empty="true">
-                    <list-options list="myProjectList" key="${workEffortId}" text="WorkEffortNameTemplate"/>
-                </drop-down></header-field>
-                <default-field><link url="projectSummary" text="${rootWorkEffortId}" link-type="anchor" condition="rootWorkEffortId">
-                    <parameter name="workEffortId" from="rootWorkEffortId"/></link></default-field>
+            <field name="demandSidePseudoId">
+                <header-field title="Demand Side ID" show-order-by="true"><text-find/></header-field>
+                <default-field><display text="${demandSidePseudoId}" /></default-field>
             </field>
+            <field name="demandSideOrganizationName">
+                <header-field title="Demand Side Name" show-order-by="true"><text-find/></header-field>
+                <default-field><display text="${demandSideOrganizationName}"/></default-field>
+            </field>
+            <field name="serviceLocationPseudoId">
+                <header-field title="Service Location ID" show-order-by="true"><text-find/></header-field>
+                <default-field><display text="${serviceLocationPseudoId}"/></default-field>
+            </field>
+            <field name="serviceLocationOrganizationName">
+                <header-field title="Service Location Name" show-order-by="true"><text-find/></header-field>
+                <default-field><display text="${serviceLocationOrganizationName}" /></default-field>
+            </field>
+
             <field name="parentWorkEffortId">
                 <header-field title="Parent" show-order-by="true">
                     <drop-down allow-empty="true">
@@ -380,13 +392,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><link url="editTicket" text="${parentWorkEffortId}" link-type="anchor" condition="parentWorkEffortId">
                     <parameter name="workEffortId" from="parentWorkEffortId"/></link></default-field>
             </field>
-            <field name="milestoneWorkEffortId">
-                <header-field title="Milestone" show-order-by="true"><drop-down allow-empty="true">
-                    <dynamic-options transition="getProjectMilestones" value-field="workEffortId" label-field="milestoneLabel">
-                        <depends-on field="rootWorkEffortId"/></dynamic-options>
-                </drop-down></header-field>
-                <default-field><link text="${milestoneWorkEffortId?:''}" url="milestoneSummary" link-type="anchor" condition="milestoneWorkEffortId"/></default-field>
-            </field>
+
             <field name="purposeEnumId">
                 <header-field title="Purpose" show-order-by="true">
                     <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
@@ -410,19 +416,19 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display-entity entity-name="moqui.basic.Enumeration" also-hidden="false"/></default-field>
             </field>
 
-            <field name="partyId"><header-field title="Assigned To">
+            <field name="assignedPartyId"><header-field title="Assigned To">
                 <drop-down allow-multiple="true">
                     <dynamic-options transition="getProjectParties" value-field="partyId" label-field="name"
                             depends-optional="true" server-search="true" min-length="0" parameter-map="[addOptional:'false']">
                         <depends-on field="rootWorkEffortId"/></dynamic-options>
                 </drop-down>
             </header-field></field>
-            <field name="teamPartyId"><header-field title="Assigned To Team">
-                <drop-down allow-empty="true">
-                    <dynamic-options transition="getProjectTeams" value-field="partyId" label-field="name">
-                        <depends-on field="rootWorkEffortId"/></dynamic-options>
-                </drop-down>
-            </header-field></field>
+<!--            <field name="teamPartyId"><header-field title="Assigned To Team">-->
+<!--                <drop-down allow-empty="true">-->
+<!--                    <dynamic-options transition="getProjectTeams" value-field="partyId" label-field="name">-->
+<!--                        <depends-on field="rootWorkEffortId"/></dynamic-options>-->
+<!--                </drop-down>-->
+<!--            </header-field></field>-->
             <field name="assigned"><default-field>
                 <section-iterate name="AssignedSection" list="weapdList" entry="weapd"><widgets>
                     <label text="${weapd.firstName?:''} ${weapd.lastName?:''} ${weapd.organizationName?:''}" type="div"/>
@@ -451,6 +457,45 @@ along with this software (see the LICENSE.md file). If not, see
 
 
             <field name="searchButton"><header-field title="Find Tickets"><submit/></header-field></field>
+            <form-list-column>
+                <field-ref name="priority"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="workEffortId"/><field-ref name="workEffortName"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="demandSidePseudoId"/><field-ref name="demandSideOrganizationName"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="serviceLocationPseudoId"/><field-ref name="serviceLocationOrganizationName"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="parentWorkEffortId"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="purposeEnumId"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="statusId"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="resolutionEnumId"/>
+            </form-list-column>
+<!--            <form-list-column>-->
+<!--                <field-ref name="assignedPartyId"/>-->
+<!--            </form-list-column>-->
+            <form-list-column>
+                <field-ref name="assigned"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="estimatedCompletionDate"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="remainingWorkTime"/>
+            </form-list-column>
+            <form-list-column>
+                <field-ref name="actualWorkTime"/>
+            </form-list-column>
         </form-list>
 
         <label text="Full search used: ${queryString}" condition="queryString"/>

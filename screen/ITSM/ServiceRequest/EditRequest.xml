@@ -46,82 +46,85 @@ along with this software (see the LICENSE.md file). If not, see
             <script>ec.web.sendResourceResponse(requestContent?.contentLocation)</script></actions>
         <default-response type="none"/>
     </transition>
+    <transition-include name="getProductList" location="component://SimpleScreens/template/product/ProductTransitions.xml"/>
+    <transition-include name="getAssetList" location="component://beiyelin-itsm/screen/ITSM/ServiceRequest/FindRequest.xml"/>
 
+    <transition name="generateTicket">
+        <service-call name="beiyelin.request.RequestServices.generate#TicketFromRequest" out-map="context"/>
+        <default-response url="//${appRoot}/ServiceTicket/EditTicket"/>
+    </transition>
     <actions>
-        <entity-find-one entity-name="mantle.request.Request" value-field="request"/>
-        <set field="statusId" from="request.statusId"/>
+<!--        <entity-find-one entity-name="mantle.request.Request" value-field="request"/>-->
+        <service-call name="beiyelin.request.RequestServices.get#RequestDisplayInfo" in-map="[requestId:requestId]" out-map="context"/>
+
+        <set field="statusId" from="statusItem.statusId"/>
         <set field="changedEntityName" value="mantle.request.Request"/>
         <set field="pkPrimaryValue" from="requestId"/>
 
-        <entity-find entity-name="mantle.request.RequestParty" list="customerRpList">
-            <date-filter/><econdition field-name="requestId"/><econdition field-name="roleTypeId" value="Customer"/></entity-find>
-        <set field="customerRp" from="customerRpList?.getAt(0)"/>
-        <entity-find entity-name="mantle.request.RequestParty" list="assignToRpList">
-            <date-filter/><econdition field-name="requestId"/><econdition field-name="roleTypeId" value="Assignee"/></entity-find>
-        <set field="assignToRp" from="assignToRpList?.getAt(0)"/>
+<!--        <entity-find entity-name="mantle.request.RequestParty" list="customerRpList">-->
+<!--            <date-filter/><econdition field-name="requestId"/><econdition field-name="roleTypeId" value="Customer"/></entity-find>-->
+<!--        <set field="customerRp" from="customerRpList?.getAt(0)"/>-->
+<!--        <entity-find entity-name="mantle.request.RequestParty" list="assignToRpList">-->
+<!--            <date-filter/><econdition field-name="requestId"/><econdition field-name="roleTypeId" value="Assignee"/></entity-find>-->
+<!--        <set field="assignToRp" from="assignToRpList?.getAt(0)"/>-->
     </actions>
     <widgets>
         <container-row><row-col md="7">
             <label text="Request #${requestId}" type="h4"/>
 
             <form-single name="EditRequest" transition="updateRequest" map="request">
-                <field name="requestId"><default-field title="Request ID"><display/></default-field></field>
-                <field name="requestDate"><default-field><display/></default-field></field>
-                <field name="filedByPartyId"><default-field title="Filed By">
-                    <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
-                <field name="displayCustomerId" from="customerRp?.partyId"><default-field title="Customer">
-                    <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
-                <!-- <field name="customerPartyId" from="customerRp?.partyId"><default-field title="Set Customer">
-                    <drop-down><dynamic-options transition="searchPartyList" server-search="true" min-length="2" parameter-map="[roleTypeId:'Customer']"/></drop-down>
-                </default-field></field> -->
+                <field name="requestTypeEnumId"><default-field title="Type"><hidden/></default-field></field>
 
-                <field name="productStoreId"><default-field title="Store">
-                    <drop-down allow-empty="true">
-                        <entity-options key="${productStoreId}" text="${storeName}">
-                            <entity-find entity-name="mantle.product.store.ProductStore">
-                                <order-by field-name="storeName"/></entity-find></entity-options>
-                    </drop-down>
+                <field name="requestId"><default-field title="Request ID"><display/></default-field></field>
+                <field name="requestDate" ><default-field><display/></default-field></field>
+                <field name="filedByPartyId" ><default-field title="Filed By">
+                    <display text="PartyNameTemplate" text-map="filedByPartyDetail"/>
+<!--                    <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/>-->
                 </default-field></field>
-                <field name="rootWorkEffortId"><default-field title="Project">
-                    <drop-down allow-empty="true">
-                        <entity-options key="${workEffortId}" text="WorkEffortNameTemplate">
-                            <entity-find entity-name="mantle.work.effort.WorkEffortAndParty">
-                                <econditions combine="or">
-                                    <econdition field-name="visibilityEnumId" operator="in" value="WevGeneral,WevAllUsers"/>
-                                    <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
-                                </econditions>
-                                <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
-                                <order-by field-name="workEffortId"/>
-                            </entity-find>
-                        </entity-options>
-                    </drop-down>
-                </default-field></field>
-                <field name="facilityId"><default-field title="Facility"><drop-down allow-empty="true">
+                <field name="ownerPartyId" >
+                    <default-field title="Service Demand Side">
+                        <display text="PartyNameTemplate" text-map="ownerPartyDetail"/>
+                    </default-field>
+                </field>
+                <field name="serviceLocationPartyId" >
+                    <default-field title="Service Location">
+                        <display text="PartyNameTemplate" text-map="serviceLocationPartyDetail"/>
+                    </default-field>
+                </field>
+
+                <field name="facilityId" ><default-field title="Facility"><drop-down allow-empty="true">
                     <entity-options key="${facilityId}" text="FacilityNameTemplate">
                         <entity-find entity-name="mantle.facility.Facility" list="facilityList">
-                            <econdition field-name="facilityTypeEnumId" value="FcTpWarehouse"/>
+                            <econdition field-name="ownerPartyId" from="serviceLocationPartyId"/>
                             <order-by field-name="facilityName"/></entity-find></entity-options>
                 </drop-down></default-field></field>
 
-                <field name="displayAssigneeId" from="assignToRp?.partyId"><default-field title="Assignee">
-                    <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
-                <field name="assignToPartyId"><default-field title="Set Assignee">
-                    <drop-down allow-empty="true"><dynamic-options transition="searchPartyList" server-search="true" min-length="2"/></drop-down>
-                </default-field></field>
 
+                <field name="productId">
+                    <default-field title="Product" tooltip="输入两个字符才能开始查询">
+                        <drop-down allow-empty="true" >
+                              <dynamic-options transition="getProductList" min-length="2" >
+                            </dynamic-options>
+                        </drop-down>
+                    </default-field>
+                </field>
+                <field name="assetId"><default-field title="Asset">
+                    <drop-down allow-empty="true" >
+                        <dynamic-options transition="getAssetList" >
+                            <depends-on field="facilityId" />
+                            <depends-on field="productId"/>
+                        </dynamic-options>
+                    </drop-down></default-field>
+
+                </field>
                 <field name="priority"><default-field>
                     <drop-down allow-empty="true"><option key="1"/><option key="2"/><option key="3"/><option key="4"/>
                         <option key="5"/><option key="6"/><option key="7"/><option key="8"/><option key="9"/></drop-down>
                 </default-field></field>
                 <field name="responseRequiredDate"><default-field title="Due Date"><date-time type="date-time"/></default-field></field>
-                <field name="requestTypeEnumId"><default-field title="Type">
-                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                        <set field="enumTypeId" value="RequestType"/><set field="noCurrentSelectedKey" value="RqtSupport"/></widget-template-include>
-                </default-field></field>
 
                 <field name="requestResolutionEnumId"><default-field title="Resolution">
-                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                        <set field="enumTypeId" value="RequestResolution"/><set field="noCurrentSelectedKey" value="RrUnresolved"/></widget-template-include>
+                    <display text-map="requestResolutionEnum" text="${description}"/>
                 </default-field></field>
 
                 <field name="requestName"><default-field title="Name"><text-line/></default-field></field>
@@ -129,67 +132,121 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
 
                 <field-layout>
-                    <field-row><field-ref name="requestId"/><field-ref name="requestDate"/></field-row>
-                    <field-row><field-ref name="filedByPartyId"/></field-row>
-                    <field-row><field-ref name="displayCustomerId"/><field-ref name="displayAssigneeId"/></field-row>
-                    <field-row><field-ref name="productStoreId"/><field-ref name="assignToPartyId"/></field-row>
-                    <field-row><field-ref name="rootWorkEffortId"/><field-ref name="facilityId"/></field-row>
-                    <field-row><field-ref name="priority"/><field-ref name="responseRequiredDate"/></field-row>
-                    <field-row><field-ref name="requestTypeEnumId"/><field-ref name="requestResolutionEnumId"/></field-row>
+                    <field-row><field-ref name="requestId"/><field-ref name="priority"/></field-row>
+                    <field-row><field-ref name="filedByPartyId"/><field-ref name="requestResolutionEnumId"/></field-row>
+                    <field-row><field-ref name="requestDate"/><field-ref name="responseRequiredDate"/></field-row>
+                    <field-row><field-ref name="ownerPartyId"/><field-ref name="serviceLocationPartyId"/></field-row>
+                    <field-row><field-ref name="facilityId"/></field-row>
+
                     <fields-not-referenced/>
                 </field-layout>
             </form-single>
 
-            <section name="CommentsSection"><actions>
-                <entity-find entity-name="mantle.request.RequestCommEventDetail" list="commEventDetailList">
-                    <econdition field-name="requestId"/><order-by field-name="entryDate"/></entity-find>
-            </actions><widgets>
-                <container-box><box-header title="Comments"/><box-toolbar>
-                    <container-dialog id="AddCommentDialog" button-text="Add Comment">
-                        <form-single name="AddCommentForm" transition="addComment">
-                            <field name="requestId"><default-field><hidden/></default-field></field>
-                            <field name="subject" from="request.requestName"><default-field><text-line/></default-field></field>
-                            <field name="body"><default-field title="Comment"><text-area rows="10"/></default-field></field>
-                            <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                        </form-single>
-                    </container-dialog>
-                </box-toolbar><box-body>
-                    <section-iterate name="CommentList" list="commEventDetailList" entry="commEventDetail"><actions>
-                        <set field="uniqueExtension" from="commEventDetail_index"/>
-                        <entity-find-one entity-name="mantle.party.Person" value-field="fromPerson" cache="true">
-                            <field-map field-name="partyId" from="commEventDetail.fromPartyId"/>
-                        </entity-find-one>
-                        <entity-find entity-name="mantle.party.communication.CommunicationEvent" list="childCeList">
-                            <econdition field-name="rootCommEventId" from="commEventDetail.communicationEventId"/>
-                            <order-by field-name="entryDate"/>
-                        </entity-find>
-                    </actions><widgets>
-                        <container style="task-comment">
-                            <label text="${commEventDetail.subject}" type="strong"/>
-                            <label text="from ${fromPerson ? fromPerson.firstName + ' ' + fromPerson?.lastName : 'Unknown'}"/>
-                            <label text="at ${ec.l10n.format(commEventDetail.entryDate, 'yyyy-MM-dd HH:mm')}"/>
-                            <dynamic-dialog id="ReplyCommentContainer${uniqueExtension}" button-text="Reply" transition="RequestCommentReply">
-                                <parameter name="parentCommEventId" from="commEventDetail.communicationEventId"/></dynamic-dialog>
-                            <dynamic-dialog id="EditCommentContainer${uniqueExtension}" button-text="Edit" transition="RequestCommentUpdate"
-                                    condition="commEventDetail.fromPartyId == ec.user.userAccount.partyId || ec.user.isInGroup('ADMIN') || ec.user.isInGroup('HIVE_MIND_ADMIN')">
-                                <parameter name="communicationEventId" from="commEventDetail.communicationEventId"/></dynamic-dialog>
-                            <link text="Delete" url="deleteComment" parameter-map="[requestId:requestId, communicationEventId:commEventDetail.communicationEventId]"
-                                    condition="commEventDetail.fromPartyId == ec.user.userAccount.partyId || ec.user.isInGroup('ADMIN') || ec.user.isInGroup('HIVE_MIND_ADMIN')"
-                                    confirmation="Delete comment ${commEventDetail.subject}?"/>
+<!--            <section name="CommentsSection"><actions>-->
+<!--                <entity-find entity-name="mantle.request.RequestCommEventDetail" list="commEventDetailList">-->
+<!--                    <econdition field-name="requestId"/><order-by field-name="entryDate"/></entity-find>-->
+<!--            </actions><widgets>-->
+<!--                <container-box><box-header title="Comments"/><box-toolbar>-->
+<!--                    <container-dialog id="AddCommentDialog" button-text="Add Comment">-->
+<!--                        <form-single name="AddCommentForm" transition="addComment">-->
+<!--                            <field name="requestId"><default-field><hidden/></default-field></field>-->
+<!--                            <field name="subject" from="request.requestName"><default-field><text-line/></default-field></field>-->
+<!--                            <field name="body"><default-field title="Comment"><text-area rows="10"/></default-field></field>-->
+<!--                            <field name="submitButton"><default-field title="Add"><submit/></default-field></field>-->
+<!--                        </form-single>-->
+<!--                    </container-dialog>-->
+<!--                </box-toolbar><box-body>-->
+<!--                    <section-iterate name="CommentList" list="commEventDetailList" entry="commEventDetail"><actions>-->
+<!--                        <set field="uniqueExtension" from="commEventDetail_index"/>-->
+<!--                        <entity-find-one entity-name="mantle.party.Person" value-field="fromPerson" cache="true">-->
+<!--                            <field-map field-name="partyId" from="commEventDetail.fromPartyId"/>-->
+<!--                        </entity-find-one>-->
+<!--                        <entity-find entity-name="mantle.party.communication.CommunicationEvent" list="childCeList">-->
+<!--                            <econdition field-name="rootCommEventId" from="commEventDetail.communicationEventId"/>-->
+<!--                            <order-by field-name="entryDate"/>-->
+<!--                        </entity-find>-->
+<!--                    </actions><widgets>-->
+<!--                        <container style="task-comment">-->
+<!--                            <label text="${commEventDetail.subject}" type="strong"/>-->
+<!--                            <label text="from ${fromPerson ? fromPerson.firstName + ' ' + fromPerson?.lastName : 'Unknown'}"/>-->
+<!--                            <label text="at ${ec.l10n.format(commEventDetail.entryDate, 'yyyy-MM-dd HH:mm')}"/>-->
+<!--                            <dynamic-dialog id="ReplyCommentContainer${uniqueExtension}" button-text="Reply" transition="RequestCommentReply">-->
+<!--                                <parameter name="parentCommEventId" from="commEventDetail.communicationEventId"/></dynamic-dialog>-->
+<!--                            <dynamic-dialog id="EditCommentContainer${uniqueExtension}" button-text="Edit" transition="RequestCommentUpdate"-->
+<!--                                    condition="commEventDetail.fromPartyId == ec.user.userAccount.partyId || ec.user.isInGroup('ADMIN') || ec.user.isInGroup('HIVE_MIND_ADMIN')">-->
+<!--                                <parameter name="communicationEventId" from="commEventDetail.communicationEventId"/></dynamic-dialog>-->
+<!--                            <link text="Delete" url="deleteComment" parameter-map="[requestId:requestId, communicationEventId:commEventDetail.communicationEventId]"-->
+<!--                                    condition="commEventDetail.fromPartyId == ec.user.userAccount.partyId || ec.user.isInGroup('ADMIN') || ec.user.isInGroup('HIVE_MIND_ADMIN')"-->
+<!--                                    confirmation="Delete comment ${commEventDetail.subject}?"/>-->
 
-                            <label text="${commEventDetail.body}" type="pre" encode="false"/>
+<!--                            <label text="${commEventDetail.body}" type="pre" encode="false"/>-->
 
-                            <section name="ChildNestedComments">
-                                <condition><expression>childCeList</expression></condition>
-                                <actions><set field="currentCe" from="commEventDetail"/></actions>
-                                <widgets><include-screen location="component://SimpleScreens/screen/SimpleScreens/Request/EditRequest/RequestCommentNested.xml"/></widgets>
-                            </section>
-                        </container>
-                    </widgets></section-iterate>
-                </box-body></container-box>
-            </widgets></section>
+<!--                            <section name="ChildNestedComments">-->
+<!--                                <condition><expression>childCeList</expression></condition>-->
+<!--                                <actions><set field="currentCe" from="commEventDetail"/></actions>-->
+<!--                                <widgets><include-screen location="component://SimpleScreens/screen/SimpleScreens/Request/EditRequest/RequestCommentNested.xml"/></widgets>-->
+<!--                            </section>-->
+<!--                        </container>-->
+<!--                    </widgets></section-iterate>-->
+<!--                </box-body></container-box>-->
+<!--            </widgets></section>-->
+
         </row-col><row-col md="5">
-            <section-include name="StatusChangeSection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>
+            <section name="StatusChangeSection"><actions>
+                <entity-find-one entity-name="moqui.basic.StatusItem" value-field="statusItem"/>
+                <entity-find entity-name="moqui.basic.StatusFlowTransitionToDetail" list="statusTransitionList">
+                    <econdition field-name="statusId"/>
+                    <econdition field-name="statusFlowId" from="statusFlowId ?: 'Default'"/>
+                    <order-by field-name="transitionSequence,transitionName"/>
+                </entity-find>
+            </actions><widgets>
+                <container style="shaded-area condensed" type="span">
+                    <container style="float-plain condensed" type="ul">
+                        <container type="li">
+                            <container><label text="Status" type="strong"/></container>
+                            <container><label text="${statusItem?.description ?: ''}" type="strong" style="text-info"/></container>
+                        </container>
+                        <section name="DraftStatusSection" condition="statusId == 'ReqDraft'">
+                            <widgets>
+                                <section-iterate name="StatusChangeLinkSection" list="statusTransitionList" entry="statusTransition"><condition>
+                                    <expression>statusTransition.userPermissionId == null || statusTransition.userPermissionId.isEmpty() || ec.user.hasPermission(statusTransition.userPermissionId)</expression>
+                                </condition><widgets>
+                                    <container type="li">
+                                        <link url="updateStatus" text="StatusTransitionNameTemplate"
+                                              text-map="statusTransition" parameter-map="[statusId:statusTransition.toStatusId]"
+                                              confirmation="Change status to ${statusTransition.description}?"/>
+                                    </container>
+                                </widgets></section-iterate>
+
+                            </widgets>
+                        </section>
+                        <section name="SubmittedStatusSection" condition="statusId == 'ReqSubmitted'">
+                            <widgets>
+                                <container type="li">
+                                    <link url="generateTicket" text="Generate Ticket"
+                                          parameter-map="[requestId:requestId]"
+                                          confirmation="Generate a new Ticket ?"/>
+                                </container>
+                                <container type="li">
+                                    <link url="updateStatus" text="Cancel"
+                                          text-map="statusTransition" parameter-map="[statusId:'ReqCancelled']"
+                                          confirmation="Change status to Cancelled ?"/>
+                                </container>
+                            </widgets>
+                        </section>
+                        <section name="SpecialStatusSection" condition="statusId in ['ReqReviewed','ReqInProgress']">
+                            <widgets>
+                                <container type="li">
+                                    <link url="generateTicket" text="Generate Ticket"
+                                          parameter-map="[requestId:requestId]"
+                                          confirmation="Generate a new Ticket ?"/>
+                                </container>
+                            </widgets>
+                        </section>
+
+                    </container>
+                </container>
+            </widgets></section>
             <section-include name="StatusHistorySection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>
 
             <container-box><box-header title="Parties"/><box-toolbar>
@@ -319,29 +376,29 @@ along with this software (see the LICENSE.md file). If not, see
                 </box-body></container-box>
             </widgets></section>
 
-            <section name="TasksSection"><actions>
-                <entity-find entity-name="mantle.request.RequestWorkEffortDetail" list="requestWeDetailList">
-                    <econdition field-name="requestId"/><order-by field-name="priority,workEffortId"/></entity-find>
-            </actions><widgets>
-                <container-box><box-header title="Tasks"/><box-body-nopad>
-                    <form-list name="RequestTaskList" list="requestWeDetailList" skip-form="true">
-                        <field name="priority"><default-field title="Pri"><display/></default-field></field>
-                        <field name="workEffortId"><default-field title="Task">
-                            <link text="${workEffortId}: ${workEffortName}" url="taskSummary" link-type="anchor"/></default-field></field>
-                        <field name="rootWorkEffortId">
-                            <default-field title="Project"><link url="projectSummary" text="${rootWorkEffortId}" link-type="anchor" condition="rootWorkEffortId">
-                                <parameter name="workEffortId" from="rootWorkEffortId"/></link></default-field>
-                        </field>
-                        <field name="purposeEnumId">
-                            <default-field title="Purpose"><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
-                        </field>
-                        <field name="statusId">
-                            <default-field title="Status"><display-entity entity-name="moqui.basic.StatusItem"/></default-field>
-                        </field>
-                        <field name="estimatedCompletionDate"><default-field title="Due"><display format="yyyy-MM-dd"/></default-field></field>
-                    </form-list>
-                </box-body-nopad></container-box>
-            </widgets></section>
+<!--            <section name="TasksSection"><actions>-->
+<!--                <entity-find entity-name="mantle.request.RequestWorkEffortDetail" list="requestWeDetailList">-->
+<!--                    <econdition field-name="requestId"/><order-by field-name="priority,workEffortId"/></entity-find>-->
+<!--            </actions><widgets>-->
+<!--                <container-box><box-header title="Tasks"/><box-body-nopad>-->
+<!--                    <form-list name="RequestTaskList" list="requestWeDetailList" skip-form="true">-->
+<!--                        <field name="priority"><default-field title="Pri"><display/></default-field></field>-->
+<!--                        <field name="workEffortId"><default-field title="Task">-->
+<!--                            <link text="${workEffortId}: ${workEffortName}" url="taskSummary" link-type="anchor"/></default-field></field>-->
+<!--                        <field name="rootWorkEffortId">-->
+<!--                            <default-field title="Project"><link url="projectSummary" text="${rootWorkEffortId}" link-type="anchor" condition="rootWorkEffortId">-->
+<!--                                <parameter name="workEffortId" from="rootWorkEffortId"/></link></default-field>-->
+<!--                        </field>-->
+<!--                        <field name="purposeEnumId">-->
+<!--                            <default-field title="Purpose"><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+<!--                        </field>-->
+<!--                        <field name="statusId">-->
+<!--                            <default-field title="Status"><display-entity entity-name="moqui.basic.StatusItem"/></default-field>-->
+<!--                        </field>-->
+<!--                        <field name="estimatedCompletionDate"><default-field title="Due"><display format="yyyy-MM-dd"/></default-field></field>-->
+<!--                    </form-list>-->
+<!--                </box-body-nopad></container-box>-->
+<!--            </widgets></section>-->
         </row-col></container-row>
     </widgets>
 </screen>
