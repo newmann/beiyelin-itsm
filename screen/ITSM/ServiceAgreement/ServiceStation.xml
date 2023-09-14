@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Station" default-menu-index="6">
+<!--
+    1、可以调整服务站的有效时间，但必须在协议的有效时间之内
+    2、可以指定服务站为本协议提供服务的具体人员，也可以不指定，即该服务站的所有服务人员
+    3、指定服务站的服务经理，该经理可以进行派单
+-->
+    <parameter name="agreementId" required="true"/>
+
+
+    <transition name="createServiceStation"><service-call name="create#mantle.party.agreement.AgreementServiceStation"/>
+        <default-response url="."/></transition>
+    <transition name="updateServiceStation"><service-call name="update#mantle.party.agreement.AgreementServiceStation"/>
+        <default-response url="."/></transition>
+    <transition name="deleteServiceStation"><service-call name="delete#mantle.party.agreement.AgreementServiceStation"/>
+        <default-response url="."/></transition>
+    <actions>
+<!--        <script>-->
+<!--            locationList = [[agreementServiceStationId:'1',serviceStationPartyId:'100103-001',pseudoId:'HaagenDazs-001',organizationName:'哈根达斯(上海松江万达店）',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--                            [agreementServiceStationId:'2',serviceStationPartyId:'100103-003',pseudoId:'HaagenDazs-003',organizationName:'哈根达斯(上海莘庄店）',description:'', fromDate:'2023-08-01',thruDate:''],-->
+<!--            ]-->
+<!--        </script>-->
+        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>
+        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
+        
+        <set field="ServiceProviderRoleType" value="OrgServiceProvider"/>
+        <set field="ServiceStationRoleType" value="OrgServiceStation"/>
+        <set field="relationshipTypeEnumId" value="PrtOrgRollup"/>
+        
+        <entity-find entity-name="mantle.party.agreement.BackToBackAgreementDetail" list="backToBackAgreementList">
+            <econdition field-name="toAgreementId" from="agreementId"/>
+            <econdition field-name="agreementAssocTypeEnumId" value="AatBackToBack"/>
+        </entity-find>
+
+
+    </actions>
+    <widgets>
+        <container-box>
+            <box-header title="Service Station"></box-header>
+            <box-toolbar>
+
+                <container-dialog id="AddServiceStation" button-text="Add Service Station">
+                    <form-single name="AddServiceStationForm" transition="createServiceStation">
+                        <field name="agreementId"><default-field>
+                            <hidden/>
+                        </default-field></field>
+                        <field name="serviceStationPartyId"><default-field title="Service Station">
+                            <drop-down>
+                                <entity-options key="${fromPartyId}" text="PartyNameTemplate">
+                                    <entity-find entity-name="mantle.party.PartyFromAndRelationship">
+                                        <date-filter/>
+                                        <econdition field-name="toPartyId" from="agreement.otherPartyId"/>
+                                        <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
+                                        <econdition field-name="toRoleTypeId" from="ServiceProviderRoleType"/>
+                                        <econdition field-name="fromRoleTypeId" from="ServiceStationRoleType"/>
+                                    </entity-find>
+                                </entity-options>
+                            </drop-down>
+
+                        </default-field></field>
+                        <field name="fromDate">
+                            <default-field title="From Date">
+                                <date-time />
+                            </default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+
+                <link url="${appRoot}/ServiceProvider/ServiceStations" parameter-map="[partyId:agreement.otherPartyId]" text="Create Service Station"/>
+
+            </box-toolbar>
+            <box-body-nopad>
+
+                <form-list name="CategoriesForm" list="locationList" transition="updateServiceStation">
+                    <entity-find entity-name="mantle.party.agreement.AgreementServiceStationDetail" list="locationList" cache="false">
+                        <search-form-inputs/>
+                        <econdition field-name="agreementId"/>
+                    </entity-find>
+                    <!--            <row-actions>-->
+                    <!--                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">-->
+                    <!--                    <field-map field-name="partyId" from="serviceStationPartyId"/>-->
+                    <!--                </entity-find-one>-->
+                    <!--            </row-actions>-->
+                    <field name="agreementId"><header-field><hidden/></header-field>
+                        <default-field><hidden/></default-field>
+                    </field>
+                    <field name="serviceStationPartyId"><header-field><hidden/></header-field>
+                        <default-field><hidden/></default-field>
+                    </field>
+                    <field name="pseudoId" >
+                        <header-field title="pseudoId" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field title="pseudoId"><display/></default-field>
+                    </field>
+                    <field name="organizationName" >
+                        <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field title="Name"><display/></default-field>
+                    </field>
+                    <!--            <field name="productCategoryTypeEnumId">-->
+                    <!--                <header-field title="Category Type" show-order-by="true">-->
+                    <!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+                    <!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+                    <!--                </header-field>-->
+                    <!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+                    <!--            </field>-->
+                    <!--            <field name="ownerPartyId">-->
+                    <!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+                    <!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+                    <!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+                    <!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+                    <!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+                    <!--                            <order-by field-name="organizationName"/>-->
+                    <!--                        </entity-find>-->
+                    <!--                    </entity-options>-->
+                    <!--                </drop-down></header-field>-->
+                    <!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+                    <!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+                    <!--            </field>-->
+                    <field name="fromDate">
+                        <header-field title="From Date">
+                            <date-time type="date"/>
+                        </header-field>
+                        <default-field title="From Date">
+                            <display/>
+                        </default-field></field>
+                    <field name="thruDate">
+                        <header-field title="Thru Date">
+                            <date-time type="date"/>
+                        </header-field>
+
+                        <default-field title="Thru Date">
+                            <date-time type="date"/>
+                        </default-field></field>
+                    <field name="submitButton"><header-field title="Find">
+                        <submit/>
+                    </header-field>
+                        <default-field title="Actions">
+                            <submit text="Update" />
+                            <link  url="deleteServiceStation" text="Delete" />
+                        </default-field>
+                    </field>
+                </form-list>
+            </box-body-nopad>
+        </container-box>
+        <section-iterate name="BackToBackAgreementServiceStation" list="backToBackAgreementList" entry="backToBackAgreement">
+            <widgets>
+                <container-box>
+                    <box-header>
+                        <link url="//${appRoot}/ServiceAgreement/ServiceStation" text="Back To Back Agreement: ${backToBackAgreement.agreementId}" link-type="anchor">
+                            <parameter name="agreementId" from="backToBackAgreement.agreementId"/>
+                        </link>
+                    </box-header>
+                    <box-body-nopad>
+                        <form-list name="BackToBackAgreementServiceStation" list="stationList" skip-form="true">
+                            <entity-find entity-name="mantle.party.agreement.AgreementServiceStationDetail" list="stationList" cache="false">
+                                <econdition field-name="agreementId" from="backToBackAgreement.agreementId"/>
+                            </entity-find>
+                            <field name="agreementId"><header-field><hidden/></header-field>
+                                <default-field><hidden/></default-field>
+                            </field>
+                            <field name="serviceStationPartyId"><header-field><hidden/></header-field>
+                                <default-field><hidden/></default-field>
+                            </field>
+                            <field name="pseudoId" >
+                                <header-field title="pseudoId" />
+                                <default-field title="pseudoId"><display/></default-field>
+                            </field>
+                            <field name="organizationName" >
+                                <header-field title="Name" />
+                                <default-field title="Name"><display/></default-field>
+                            </field>
+
+                            <field name="fromDate">
+                                <header-field title="From Date">
+
+                                </header-field>
+                                <default-field title="From Date">
+                                    <display/>
+                                </default-field></field>
+                            <field name="thruDate">
+                                <header-field title="Thru Date">
+
+                                </header-field>
+                                <default-field title="Thru Date">
+                                    <display/>
+                                </default-field></field>
+
+                        </form-list>
+                    </box-body-nopad>
+                </container-box>
+            </widgets>
+        </section-iterate>
+
+    </widgets>
+
+</screen>

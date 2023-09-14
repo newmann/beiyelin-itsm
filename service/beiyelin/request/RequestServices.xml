@@ -157,7 +157,22 @@ along with this software (see the LICENSE.md file). If not, see
         <actions>
             <entity-find-one entity-name="mantle.request.Request" value-field="request"/>
             <if condition="request == null"><return error="true" message="Request not found with ID ${requestId}"/></if>
-            
+
+            <!--            记录requestDate，取最后一次达到ReqSubmitted状态的发生时间-->
+            <entity-find entity-name="moqui.entity.EntityAuditLog"  list="statusList">
+                <econdition field-name="changedEntityName" value="mantle.request.Request"/>
+                <econdition field-name="changedFieldName" value="statusId"/>
+                <econdition field-name="newValueText" value="ReqSubmitted"/>
+                <econdition field-name="pkPrimaryValue" from="requestId"/>
+                <order-by field-name="-lastUpdatedStamp"/>
+            </entity-find>
+            <if condition="statusList">
+                <set field="requestDate" from="statusList[0].changedDate"/>
+            </if>
+            <if condition="!requestDate">
+                <return error="true" message="Request(ID ${requestId} not found Submitted status"/>
+            </if>
+
             <set field="workEffortTypeEnumId" value="WetTicket"/>
             <set field="visibilityEnumId" value="WevWorkGroup"/>
             <set field="statusId" value="WeInPlanning"/>
@@ -168,12 +183,14 @@ along with this software (see the LICENSE.md file). If not, see
                 productId:request.productId, assetId:request.assetId,
                 statusId:statusId, statusFlowId:statusFlowId,
                 priority:request.priority, workEffortName: request.requestName,
-                description:request.description, facilityId: request.facilityId,
+                description:request.description, facilityId: request.facilityId,requestDate:requestDate
                     ]" out-map="context"/>
             <service-call name="create#mantle.request.RequestWorkEffort" in-map="[
                 requestId:requestId,workEffortId:workEffortId
                 ]"/>
 
+
+            
             <entity-find-one entity-name="mantle.request.RequestParty" value-field="reporterParty">
                 <field-map field-name="requestId"/>
                 <field-map field-name="roleTypeId" value="Reporter"/>
@@ -195,4 +212,7 @@ along with this software (see the LICENSE.md file). If not, see
 
 
     </service>
+
+
+
 </services>

@@ -70,12 +70,13 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <transition name="getAgreementFromDate">
-        <parameter name="agreementId" required="true"/>
+        <parameter name="toAgreementId" required="true"/>
         <actions>
             <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement">
-                <field-map field-name="agreementId" from="agreementId"/>
+                <field-map field-name="agreementId" from="toAgreementId"/>
             </entity-find-one>
-            <if condition="agreement == null"><return error="true" message="Agreement not found by Id:${agreementId}"/> </if>
+            <if condition="agreement == null"><return error="true" message="Get agreement's fromDate,but Agreement not found by Id:${toAgreementId}"/> </if>
+<!--            <message type="warning">getAgreementFromDate:${agreement.fromDate}</message>-->
 
             <script>ec.web.sendTextResponse(ec.l10n.format(agreement.fromDate, "yyyy-MM-dd"))</script>
         </actions>
@@ -88,7 +89,7 @@ along with this software (see the LICENSE.md file). If not, see
             <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement">
                 <field-map field-name="agreementId" from="toAgreementId"/>
             </entity-find-one>
-            <if condition="agreement == null"><return error="true" message="Agreement not found by Id:${agreementId}"/> </if>
+            <if condition="agreement == null"><return error="true" message="Get agreement's thruDate,but Agreement not found by Id:${toAgreementId}"/> </if>
 <!--            <message type="info">agreement: ${agreement}</message>-->
             <script>ec.web.sendTextResponse(ec.l10n.format(agreement.thruDate, "yyyy-MM-dd"))</script>
         </actions>
@@ -149,14 +150,6 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="otherRoleTypeId"><default-field><hidden/></default-field></field>
                 <field name="statusFlowId" ><default-field><hidden/></default-field></field>
                 <field name="statusId" ><default-field><hidden/></default-field></field>
-<!--                <field name="partyId"><default-field><hidden/></default-field></field>-->
-
-<!--                <field name="agreementTypeEnumId" from="curAgreementTypeEnumId"><default-field title="Type">-->
-<!--&lt;!&ndash;                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">&ndash;&gt;-->
-<!--&lt;!&ndash;                        <set field="enumTypeId" value="AgreementType"/><set field="noCurrentSelectedKey" value="AgrOther"/></widget-template-include>&ndash;&gt;-->
-<!--                    <display-entity entity-name="moqui.basic.Enumeration" />-->
-<!--                </default-field></field>-->
-
 
                 <field name="organizationPartyId"><default-field title="Service Demand Side"><drop-down allow-empty="false" >
                     <entity-options key="${partyId}" text="PartyNameTemplate">
@@ -177,13 +170,6 @@ along with this software (see the LICENSE.md file). If not, see
                 </drop-down></default-field></field>
 
                 <field name="description"><default-field><text-line size="80"/></default-field></field>
-<!--                <field name="otherRoleTypeId"><default-field title="Role"><drop-down>-->
-<!--                    <entity-options key="${roleTypeId}" text="${description}">-->
-<!--                        <entity-find entity-name="mantle.party.RoleGroupMemberAndType" cache="true">-->
-<!--                            <econdition field-name="roleGroupEnumId" value="RgpAgreement"/>-->
-<!--                            <order-by field-name="description"/></entity-find></entity-options>-->
-<!--                </drop-down></default-field></field>-->
-
                 <field name="agreementDate"><default-field><date-time/></default-field></field>
                 <field name="fromDate"><default-field title="Valid From"><date-time/></default-field></field>
                 <field name="thruDate"><default-field title="Valid Thru"><date-time/></default-field></field>
@@ -192,8 +178,22 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </container-dialog>
         <container-dialog id="NewBackToBackAgreementDialog" button-text="New Back To Back Agreement">
-            <form-single name="NewBackToBackAgreement" transition="createBackToBackAgreement"
-                extends="component://beiyelin-itsm/screen/ITSM/ServiceAgreement/FindAgreement.xml#NewAgreement">
+            <form-single name="NewBackToBackAgreement" transition="createBackToBackAgreement">
+                <field name="agreementTypeEnumId" ><default-field><hidden/></default-field></field>
+                <field name="organizationRoleTypeId"><default-field><hidden/></default-field></field>
+                <field name="otherRoleTypeId"><default-field><hidden/></default-field></field>
+                <field name="statusFlowId" ><default-field><hidden/></default-field></field>
+                <field name="statusId" ><default-field><hidden/></default-field></field>
+                <field name="organizationPartyId"><default-field title="Service Demand Side"><drop-down allow-empty="false" >
+                    <entity-options key="${partyId}" text="PartyNameTemplate">
+                        <entity-find entity-name="mantle.party.PartyDetailAndRole">
+                            <!--                            <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>-->
+                            <econdition field-name="partyId" operator="in" from="serviceDemandSideIdList"/>
+                            <econdition field-name="roleTypeId" from="organizationRoleTypeId"/>
+                            <econdition field-name="disabled" value="N" or-null="true"/>
+                            <order-by field-name="organizationName"/></entity-find>
+                    </entity-options>
+                </drop-down></default-field></field>
                 <field name="toAgreementId">
                     <default-field title="Source Agreement">
                         <drop-down>
@@ -203,12 +203,20 @@ along with this software (see the LICENSE.md file). If not, see
 
                         </drop-down>
                     </default-field>
-
                 </field>
+
+                <field name="otherPartyId" ><default-field title="Service Provider">
+                    <drop-down allow-empty="false">
+                        <dynamic-options transition="getServiceProviderList">
+                            <depends-on field="organizationPartyId" parameter="serviceDemandSidePartyId"/>
+                        </dynamic-options>
+                    </drop-down></default-field></field>
+                <field name="description"><default-field><text-line size="80"/></default-field></field>
+                <field name="agreementDate"><default-field><date-time/></default-field></field>
                 <field name="fromDate">
                     <default-field title="Valid From">
                         <display dynamic-transition="getAgreementFromDate" >
-                            <depends-on field="toAgreementId" parameter="agreementId" />
+                            <depends-on field="toAgreementId"/>
                         </display>
                     </default-field>
                 </field>
@@ -219,6 +227,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </display>
                     </default-field>
                 </field>
+                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
                 <field-layout>
                     <field-ref name="organizationPartyId"/>
                     <field-ref name="toAgreementId"/>

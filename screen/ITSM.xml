@@ -41,9 +41,14 @@ along with this software (see the LICENSE.md file). If not, see
 
         <subscreens-item name="Catalog" location="component://SimpleScreens/screen/SimpleScreens/Catalog.xml" menu-index="4"/>
 
-        <subscreens-item name="Facility" location="component://SimpleScreens/screen/SimpleScreens/Facility.xml" menu-index="5"/>
+<!--        <subscreens-item name="Facility" location="component://SimpleScreens/screen/SimpleScreens/Facility.xml" menu-index="5"/>-->
 
-        <subscreens-item name="Party" location="component://SimpleScreens/screen/SimpleScreens/Party.xml" menu-index="7"/>
+<!--        <subscreens-item name="Party" location="component://SimpleScreens/screen/SimpleScreens/Party.xml" menu-index="7"/>-->
+        <subscreens-item name="QuickViewReport" menu-title="Custom Reports" menu-index="90"
+                         location="component://SimpleScreens/screen/SimpleScreens/SimpleReport/QuickViewReport.xml"/>
+        <subscreens-item name="SimpleReport" menu-title="Report Builder" menu-index="91"
+                         location="component://SimpleScreens/screen/SimpleScreens/SimpleReport.xml"/>
+
     </subscreens>
 
     <pre-actions>

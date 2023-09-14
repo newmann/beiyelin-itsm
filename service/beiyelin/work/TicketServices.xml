@@ -72,6 +72,39 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
     </service>
 
+    <!--    查找可派单对象
+    1、如果是服务组织，则可派单对象包括：a、背靠背合同的服务方，b、合同约定范围内的服务点，c、合同约定服务点内的服务人员
+    2、如果是服务站，可派单对象包括：合同约定服务点内的服务人员
+    3、如果是服务工程师，可派单对象包括：合同约定所在服务点内的其他服务人员
+    -->
+    <service verb="get" noun="TicketDispatchParty">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+            <parameter name="fromPartyId" required="true"/>
+            <parameter name="fromRoleTypeId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="partyList" type="List">
+                <parameter name="partyItem" type="Map">
+                    <auto-parameters entity-name="mantle.party.PartyDetail"/>
+                </parameter>
+            </parameter>
+        </out-parameters>
+        <actions>
+            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="ticket"/>
+            <set field="curAgreementId" from="ticket.agreementId"/>
+            <entity-find entity-name="mantle.party.agreement.AgreementAssoc" list="assocAgreementList">
+                <econdition field-name="toAgreementId" from="curAgreementId"/>
+                <econdition field-name="agreementAssocTypeEnumId" value="AatBackToBack"/>
+            </entity-find>
+
+
+            <if condition="fromRoleTypeId == 'OrgServiceProvider'">
+
+            </if>
+
+        </actions>
+    </service>
 <!--    支持第一次分派和多次转派-->
     <service verb="dispatch" noun="Ticket">
         <in-parameters>
@@ -150,7 +183,7 @@ along with this software (see the LICENSE.md file). If not, see
 
             <parameter name="ticketPartyList" type="List">
                 <parameter name="partyItem" type="Map">
-                    <auto-parameters entity-name="mantle.work.effort.WorkEffortPartyAndPerson"/></parameter>
+                    <auto-parameters entity-name="mantle.work.effort.WorkEffortAndPartyDetail"/></parameter>
             </parameter>
 
             <parameter name="slaList" type="List">
@@ -243,9 +276,10 @@ along with this software (see the LICENSE.md file). If not, see
 <!--            <message type="warning">request.getMap():${request.getMap()}</message>-->
 <!--            <message type="warning">requestDetail:${requestDetail}</message>-->
 
-            <entity-find entity-name="mantle.work.effort.WorkEffortPartyAndPerson" list="ticketPartyList">
+            <entity-find entity-name="mantle.work.effort.WorkEffortAndPartyDetail" list="ticketPartyList">
                 <econdition field-name="workEffortId"/>
             </entity-find>
+<!--            <message type="warning">in TicketServices ticketPartyList:${ticketPartyList}</message>-->
             <entity-find entity-name="mantle.work.effort.WorkEffortServiceLevelAgreementAndEnumeration" list="slaList">
                 <econdition field-name="workEffortId"/>
             </entity-find>

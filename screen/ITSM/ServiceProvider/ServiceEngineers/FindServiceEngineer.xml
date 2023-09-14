@@ -40,6 +40,10 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="relationshipTypeEnumId" value="PrtEmployee"/>
        <set field="ServiceEngineerRoleType" value="ServiceEngineer"/>
 
+        <entity-find-one entity-name="mantle.party.PartyRole" value-field="serviceProviderRole">
+            <field-map field-name="partyId"/><field-map field-name="roleTypeId" value="OrgServiceProvider"/></entity-find-one>
+        <if condition="serviceProviderRole == null"><return error="true" message="Party ${partyId} is not a OrgServiceProvider"/></if>
+
     </actions>
     <widgets>
         <container-dialog id="AddServiceEngineer" button-text="Add Service Engineer">

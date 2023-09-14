@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        default-menu-title="SLA" default-menu-index="8">
+        default-menu-title="SLA" default-menu-index="9">
     <!--
         1、设置SLA指标与计算公式
         2、如果SLA自动计算，则condition定义会比较复杂，考虑到SLA的报表会通过定制的方式来实现，所以这里只需要字符串描述即可
@@ -51,57 +51,95 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
 
     <actions>
-<!--        <script>-->
-<!--            slaList = [[agreementSlaItemId:'1',ticketType:'Normal',serviceLevel:'超紧急',indicator:'响应时间',uomId:'分钟',fromOperator:'大于等于', fromValue:'0',toValue:'5', toOperator:'小于等于', condition:'响应时间小于等5分钟', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
-<!--                       [agreementSlaItemId:'2',ticketType:'Normal',serviceLevel:'超紧急',indicator:'问题解决时间',uomId:'小时',fromOperator:'大于等于', fromValue:'0',toValue:'4', toOperator:'小于等于',condition:'服务距离30公里以内，则4小时以内解决', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
-<!--                       [agreementSlaItemId:'3',ticketType:'Normal',serviceLevel:'超紧急',indicator:'问题解决时间',uomId:'小时',fromOperator:'大于等于', fromValue:'0',toValue:'8', toOperator:'小于等于', condition:'服务距离超过30公里的，则8小时以内解决', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
-<!--                       [agreementSlaItemId:'4',ticketType:'Normal',serviceLevel:'P0',indicator:'响应时间',uomId:'分钟',fromOperator:'大于等于', fromValue:'0',toValue:'5', toOperator:'小于等于', condition:'响应时间小于等5分钟', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
-<!--                       [agreementSlaItemId:'5',ticketType:'Normal',serviceLevel:'P0',indicator:'问题解决时间',uomId:'小时',fromOperator:'大于等于', fromValue:'0',toValue:'4', toOperator:'小于等于', condition:'服务距离30公里以内，则4小时以内解决', period:'每月', threshold:'100', fromDate:'2023-08-01',thruDate:''],-->
-<!--            ]-->
-<!--        </script>-->
+        <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
+        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
+
+        <if condition="'true'.equals(isBackToBackAgreement)">
+            <then>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceLevelAgreement" list="slaList">
+                    <econdition field-name="agreementId" from="sourceAgreement.agreementId"/>
+                </entity-find>
+            </then>
+            <else>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceLevelAgreement" list="slaList">
+                    <econdition field-name="agreementId"/>
+                </entity-find>
+            </else>
+        </if>
+        <set field="backToBackAgreementLabelText" value="This is Back To Back Agreement, SLA is inherited from  Agreement"/>
 
     </actions>
     <widgets>
-        <container-dialog id="AddSLA" button-text="Add SLA">
-            <form-single name="AddslaList" transition="addSLA">
-                <field name="agreementId"><default-field><hidden/></default-field></field>
-                <field name="processName"><default-field><text-line/></default-field></field>
-                <field name="comments"><default-field><text-area/></default-field></field>
-                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
-            </form-single>
-        </container-dialog>
 
-        <form-list name="CategoriesForm" list="slaList" transition="updateSLA">
-            <entity-find entity-name="mantle.party.agreement.AgreementServiceLevelAgreement" list="slaList">
-                <econdition field-name="agreementId"/>
-            </entity-find>
+        <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
+    <section name="ServiceLevel" condition="'true'.equals(isBackToBackAgreement)" >
+        <widgets>
+<!--            <label text="This is Back To Back Agreement, Service Level is inherited from  Agreement(${sourceAgreement.agreementId} : ${sourceAgreement.description})." type="h6" style="text-danger" />-->
 
-            <field name="agreementId"><header-field><hidden/></header-field>
-                <default-field><hidden/></default-field>
-            </field>
+            <form-list name="SlaFromSourceAgreementForm" list="slaList" skip-form="true" paginate="false">
 
-            <field name="processName">
-                <default-field>
-                    <text-line/>
-                </default-field>
-            </field>
 
-            <field name="comments">
-                <default-field title="Comments">
-                    <text-area/>
-                </default-field>
-            </field>
+                <field name="agreementId">
+                    <default-field><hidden/></default-field>
+                </field>
 
-            <field name="submitButton">
-                <header-field title="Actions">
+                <field name="processName">
+                    <default-field>
+                        <display/>
+                    </default-field>
+                </field>
 
-                </header-field>
-                <default-field title="Actions">
-                    <submit text="Update" />
-                    <link url="deleteSLA" text="Delete"/>
-                </default-field>
-            </field>
-        </form-list>
+                <field name="comments">
+                    <default-field title="Comments">
+                        <display/>
+                    </default-field>
+                </field>
+
+            </form-list>
+        </widgets>
+        <fail-widgets>
+
+            <container-dialog id="AddSLA" button-text="Add SLA">
+                <form-single name="AddslaList" transition="addSLA">
+                    <field name="agreementId"><default-field><hidden/></default-field></field>
+                    <field name="processName"><default-field><text-line/></default-field></field>
+                    <field name="comments"><default-field><text-area/></default-field></field>
+                    <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
+
+            <form-list name="SlaForm" list="slaList" transition="updateSLA">
+
+
+                <field name="agreementId"><header-field><hidden/></header-field>
+                    <default-field><hidden/></default-field>
+                </field>
+
+                <field name="processName">
+                    <default-field>
+                        <text-line/>
+                    </default-field>
+                </field>
+
+                <field name="comments">
+                    <default-field title="Comments">
+                        <text-area/>
+                    </default-field>
+                </field>
+
+                <field name="submitButton">
+                    <header-field title="Actions">
+
+                    </header-field>
+                    <default-field title="Actions">
+                        <submit text="Update" />
+                        <link url="deleteSLA" text="Delete"/>
+                    </default-field>
+                </field>
+            </form-list>
+        </fail-widgets>
+    </section>
+
     </widgets>
 
 </screen>

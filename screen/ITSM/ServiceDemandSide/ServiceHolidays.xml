@@ -26,11 +26,11 @@ along with this software (see the LICENSE.md file). If not, see
 <!--    <transition name="findServiceLocations"><default-response url="."/></transition>-->
 <!--    <transition name="editFacility"><default-response url="../EditCategory"/></transition>-->
 
-    <transition name="addHoliday"><service-call name="create#mantle.work.effort.WorkEffort"/>
+    <transition name="addHoliday"><service-call name="beiyelin.party.PartyServices.create#PartyHoliday"/>
         <default-response url="."/></transition>
-    <transition name="updateHoliday"><service-call name="update#mantle.work.effort.WorkEffort"/>
+    <transition name="updateHoliday"><service-call name="beiyelin.party.PartyServices.update#PartyHoliday"/>
         <default-response url="."/></transition>
-    <transition name="deleteHoliday"><service-call name="delete#mantle.work.effort.WorkEffort"/>
+    <transition name="deleteHoliday"><service-call name="beiyelin.party.PartyServices.delete#PartyHoliday"/>
         <default-response url="."/></transition>
 
 <!--    <transition name="addLegalHoliday">-->
@@ -104,6 +104,9 @@ along with this software (see the LICENSE.md file). If not, see
                 <order-by field-name="allDayStart"/>
             </entity-find>
 
+            <field name="partyId"><header-field><hidden/></header-field>
+                <default-field><hidden/></default-field></field>
+
             <field name="workEffortId"><default-field>
                 <hidden/>
             </default-field></field>
@@ -161,7 +164,7 @@ along with this software (see the LICENSE.md file). If not, see
             </header-field>
                 <default-field title="Actions">
                     <submit text="Update" />
-                    <link  url="deleteHoliday" text="Delete"  link-type="anchor"/>
+                    <link  url="deleteHoliday" text="Delete" />
 
                 </default-field>
             </field>

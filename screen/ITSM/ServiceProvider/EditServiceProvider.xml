@@ -109,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <entity-find-one entity-name="mantle.party.PartyDetail" value-field="party"/>
-        <if condition="party == null"><return error="true" message="Customer not found with ID ${partyId}"/></if>
+        <if condition="party == null"><return error="true" message="Service Provider not found with ID ${partyId}"/></if>
 
         <entity-find-one entity-name="mantle.party.PartyRole" value-field="serviceProviderRole">
             <field-map field-name="partyId"/><field-map field-name="roleTypeId" value="OrgServiceProvider"/></entity-find-one>

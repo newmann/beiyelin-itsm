@@ -43,102 +43,148 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                            [agreementServiceProductId:'2',productId:'Switch16',pseudoId:'Switch16',productName:'TP Link 16 Port Switch', fromDate:'2023-08-01',thruDate:''],-->
 <!--            ]-->
 <!--        </script>-->
+        <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
+        <if condition="'true'.equals(isBackToBackAgreement)">
+            <then>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceProductDetail" list="productList" cache="false">
+                    <econdition field-name="agreementId" from="sourceAgreement.agreementId"/>
+                </entity-find>
+            </then>
+            <else>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceProductDetail" list="productList" cache="false">
+                    <search-form-inputs default-order-by="sequenceNum"/>
+                    <econdition field-name="agreementId"/>
+                </entity-find>
+            </else>
+        </if>
 
-
+        <set field="backToBackAgreementLabelText" value="This is Back To Back Agreement, Service Product is inherited from  Agreement"/>
     </actions>
     <widgets>
-        <container-row>
-        <row-col md="6">
-        <container-dialog id="AddServiceProduct" button-text="Add Service Product">
-            <form-single name="AddServiceProductForm" transition="createServiceProduct">
-                <field name="agreementId">
-                    <default-field>
-                    <hidden/>
-                </default-field>
-                </field>
-                <field name="productId"><default-field title="Service Product">
-                    <drop-down>
-                        <dynamic-options transition="getProductList" server-search="true" min-length="2"/></drop-down>
-                </default-field></field>
-                <field name="fromDate">
-                    <default-field title="From Date">
-                        <date-time type="date" />
-                    </default-field></field>
-                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-            </form-single>
-        </container-dialog>
-        </row-col>
-            <row-col md="6" style="text-right">
-                <link url="."  text="Create Service Product"/>
-            </row-col>
-        </container-row>
+<!--        <label text="This is Back To Back Agreement, Service Product is inherited from  Agreement(${sourceAgreement.agreementId} : ${sourceAgreement.description})." type="h6" style="text-danger" condition="isBackToBackAgreement == 'true'"/>-->
+        <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
 
-        <form-list name="CategoriesForm" list="productList" transition="updateServiceProduct">
-            <entity-find entity-name="mantle.party.agreement.AgreementServiceProductDetail" list="productList" cache="false">
-                <search-form-inputs default-order-by="sequenceNum"/>
-                <econdition field-name="agreementId"/>
-            </entity-find>
+        <section name="ServiceCategoryAction" condition="'true'.equals(isBackToBackAgreement)" >
+            <widgets>
+                <form-list name="ProductFromSourceAgreementForm" list="productList" skip-form="true" paginate="false">
 
-            <field name="agreementId"><header-field><hidden/></header-field>
-                <default-field><hidden/></default-field>
-            </field>
-            <field name="productId"><header-field><hidden/></header-field>
-                <default-field><hidden/></default-field>
-            </field>
-            
-            <field name="pseudoId">
-                <header-field title="Product ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="productName" >
-                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-<!--            <field name="productCategoryTypeEnumId">-->
-<!--                <header-field title="Category Type" show-order-by="true">-->
-<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
-<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
-<!--                </header-field>-->
-<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
-<!--            </field>-->
-<!--            <field name="ownerPartyId">-->
-<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
-<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
-<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
-<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
-<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
-<!--                            <order-by field-name="organizationName"/>-->
-<!--                        </entity-find>-->
-<!--                    </entity-options>-->
-<!--                </drop-down></header-field>-->
-<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
-<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
-<!--            </field>-->
-            <field name="fromDate" >
-                <header-field title="From Date" show-order-by="case-insensitive">
-                    <date-time type="date"/>
-                </header-field>
-                <default-field title="From Date">
-                <date-time type="date"/>
-            </default-field></field>
-            <field name="thruDate">
-                <header-field title="Thru Date" show-order-by="case-insensitive">
-                    <date-time type="date"/>
-                </header-field>
 
-                <default-field title="Thru Date">
-                <date-time type="date"/>
-            </default-field></field>
-            <field name="submitButton"><header-field title="Find">
-                <submit/>
-            </header-field>
-                <default-field title="Actions">
-                    <submit text="Update" />
-                    <link  url="deleteServiceProduct" text="Delete" />
+                    <field name="agreementId">
+                        <default-field><hidden/></default-field>
+                    </field>
+                    <field name="productId">
+                        <default-field><hidden/></default-field>
+                    </field>
 
-                </default-field>
-            </field>
-        </form-list>
+                    <field name="pseudoId">
+                        <default-field><display/></default-field>
+                    </field>
+                    <field name="productName" >
+                        <default-field><display/></default-field>
+                    </field>
+                    <field name="fromDate" >
+                        <default-field title="From Date">
+                            <display format="yyyy.MM.dd"/>
+                        </default-field></field>
+                    <field name="thruDate">
+                        <default-field title="Thru Date">
+                            <display format="yyyy.MM.dd"/>
+                        </default-field></field>
+                </form-list>
+            </widgets>
+            <fail-widgets>
+                <container-row>
+                    <row-col md="6">
+                        <container-dialog id="AddServiceProduct" button-text="Add Service Product">
+                            <form-single name="AddServiceProductForm" transition="createServiceProduct">
+                                <field name="agreementId">
+                                    <default-field>
+                                        <hidden/>
+                                    </default-field>
+                                </field>
+                                <field name="productId"><default-field title="Service Product">
+                                    <drop-down>
+                                        <dynamic-options transition="getProductList" server-search="true" min-length="2"/></drop-down>
+                                </default-field></field>
+                                <field name="fromDate">
+                                    <default-field title="From Date">
+                                        <date-time type="date" />
+                                    </default-field></field>
+                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                            </form-single>
+                        </container-dialog>
+                    </row-col>
+                    <row-col md="6" style="text-right">
+                        <link url="."  text="Create Service Product"/>
+                    </row-col>
+                </container-row>
+
+                <form-list name="CategoriesForm" list="productList" transition="updateServiceProduct">
+
+
+                    <field name="agreementId"><header-field><hidden/></header-field>
+                        <default-field><hidden/></default-field>
+                    </field>
+                    <field name="productId"><header-field><hidden/></header-field>
+                        <default-field><hidden/></default-field>
+                    </field>
+
+                    <field name="pseudoId">
+                        <header-field title="Product ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field><display/></default-field>
+                    </field>
+                    <field name="productName" >
+                        <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field><display/></default-field>
+                    </field>
+                    <!--            <field name="productCategoryTypeEnumId">-->
+                    <!--                <header-field title="Category Type" show-order-by="true">-->
+                    <!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+                    <!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+                    <!--                </header-field>-->
+                    <!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+                    <!--            </field>-->
+                    <!--            <field name="ownerPartyId">-->
+                    <!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+                    <!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+                    <!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+                    <!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+                    <!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+                    <!--                            <order-by field-name="organizationName"/>-->
+                    <!--                        </entity-find>-->
+                    <!--                    </entity-options>-->
+                    <!--                </drop-down></header-field>-->
+                    <!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+                    <!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+                    <!--            </field>-->
+                    <field name="fromDate" >
+                        <header-field title="From Date" show-order-by="case-insensitive">
+                            <date-time type="date"/>
+                        </header-field>
+                        <default-field title="From Date">
+                            <date-time type="date"/>
+                        </default-field></field>
+                    <field name="thruDate">
+                        <header-field title="Thru Date" show-order-by="case-insensitive">
+                            <date-time type="date"/>
+                        </header-field>
+
+                        <default-field title="Thru Date">
+                            <date-time type="date"/>
+                        </default-field></field>
+                    <field name="submitButton"><header-field title="Find">
+                        <submit/>
+                    </header-field>
+                        <default-field title="Actions">
+                            <submit text="Update" />
+                            <link  url="deleteServiceProduct" text="Delete" />
+
+                        </default-field>
+                    </field>
+                </form-list>
+            </fail-widgets>
+        </section>
+
     </widgets>
 
 </screen>

@@ -93,43 +93,59 @@ along with this software (see the LICENSE.md file). If not, see
 <!--            <section-include name="EditPartySection" location="component://SimpleScreens/screen/SimpleScreens/Party/EditParty.xml"/>-->
             <section name="EditPartySection">
                 <widgets>
-                    <form-single name="EditOrganizationForm" map="party" transition="updateParty">
-                        <field name="partyId"><default-field><hidden/></default-field></field>
-                        <field name="pseudoId"><default-field title="ID"><text-line size="15"/></default-field></field>
-                        <field name="organizationName"><default-field><text-line size="60"/></default-field></field>
-                        <field name="annualRevenue"><default-field title="Annual Revenue"><text-line size="60" input-type="number"/></default-field></field>
-                        <field name="numEmployees"><default-field title="Number of Employees"><text-line size="60" input-type="number"/></default-field></field>
-<!--                        <field name="externalId"><default-field><text-line size="20"/></default-field></field>-->
+                    <container-box>
+                        <box-header title="Edit Service Demand Side"/>
+                        <box-body-nopad>
+                            <form-single name="EditOrganizationForm" map="party" transition="updateParty">
+                                <field name="partyId"><default-field><hidden/></default-field></field>
+                                <field name="pseudoId"><default-field title="ID" moqui-key="N"><text-line size="15"/></default-field></field>
+                                <field name="organizationName"><default-field moqui-key="b"><text-line size="60"/></default-field></field>
+                                <field name="annualRevenue"><default-field title="Annual Revenue"><text-line size="60" input-type="number"/></default-field></field>
+                                <field name="numEmployees"><default-field title="Number of Employees"><text-line size="60" input-type="number"/></default-field></field>
+                                <!--                        <field name="externalId"><default-field><text-line size="20"/></default-field></field>-->
 
-                        <field name="disabled"><default-field title="Disabled"><drop-down>
-                            <option key="N"/><option key="Y"/></drop-down></default-field></field>
-<!--                        <field name="gatewayCimId"><default-field title="CIM ID"><text-line size="20"/></default-field></field>-->
-<!--                        <field name="ownerPartyId"><default-field title="Owned By Org"><drop-down allow-empty="true">-->
-<!--                            <option key="_NA_" text="N/A"/>-->
-<!--                            <entity-options key="${partyId}" text="PartyNameTemplate">-->
-<!--                                <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
-<!--                                    <econdition field-name="roleTypeId" value="OrgInternal"/>-->
-<!--                                    <econdition field-name="disabled" value="N" or-null="true"/>-->
-<!--                                    <order-by field-name="organizationName"/>-->
-<!--                                </entity-find>-->
-<!--                            </entity-options>-->
-<!--                        </drop-down></default-field></field>-->
-<!--                        <field name="dataSourceId"><default-field title="Data Source"><drop-down allow-empty="true">-->
-<!--                            <entity-options key="${dataSourceId}" text="${description}">-->
-<!--                                <entity-find entity-name="moqui.basic.DataSource">-->
-<!--                                    <order-by field-name="description"/></entity-find>-->
-<!--                            </entity-options>-->
-<!--                        </drop-down></default-field></field>-->
-                        <field name="comments"><default-field title="Comments"><text-area rows="3" cols="120"/></default-field></field>
-<!--                        <field name="shippingInstructions"><default-field><text-area rows="5" cols="120"/></default-field></field>-->
+                                <field name="disabled"><default-field title="Disabled" moqui-key="d"><drop-down>
+                                    <option key="N"/><option key="Y"/></drop-down></default-field></field>
+                                <!--                        <field name="gatewayCimId"><default-field title="CIM ID"><text-line size="20"/></default-field></field>-->
+                                <!--                        <field name="ownerPartyId"><default-field title="Owned By Org"><drop-down allow-empty="true">-->
+                                <!--                            <option key="_NA_" text="N/A"/>-->
+                                <!--                            <entity-options key="${partyId}" text="PartyNameTemplate">-->
+                                <!--                                <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+                                <!--                                    <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+                                <!--                                    <econdition field-name="disabled" value="N" or-null="true"/>-->
+                                <!--                                    <order-by field-name="organizationName"/>-->
+                                <!--                                </entity-find>-->
+                                <!--                            </entity-options>-->
+                                <!--                        </drop-down></default-field></field>-->
+                                <!--                        <field name="dataSourceId"><default-field title="Data Source"><drop-down allow-empty="true">-->
+                                <!--                            <entity-options key="${dataSourceId}" text="${description}">-->
+                                <!--                                <entity-find entity-name="moqui.basic.DataSource">-->
+                                <!--                                    <order-by field-name="description"/></entity-find>-->
+                                <!--                            </entity-options>-->
+                                <!--                        </drop-down></default-field></field>-->
+                                <field name="comments"><default-field title="Comments"><text-area rows="3" cols="120"/></default-field></field>
+                                <!--                        <field name="shippingInstructions"><default-field><text-area rows="5" cols="120"/></default-field></field>-->
 
-                        <field name="submitButton"><default-field title="Update Organization"><submit/></default-field></field>
-                    </form-single>
+                                <field name="submitButton"><default-field title="Update Organization"><submit/></default-field></field>
+                                <field-layout>
+                                    <field-row><field-ref name="pseudoId"/> <field-ref name="disabled"/></field-row>
+                                    <field-ref name="organizationName"/>
+                                    <field-row><field-ref name="annualRevenue"/> <field-ref name="numEmployees"/></field-row>
+                                    <field-ref name="submitButton"/>
+                                </field-layout>
+                            </form-single>
+
+                        </box-body-nopad>
+
+
+                    </container-box>
                 </widgets>
             </section>
+
+
 <!--            agreement section-->
             <container-box>
-                <box-header title="Service Agreement"></box-header>
+                <box-header title="Service Agreement"/>
                 <box-body>
                     <form-list name="AgreementList" list="agreementList" skip-form="true">
                         <entity-find entity-name="mantle.party.agreement.Agreement" list="agreementList">
@@ -151,7 +167,7 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                            <display-entity entity-name="moqui.basic.Enumeration"/></default-field></field>-->
 
                         <field name="statusId"><default-field title="Status">
-                            <display-entity entity-name="moqui.basic.StatusItem"/></default-field></field>
+                            <display-entity entity-name="moqui.basic.StatusItem" display-type="chip"/></default-field></field>
 
                         <field name="organizationPartyId"><default-field title="Service Demand Side">
                             <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>

@@ -54,39 +54,40 @@ along with this software (see the LICENSE.md file). If not, see
                                       pkValue="AgrService" locale="zh_CN" localized="服务" />
 
 <!--    Service Agreement Status-->
-    <moqui.basic.StatusType description="Service Agreement Status"
-                            statusTypeId="ServiceAgreement"/>
-    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusType" fieldName="description"
-                                      pkValue="ServiceAgreement" locale="zh_CN"
-                                      localized="服务协议状态"/>
+<!--    statusType无需重新定义，直接使用Agreement-->
+<!--    <moqui.basic.StatusType description="Service Agreement Status"-->
+<!--                            statusTypeId="ServiceAgreement"/>-->
+<!--    <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusType" fieldName="description"-->
+<!--                                      pkValue="ServiceAgreement" locale="zh_CN"-->
+<!--                                      localized="服务协议状态"/>-->
 
     <moqui.basic.StatusItem description="Open" sequenceNum="1" statusId="SAOpen"
-                            statusTypeId="ServiceAgreement"/>
+                            statusTypeId="Agreement"/>
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
                                       pkValue="SAOpen" locale="zh_CN" localized="草稿"/>
 
     <moqui.basic.StatusItem description="Confirmed" sequenceNum="3" statusId="SAConfirmed"
-                            statusTypeId="ServiceAgreement"/>
+                            statusTypeId="Agreement"/>
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
                                       pkValue="SAConfirmed" locale="zh_CN" localized="已确认"/>
 
     <moqui.basic.StatusItem description="Canceled" sequenceNum="3" statusId="SACanceled"
-                            statusTypeId="ServiceAgreement"/>
+                            statusTypeId="Agreement"/>
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
                                       pkValue="SACanceled" locale="zh_CN" localized="已作废"/>
 
     <moqui.basic.StatusItem description="In Force" sequenceNum="4" statusId="SAInForce"
-                            statusTypeId="ServiceAgreement"/>
+                            statusTypeId="Agreement"/>
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
                                       pkValue="SAInForce" locale="zh_CN" localized="已生效"/>
 
     <moqui.basic.StatusItem description="Terminated" sequenceNum="5" statusId="SATerminated"
-                            statusTypeId="ServiceAgreement"/>
+                            statusTypeId="Agreement"/>
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
                                       pkValue="SATerminated" locale="zh_CN" localized="已中止"/>
 
     <moqui.basic.StatusItem description="Completed" sequenceNum="6" statusId="SACompleted"
-                            statusTypeId="ServiceAgreement"/>
+                            statusTypeId="Agreement"/>
     <moqui.basic.LocalizedEntityField entityName="moqui.basic.StatusItem" fieldName="description"
                                       pkValue="SACompleted" locale="zh_CN" localized="已完成"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="TMOHSOpen" toStatusId="TMOHSConfirmed"

@@ -41,106 +41,167 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                            [agreementServiceCategoryId:'5',productCategoryId:'05',pseudoId:'05',categoryName:'屏幕故障',description:'', fromDate:'2023-08-01',thruDate:''],-->
 <!--            ]-->
 <!--        </script>-->
-        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>
-        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
+        <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
+        <if condition="'true'.equals(isBackToBackAgreement)">
+            <then>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceCategoryDetail" list="categoryList" cache="false">
+
+<!--                    <search-form-inputs default-order-by="sequenceNum" skip-fields="agreementId">-->
+<!--                    </search-form-inputs>-->
+                    <econdition field-name="agreementId" from="sourceAgreement.agreementId"/>
+                </entity-find>
+
+                <message type="warning">categoryList_xafind:${categoryList_xafind}</message>
+
+                <message type="warning">categoryList:${categoryList}</message>
+            </then>
+            <else>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceCategoryDetail" list="categoryList" cache="false">
+                    <search-form-inputs default-order-by="sequenceNum"/>
+                    <econdition field-name="agreementId"/>
+                </entity-find>
+            </else>
+        </if>
+
 
 
         <set field="productCategoryTypeEnumId" value="PctService"/>
+        <set field="backToBackAgreementLabelText" value="This is Back To Back Agreement, Service Category is inherited from  Agreement"/>
     </actions>
     <widgets>
-        <container-row>
-            <row-col md="6">
-                <container-dialog id="NewCategoryDialog" button-text="Add Service Category">
-                    <form-single name="NewCategoryForm" transition="createServiceCategory">
-                        <field name="agreementId"><default-field>
+<!--        <section name="backToBackAgreementLabel"  condition="'true'.equals(isBackToBackAgreement)">-->
+<!--            <widgets>-->
+<!--                <label text="This is Back To Back Agreement, Service Category is inherited from  Agreement( " type="span" style=" text-danger text-h6 "  />-->
+<!--                <link url="//${appRoot}/ServiceAgreement/EditAgreement" parameter-map="[agreementId:sourceAgreement.agreementId]" text="${sourceAgreement.agreementId} : ${sourceAgreement.description}" link-type="anchor" />-->
+<!--                <label text=" )." type="span" style="text-danger text-h6" />-->
+<!--            </widgets>-->
+<!--        </section>-->
+<!--        -->
+        <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
+
+        <section name="ServiceCategoryAction" condition="'true'.equals(isBackToBackAgreement)" >
+            <widgets>
+                <form-list name="CategoriesFormFromSourceAgreement" list="categoryList" paginate="false">
+
+                    <field name="pseudoId" >
+                        <default-field><display/></default-field>
+                    </field>
+                    <field name="categoryName" >
+                        <default-field><display/></default-field>
+                    </field>
+                    <field name="fromDate">
+                        <default-field title="From Date">
+                            <display format="yyyy.MM.dd"/>
+                        </default-field>
+                    </field>
+                    <field name="thruDate">
+                        <default-field title="Thru Date">
+                            <display format="yyyy.MM.dd"/>
+                        </default-field>
+                    </field>
+                </form-list>
+            </widgets>
+            <fail-widgets>
+                <container-row>
+                    <row-col md="6">
+                        <container-dialog id="NewCategoryDialog" button-text="Add Service Category">
+                            <form-single name="NewCategoryForm" transition="createServiceCategory">
+                                <field name="agreementId"><default-field>
+                                    <hidden/>
+                                </default-field></field>
+                                <field name="productCategoryId"><default-field title="Service Category">
+                                    <drop-down>
+                                        <entity-options key="${productCategoryId}" text="ProductCategoryNameTemplate">
+                                            <entity-find entity-name="mantle.product.category.ProductCategory">
+                                                <econdition field-name="ownerPartyId" from="agreement.organizationPartyId"/>
+                                                <econdition field-name="productCategoryTypeEnumId" />
+                                                <order-by field-name="pseudoId"/></entity-find>
+                                        </entity-options>
+                                    </drop-down>
+                                </default-field></field>
+                                <field name="fromDate">
+                                    <default-field title="From Date">
+                                        <date-time />
+                                    </default-field></field>
+                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                            </form-single>
+                        </container-dialog>
+
+                    </row-col>
+                    <row-col md="6" style="text-right">
+                        <link url="../../ServiceDemandSide/ServiceCategory" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Category"/>
+                    </row-col>
+                </container-row>
+
+                <form-list name="CategoriesForm" list="categoryList" transition="updateServiceCategory" >
+
+
+                    <field name="agreementId">
+                        <!--                <conditional-field condition="'false'.equals(isBackToBackAgreement)">-->
+                        <!--                    <hidden/>-->
+                        <!--                </conditional-field>-->
+                        <default-field>
                             <hidden/>
-                        </default-field></field>
-                        <field name="productCategoryId"><default-field title="Service Category">
-                            <drop-down>
-                                <entity-options key="${productCategoryId}" text="ProductCategoryNameTemplate">
-                                    <entity-find entity-name="mantle.product.category.ProductCategory">
-                                        <econdition field-name="ownerPartyId" from="agreement.organizationPartyId"/>
-                                        <econdition field-name="productCategoryTypeEnumId" />
-                                        <order-by field-name="pseudoId"/></entity-find>
-                                </entity-options>
-                            </drop-down>
-                        </default-field></field>
-                        <field name="fromDate">
-                            <default-field title="From Date">
-                                <date-time />
-                            </default-field></field>
-                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                    </form-single>
-                </container-dialog>
+                        </default-field>
+                    </field>
 
-            </row-col>
-            <row-col md="6" style="text-right">
-                <link url="../../ServiceDemandSide/ServiceCategory" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Category"/>
-            </row-col>
-        </container-row>
+                    <field name="pseudoId" >
+                        <header-field title="Category ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field><display/></default-field>
+                    </field>
+                    <field name="categoryName" >
+                        <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field><display/></default-field>
+                    </field>
+                    <!--            <field name="productCategoryTypeEnumId">-->
+                    <!--                <header-field title="Category Type" show-order-by="true">-->
+                    <!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+                    <!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+                    <!--                </header-field>-->
+                    <!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+                    <!--            </field>-->
+                    <!--            <field name="ownerPartyId">-->
+                    <!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+                    <!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+                    <!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+                    <!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+                    <!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+                    <!--                            <order-by field-name="organizationName"/>-->
+                    <!--                        </entity-find>-->
+                    <!--                    </entity-options>-->
+                    <!--                </drop-down></header-field>-->
+                    <!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+                    <!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+                    <!--            </field>-->
+                    <field name="fromDate">
+                        <header-field title="From Date" show-order-by="case-insensitive">
+                            <date-time type="date"/>
+                        </header-field>
+                        <default-field title="From Date">
+                            <display/>
+                        </default-field>
+                    </field>
+                    <field name="thruDate">
+                        <header-field title="Thru Date" show-order-by="case-insensitive">
+                            <date-time type="date"/>
+                        </header-field>
 
-        <form-list name="CategoriesForm" list="categoryList" transition="updateServiceCategory">
+                        <default-field title="Thru Date">
+                            <date-time type="date"/>
+                        </default-field>
+                    </field>
+                    <field name="submitButton"><header-field title="Find">
+                        <submit/>
+                    </header-field>
+                        <default-field>
+                            <submit text="Update" />
+                            <link  url="deleteServiceCategory" text="Delete" />
+                        </default-field>
+                    </field>
+                </form-list>
+            </fail-widgets>
+        </section>
 
-            <entity-find entity-name="mantle.party.agreement.AgreementServiceCategoryDetail" list="categoryList" cache="false">
-                <search-form-inputs default-order-by="sequenceNum"/>
-                <econdition field-name="agreementId"/>
-            </entity-find>
-            <field name="agreementId"><header-field><hidden/></header-field>
-                <default-field><hidden/></default-field>
-            </field>
-            <field name="pseudoId" >
-                <header-field title="Category ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="categoryName" >
-                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-<!--            <field name="productCategoryTypeEnumId">-->
-<!--                <header-field title="Category Type" show-order-by="true">-->
-<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
-<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
-<!--                </header-field>-->
-<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
-<!--            </field>-->
-<!--            <field name="ownerPartyId">-->
-<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
-<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
-<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
-<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
-<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
-<!--                            <order-by field-name="organizationName"/>-->
-<!--                        </entity-find>-->
-<!--                    </entity-options>-->
-<!--                </drop-down></header-field>-->
-<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
-<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
-<!--            </field>-->
-            <field name="fromDate">
-                <header-field title="From Date" show-order-by="case-insensitive">
-                    <date-time type="date"/>
-                </header-field>
-                <default-field title="From Date">
-                <display/>
-            </default-field></field>
-            <field name="thruDate">
-                <header-field title="Thru Date" show-order-by="case-insensitive">
-                    <date-time type="date"/>
-                </header-field>
-
-                <default-field title="Thru Date">
-                <date-time type="date"/>
-            </default-field></field>
-            <field name="submitButton"><header-field title="Find">
-                <submit/>
-            </header-field>
-                <default-field title="Actions">
-                    <submit text="Update" />
-                    <link  url="deleteServiceCategory" text="Delete" />
-
-                </default-field>
-            </field>
-        </form-list>
     </widgets>
 
 </screen>

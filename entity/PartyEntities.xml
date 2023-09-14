@@ -97,6 +97,7 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="serviceLocationPartyId" type="id" is-pk="true"/>
         <field name="fromDate" type="date-time" is-pk="true"/>
         <field name="thruDate" type="date-time"/>
+        <field name="serviceStationPartyId" type="id"/>
         <field name="sequenceNum" type="number-integer"/>
         <field name="comments" type="text-medium"/>
         <relationship type="one" related="mantle.party.agreement.Agreement"/>
@@ -106,6 +107,10 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="one" related="mantle.party.Organization">
             <key-map field-name="serviceLocationPartyId"/>
         </relationship>
+        <relationship type="one" related="mantle.party.Organization">
+            <key-map field-name="serviceStationPartyId"/>
+        </relationship>
+
     </entity>
     <extend-entity entity-name="Agreement" package="mantle.party.agreement">
         <relationship type="many" related="mantle.party.agreement.AgreementServiceLocation" short-alias="serviceLocations">
@@ -155,6 +160,44 @@ along with this software (see the LICENSE.md file). If not, see
             <exclude field="comments"/>
         </alias-all>
         <alias name="productComments" entity-alias="PD" field="comments"/>
+    </view-entity>
+
+    <entity entity-name="AgreementServiceStation" package="mantle.party.agreement">
+        <field name="agreementId" type="id" is-pk="true"/>
+        <field name="serviceStationPartyId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related="mantle.party.agreement.Agreement"/>
+        <relationship type="one" related="mantle.party.Party">
+            <key-map field-name="serviceStationPartyId"/>
+        </relationship>
+        <relationship type="one" related="mantle.party.Organization">
+            <key-map field-name="serviceStationPartyId"/>
+        </relationship>
+    </entity>
+    <extend-entity entity-name="Agreement" package="mantle.party.agreement">
+        <relationship type="many" related="mantle.party.agreement.AgreementServiceStation" short-alias="serviceStations">
+            <key-map field-name="agreementId"/></relationship>
+    </extend-entity>
+
+    <view-entity entity-name="AgreementServiceStationDetail" package="mantle.party.agreement">
+        <member-entity entity-alias="ASS" entity-name="mantle.party.agreement.AgreementServiceStation"/>
+        <member-entity entity-alias="PTY" entity-name="mantle.party.Party" join-from-alias="ASS" join-optional="true">
+            <key-map field-name="serviceStationPartyId" related="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="PER" entity-name="mantle.party.Person" join-from-alias="PTY" join-optional="true">
+            <key-map field-name="partyId"/></member-entity>
+        <member-entity entity-alias="ORG" entity-name="mantle.party.Organization" join-from-alias="PTY" join-optional="true">
+            <key-map field-name="partyId"/></member-entity>
+        <alias-all entity-alias="ASS"/>
+        <alias-all entity-alias="PTY">
+            <exclude field="comments"/>
+        </alias-all>
+        <alias-all entity-alias="PER"/>
+        <alias-all entity-alias="ORG"/>
+        <alias name="partyComments" entity-alias="PTY" field="comments"/>
     </view-entity>
 
     <entity entity-name="AgreementServiceLevel" package="mantle.party.agreement">
@@ -268,4 +311,6 @@ along with this software (see the LICENSE.md file). If not, see
         <relationship type="many" related="mantle.party.agreement.AgreementTicketType" short-alias="ticketTypes">
             <key-map field-name="agreementId"/></relationship>
     </extend-entity>
+
+
 </entities>

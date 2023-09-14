@@ -31,10 +31,37 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                           [agreementServiceTimeId:'3',serviceTimeType:'TechnicalSupport',workTime:'9:00-21:00',holiday:'N/A']-->
 <!--            ]-->
 <!--        </script>-->
+        <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
+        <if condition="'true'.equals(isBackToBackAgreement)">
+            <then>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceTime" list="serviceTimeList">
+                    <econdition field-name="agreementId" from="sourceAgreement.agreementId"/>
+                </entity-find>
+
+            </then>
+            <else>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceTime" list="serviceTimeList">
+                    <econdition field-name="agreementId"/>
+                </entity-find>
+
+            </else>
+        </if>
+
+        <set field="backToBackAgreementLabelText" value="This is Back To Back Agreement, Service Time is inherited from  Agreement"/>
     </actions>
 
     <widgets>
-        <container-dialog id="AddAgreementServiceTimeDialog" button-text="Add Service Time">
+        <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
+
+<!--        <section name="backToBackAgreementLabel"  condition="'true'.equals(isBackToBackAgreement)">-->
+<!--            <widgets>-->
+<!--                <label text="This is Back To Back Agreement, Service Time is inherited from  Agreement( " type="span" style=" text-danger text-h6 "  />-->
+<!--                <link url="//${appRoot}/ServiceAgreement/EditAgreement" parameter-map="[agreementId:sourceAgreement.agreementId]" text="${sourceAgreement.agreementId} : ${sourceAgreement.description}" link-type="anchor" />-->
+<!--                <label text=" )." type="span" style="text-danger text-h6" />-->
+<!--            </widgets>-->
+<!--        </section>-->
+
+        <container-dialog id="AddAgreementServiceTimeDialog" button-text="Add Service Time" condition="'false'.equals(isBackToBackAgreement)">
             <form-single name="AddAgreementServiceTime" transition="createServiceTime">
                 <field name="agreementId"><default-field><hidden/></default-field></field>
                 <field name="serviceTimeTypeEnumId"><default-field title="Service Time Type">
@@ -64,9 +91,7 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </container-dialog>
             <form-list name="ServiceTime" list="serviceTimeList" transition="deleteServiceTime">
-                <entity-find entity-name="mantle.party.agreement.AgreementServiceTime" list="serviceTimeList">
-                    <econdition field-name="agreementId"/>
-                </entity-find>
+
                 <field name="agreementServiceTimeId"><default-field><hidden/></default-field></field>
                 <field name="serviceTimeTypeEnumId"><default-field title="Service Time Type">
                     <display-entity entity-name="moqui.basic.Enumeration"/>
@@ -81,9 +106,9 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="holiday"><default-field title="Holiday"><display text="${holidayFrom} - ${holidayThru}"/></default-field></field>
 
                 <field name="actions">
-                    <default-field >
+                    <conditional-field condition="'false'.equals(isBackToBackAgreement)">
                         <submit text="Delete"/>
-                    </default-field>
+                    </conditional-field>
                 </field>
             </form-list>
 

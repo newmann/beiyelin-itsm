@@ -55,78 +55,161 @@ along with this software (see the LICENSE.md file). If not, see
             </row-col>
         </container-row>
 
+
+
+        <container>
+            <label text="&amp;nbsp;" encode="false"/>
+        </container>
+
+        <container-row>
+            <row-col sm="1">
+                <label text="&amp;nbsp;" encode="false"/>
+            </row-col>
+            <row-col sm="4" style="text-center">
+                <label text="Operate" type="h4"/>
+                <container>
+                    <label text="&amp;nbsp;" encode="false"/>
+                </container>
+
+                <container-row>
+                    <row-col sm="6">
+                        <container>
+                            <link url="//${appRoot}/ServiceRequest" link-type="anchor">
+                                <image url="/itsmstatic/images/Request-2.png" url-type="screen" style="invertible"
+                                       width="40"/>
+                            </link>
+                            <container>
+                                <link text="Service Request" url="//${appRoot}/ServiceRequest" link-type="anchor"/>
+                            </container>
+                        </container>
+
+                    </row-col>
+                    <row-col sm="6">
+
+                        <container>
+                            <link url="//${appRoot}/ServiceTicket" link-type="anchor">
+                                <image url="/itsmstatic/images/Ticket-3.png" url-type="screen" style="invertible"
+                                       width="40"/>
+                            </link>
+                            <container>
+                                <link text="Service Ticket" url="//${appRoot}/ServiceTicket" link-type="anchor"/>
+                            </container>
+                        </container>
+
+                    </row-col>
+                </container-row>
+
+            </row-col>
+            <row-col sm="2">
+                <label text="&amp;nbsp;" encode="false"/>
+            </row-col>
+            <row-col sm="4" style="text-center">
+                <label text="Manage" type="h4"/>
+                <container>
+                    <label text="&amp;nbsp;" encode="false"/>
+                </container>
+
+                <container-row>
+                    <row-col sm="4">
+                        <container>
+                            <link url="//${appRoot}/ServiceDemandSide" link-type="anchor">
+                                <image url="/itsmstatic/images/DemandSide-2.png" url-type="screen" style="invertible"
+                                       width="40"/>
+                            </link>
+                            <container>
+                                <link text="Service Demand Side" url="//${appRoot}/ServiceDemandSide" link-type="anchor"/>
+                            </container>
+                        </container>
+                    </row-col>
+                    <row-col sm="4">
+                        <container>
+                            <link url="//${appRoot}/ServiceProvider" link-type="anchor">
+                                <image url="/itsmstatic/images/ServiceProvider.png" url-type="screen" style="invertible"
+                                       width="40"/>
+                            </link>
+                            <container>
+                                <link text="Service Provider" url="//${appRoot}/ServiceProvider" link-type="anchor"/>
+                            </container>
+                        </container>
+                    </row-col>
+                    <row-col sm="4">
+                        <container>
+                            <link url="//${appRoot}/ServiceAgreement" link-type="anchor">
+                                <image url="/itsmstatic/images/Agreement.png" url-type="screen" style="invertible"
+                                       width="40"/>
+                            </link>
+                            <container>
+                                <link text="Service Agreement" url="//${appRoot}/ServiceAgreement" link-type="anchor"/>
+                            </container>
+                        </container>
+                    </row-col>
+                </container-row>
+                <container>
+                    <label text="&amp;nbsp;" encode="false"/>
+                </container>
+                <container-row>
+                    <row-col sm="4">
+                        <container>
+                            <link url="//${appRoot}/Catalog" link-type="anchor">
+                                <image url="/ssstatic/images/Catalog.png" url-type="screen" style="invertible" width="40"/></link>
+                            <container><link text="Catalog" url="//${appRoot}/Catalog" link-type="anchor"/></container>
+                            <container><link text="Products" url="//${appRoot}/Catalog/Product" link-type="anchor"/></container>
+                        </container>
+
+                    </row-col>
+                    <row-col sm="4">
+                        <container>
+                            <link url="//${appRoot}/QuickViewReport" link-type="anchor">
+                                <image url="/itsmstatic/images/Report-1.png" url-type="screen" style="invertible" width="40"/></link>
+                            <container><link text="Custom Reports" url="//${appRoot}/Catalog" link-type="anchor"/></container>
+                        </container>
+                    </row-col>
+                    <row-col sm="4">
+                        <container>
+                            <link url="//${appRoot}/SimpleReport" link-type="anchor">
+                                <image url="/itsmstatic/images/ReportDesigner-1.png" url-type="screen" style="invertible" width="40"/></link>
+                            <container><link text="Report Builder" url="//${appRoot}/SimpleReport" link-type="anchor"/></container>
+                        </container>
+                    </row-col>
+                </container-row>
+
+<!--                <label text="&amp;nbsp;" type="p" encode="false"/>-->
+<!--                <container style="text-center">-->
+<!--                    <link url="../QuickViewReport" text="Custom Reports" link-type="anchor"/>-->
+<!--                    <label text=" - "/>-->
+<!--                    <link url="../SimpleReport" text="Report Builder" link-type="anchor"/>-->
+<!--                </container>-->
+            </row-col>
+            <row-col sm="1">
+                <label text="&amp;nbsp;" encode="false"/>
+            </row-col>
+        </container-row>
+        <container>
+            <label text="&amp;nbsp;" encode="false"/>
+        </container>
         <section name="QuickInfoSection">
             <actions>
-                <entity-find entity-name="mantle.party.PartyRole" list="orgPartyRoles">
-                    <econdition field-name="roleTypeId" value="OrgInternal"/>
-                </entity-find>
-                <set field="orgIntPartyIds" from="orgPartyRoles*.partyId"/>
 
-                <entity-find-count entity-name="mantle.order.OrderPart" count-field="orderPlacedCount">
-                    <econdition field-name="statusId" operator="in" from="['OrderPlaced', 'OrderProcessing']"/>
-                    <econdition field-name="vendorPartyId" operator="in" from="orgIntPartyIds"/>
-                </entity-find-count>
-                <entity-find-count entity-name="mantle.order.OrderPart" count-field="orderApprovedCount">
-                    <econdition field-name="statusId" operator="in" from="['OrderApproved', 'OrderSent']"/>
-                    <econdition field-name="vendorPartyId" operator="in" from="orgIntPartyIds"/>
-                </entity-find-count>
-                <entity-find-count entity-name="mantle.order.OrderPart" count-field="orderHeldCount">
-                    <econdition field-name="statusId" value="OrderHold"/>
-                    <econdition field-name="vendorPartyId" operator="in" from="orgIntPartyIds"/>
-                </entity-find-count>
-
-                <entity-find-count entity-name="mantle.request.RequestAndParty" count-field="requestSubmittedCount">
-                    <econdition field-name="statusId" value="ReqSubmitted"/>
-                    <econdition field-name="roleTypeId" value="Customer"/>
-                </entity-find-count>
-                <entity-find-count entity-name="mantle.request.RequestAndParty" count-field="requestInProgressCount">
-                    <econdition field-name="statusId" operator="in" from="['ReqReviewed', 'ReqInProgress']"/>
-                    <econdition field-name="roleTypeId" value="Customer"/>
-                </entity-find-count>
             </actions>
             <widgets>
+
                 <container-row>
                     <row-col sm="0" md="1">
                         <label text="&amp;nbsp;" encode="false"/>
                     </row-col>
-                    <row-col sm="5" md="4" style="text-center">
-                        <container style="row">
-                            <container style="col">
-                                <label text="Sales Orders" type="h4"/>
+                    <row-col sm="6" md="5" style="text-center">
+                        <container style="">
+                            <label text="Request not processed" type="h5"/>
+                            <container style="row">
+
                             </container>
-                            <container style="col q-my-auto">
-                                <link url="../Order"
-                                      parameter-map="[orderType:'Sales', statusId:'OrderPlaced,OrderProcessing', statusId_op:'in']"
-                                      text="Placed" badge="${orderPlacedCount}" btn-type="default"/>
-                            </container>
-                            <container style="col q-my-auto">
-                                <link url="../Order"
-                                      parameter-map="[orderType:'Sales', statusId:'OrderApproved,OrderSent', statusId_op:'in']"
-                                      text="Approved" badge="${orderApprovedCount}" btn-type="default"/>
-                            </container>
-                            <container style="col q-my-auto">
-                                <link url="../Order" parameter-map="[orderType:'Sales', statusId:'OrderHold']"
-                                      text="Held" badge="${orderHeldCount}" btn-type="default"/>
-                            </container>
+
                         </container>
                     </row-col>
-                    <row-col sm="2">
-                        <label text="&amp;nbsp;" encode="false"/>
-                    </row-col>
-                    <row-col sm="5" md="4" style="text-center">
+
+                    <row-col sm="6" md="5" style="text-center">
+                        <label text="Over SLA Ticket" type="h5"/>
                         <container style="row">
-                            <container style="col">
-                                <label text="Requests" type="h4"/>
-                            </container>
-                            <container style="col q-my-auto">
-                                <link url="../Request" parameter-map="[statusId:'ReqSubmitted', roleTypeId:'Customer']"
-                                      text="Submitted" badge="${requestSubmittedCount}" btn-type="default"/>
-                            </container>
-                            <container style="col q-my-auto">
-                                <link url="../Request"
-                                      parameter-map="[statusId:'ReqReviewed,ReqInProgress', statusId_op:'in', roleTypeId:'Customer']"
-                                      text="In Progress" badge="${requestInProgressCount}" btn-type="default"/>
-                            </container>
                         </container>
                     </row-col>
                     <row-col sm="0" md="1">
@@ -135,165 +218,5 @@ along with this software (see the LICENSE.md file). If not, see
                 </container-row>
             </widgets>
         </section>
-
-        <container-row>
-            <row-col sm="1">
-                <label text="&amp;nbsp;" encode="false"/>
-            </row-col>
-            <row-col sm="4" style="text-center">
-                <label text="Operate" type="h4"/>
-                <container-row>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../ServiceDemandSide" link-type="anchor">
-                                <image url="/ssstatic/images/Supplier.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="ServiceDemandSides" url="../ServiceDemandSide" link-type="anchor"/>
-                            </container>
-                        </container>
-
-                    </row-col>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../ServiceProvidor" link-type="anchor">
-                                <image url="/ssstatic/images/Customer.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="ServiceProvidors" url="../ServiceProvidor" link-type="anchor"/>
-                            </container>
-                        </container>
-
-
-                    </row-col>
-                </container-row>
-                <label text="&amp;nbsp;" type="p" encode="false"/>
-                <container-row>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../Asset/Asset/FindSummary" link-type="anchor"
-                                  parameter-map="[assetTypeEnumId:'AstTpInventory']">
-                                <image url="/ssstatic/images/Inventory.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="Inventory Assets" url="../Asset/Asset/FindSummary" link-type="anchor"
-                                      parameter-map="[assetTypeEnumId:'AstTpInventory']"/>
-                            </container>
-                        </container>
-
-                    </row-col>
-
-                </container-row>
-            </row-col>
-            <row-col sm="2">
-                <label text="&amp;nbsp;" encode="false"/>
-            </row-col>
-            <row-col sm="4" style="text-center">
-                <label text="Manage" type="h4"/>
-                <container-row>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../Catalog" link-type="anchor">
-                                <image url="/ssstatic/images/Catalog.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="Catalog" url="../Catalog" link-type="anchor"/>
-                            </container>
-                            <container>
-                                <link text="Products" url="../Catalog/Product" link-type="anchor"/>
-                            </container>
-                            <container>
-                                <link text="Stores" url="../ProductStore" link-type="anchor"/>
-                            </container>
-                        </container>
-                    </row-col>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../Wiki" link-type="anchor">
-                                <image url="/ssstatic/images/Wiki.png" url-type="screen" style="invertible" width="40"/>
-                            </link>
-                            <container>
-                                <link text="Wiki/Content" url="../Wiki/WikiSpaces" link-type="anchor"/>
-                            </container>
-                            <container>
-                                <link text="Wiki Blogs" url="../Wiki/WikiBlogs" link-type="anchor"/>
-                            </container>
-                            <container>
-                                <link text="Survey" url="../Survey" link-type="anchor"/>
-                            </container>
-                        </container>
-                    </row-col>
-                </container-row>
-                <label text="&amp;nbsp;" type="p" encode="false"/>
-                <container-row>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../Manufacturing" link-type="anchor">
-                                <image url="/ssstatic/images/Asset.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="Manufacturing" url="../Manufacturing" link-type="anchor"/>
-                            </container>
-                            <container>
-                                <link text="Assets" url="../Asset" link-type="anchor"/>
-                            </container>
-                        </container>
-                    </row-col>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../Party" link-type="anchor">
-                                <image url="/ssstatic/images/Parties.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="Parties" url="../Party" link-type="anchor"/>
-                            </container>
-                        </container>
-                    </row-col>
-                </container-row>
-                <container-row>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../Facility" link-type="anchor">
-                                <image url="/ssstatic/images/Facility.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="Facilities" url="../Facility" link-type="anchor"/>
-                            </container>
-                        </container>
-                    </row-col>
-                    <row-col sm="6">
-                        <container>
-                            <link url="../Accounting" link-type="anchor">
-                                <image url="/ssstatic/images/Accounting.png" url-type="screen" style="invertible"
-                                       width="40"/>
-                            </link>
-                            <container>
-                                <link text="Accounting" url="../Accounting" link-type="anchor"/>
-                            </container>
-                            <container>
-                                <link text="Reports" url="../Accounting/Reports" link-type="anchor"/>
-                            </container>
-                        </container>
-                    </row-col>
-                </container-row>
-
-                <label text="&amp;nbsp;" type="p" encode="false"/>
-                <container style="text-center">
-                    <link url="../QuickViewReport" text="Custom Reports" link-type="anchor"/>
-                    <label text=" - "/>
-                    <link url="../SimpleReport" text="Report Builder" link-type="anchor"/>
-                </container>
-            </row-col>
-            <row-col sm="1">
-                <label text="&amp;nbsp;" encode="false"/>
-            </row-col>
-        </container-row>
     </widgets>
 </screen>

@@ -16,13 +16,14 @@ along with this software (see the LICENSE.md file). If not, see
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
 
 
-<!--    <view-entity entity-name="ServiceAgreementAndLocation" package="mantle.party.agreement">-->
-<!--        <member-entity entity-alias="AGMT" entity-name="mantle.party.agreement.Agreement"/>-->
-<!--        <member-entity entity-alias="ServiceLocation" entity-name="mantle.party.agreement.AgreementServiceLocation" join-from-alias="AGMT">-->
-<!--            <key-map field-name="agreementId"/></member-entity>-->
-<!--        <alias-all entity-alias="AGMT"/>-->
-<!--        <alias-all entity-alias="ServiceLocation"/>-->
-<!--    </view-entity>-->
+    <view-entity entity-name="BackToBackAgreementDetail" package="mantle.party.agreement">
+        <member-entity entity-alias="ASSOC" entity-name="mantle.party.agreement.AgreementAssoc"/>
+        <member-entity entity-alias="AGMT" entity-name="mantle.party.agreement.Agreement" join-from-alias="ASSOC">
+            <key-map field-name="agreementId"/>
+        </member-entity>
+        <alias-all entity-alias="ASSOC"/>
+        <alias-all entity-alias="AGMT"/>
+    </view-entity>
 
 
 </entities>

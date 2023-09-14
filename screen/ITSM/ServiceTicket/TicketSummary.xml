@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="milestoneSummary"><default-response url="../../Project/MilestoneSummary"/></transition>
 
     <transition name="editParty"><default-response url="../../Party/EditParty"/></transition>
-    <transition name="editRequest"><default-response url="../../Request/EditRequest"/></transition>
+    <transition name="editRequest"><default-response url="//${appRoot}/ServiceRequest/EditRequest"/></transition>
 
     <transition name="updateTaskField">
         <actions>
@@ -133,16 +133,16 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="task"/>
-        <entity-find-related-one value-field="task" relationship-name="Root#mantle.work.effort.WorkEffort" to-value-field="project"/>
-        <entity-find-related-one value-field="task" relationship-name="Parent#mantle.work.effort.WorkEffort" to-value-field="parentTask"/>
-        <entity-find-related-one value-field="task" relationship-name="WorkEffortPurpose#moqui.basic.Enumeration" to-value-field="purposeEnum" cache="true"/>
-        <entity-find-related-one value-field="task" relationship-name="WorkEffortResolution#moqui.basic.Enumeration" to-value-field="resolutionEnum" cache="true"/>
-        <entity-find-related-one value-field="task" relationship-name="WorkEffort#moqui.basic.StatusItem" to-value-field="currentStatus" cache="true"/>
+        <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="ticket"/>
+        <entity-find-related-one value-field="ticket" relationship-name="Root#mantle.work.effort.WorkEffort" to-value-field="project"/>
+        <entity-find-related-one value-field="ticket" relationship-name="Parent#mantle.work.effort.WorkEffort" to-value-field="parentTask"/>
+        <entity-find-related-one value-field="ticket" relationship-name="WorkEffortPurpose#moqui.basic.Enumeration" to-value-field="purposeEnum" cache="true"/>
+        <entity-find-related-one value-field="ticket" relationship-name="WorkEffortResolution#moqui.basic.Enumeration" to-value-field="resolutionEnum" cache="true"/>
+        <entity-find-related-one value-field="ticket" relationship-name="WorkEffort#moqui.basic.StatusItem" to-value-field="currentStatus" cache="true"/>
 
         <entity-find entity-name="mantle.work.effort.WorkEffortAssoc" list="milestoneAssocList">
             <date-filter/>
-            <econdition field-name="toWorkEffortId" from="task?.workEffortId"/>
+            <econdition field-name="toWorkEffortId" from="ticket?.workEffortId"/>
             <econdition field-name="workEffortAssocTypeEnumId" value="WeatMilestone"/>
         </entity-find>
         <set field="milestoneAssoc" from="milestoneAssocList?.getAt(0)"/>
@@ -203,21 +203,21 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <container-row><row-col md="3">
-            <container-box><box-header title="Task ${workEffortId}"/><box-toolbar>
-                <section name="ClockInSection" condition="openTimeEntry == null"><widgets>
-                    <container-dialog id="ClockInDialog" button-text="Clock In" type="success" condition="openTimeEntry == null">
-                        <form-single name="ClockInForm" transition="clockInTimeEntry">
-                            <field name="workEffortId"><default-field><hidden/></default-field></field>
-                            <field name="partyId" from="ec.user.userAccount.partyId"><default-field><hidden/></default-field></field>
-                            <field name="comments"><default-field><text-area cols="100" rows="3"/></default-field></field>
-                            <!-- NOTE: no fromDate default on server side so if left blank is more accurate time of form submit (was: from="ec.user.nowTimestamp") -->
-                            <field name="fromDate"><default-field title="From" tooltip="Optional, defaults to now"><date-time minute-stepping="1"/></default-field></field>
-                            <field name="submitButton"><default-field title="Clock In"><submit/></default-field></field>
-                        </form-single>
-                    </container-dialog>
-                </widgets><fail-widgets>
-                    <link url="../EditTimeEntries" text="Clock Out" btn-type="success"/>
-                </fail-widgets></section>
+            <container-box><box-header title="Ticket ${workEffortId}"/><box-toolbar>
+<!--                <section name="ClockInSection" condition="openTimeEntry == null"><widgets>-->
+<!--                    <container-dialog id="ClockInDialog" button-text="Clock In" type="success" condition="openTimeEntry == null">-->
+<!--                        <form-single name="ClockInForm" transition="clockInTimeEntry">-->
+<!--                            <field name="workEffortId"><default-field><hidden/></default-field></field>-->
+<!--                            <field name="partyId" from="ec.user.userAccount.partyId"><default-field><hidden/></default-field></field>-->
+<!--                            <field name="comments"><default-field><text-area cols="100" rows="3"/></default-field></field>-->
+<!--                            &lt;!&ndash; NOTE: no fromDate default on server side so if left blank is more accurate time of form submit (was: from="ec.user.nowTimestamp") &ndash;&gt;-->
+<!--                            <field name="fromDate"><default-field title="From" tooltip="Optional, defaults to now"><date-time minute-stepping="1"/></default-field></field>-->
+<!--                            <field name="submitButton"><default-field title="Clock In"><submit/></default-field></field>-->
+<!--                        </form-single>-->
+<!--                    </container-dialog>-->
+<!--                </widgets><fail-widgets>-->
+<!--                    <link url="../EditTimeEntries" text="Clock Out" btn-type="success"/>-->
+<!--                </fail-widgets></section>-->
             </box-toolbar><box-body>
                 <container><label text="Project: " type="strong"/></container>
                 <link text="${project.workEffortId} - ${project.workEffortName}" url="projectSummary" link-type="anchor" condition="project != null">
@@ -234,31 +234,30 @@ along with this software (see the LICENSE.md file). If not, see
                         <parameter name="workEffortId" from="parentTask.workEffortId"/></link>
                 </widgets></section>
 
-                <container><label text="Priority: " type="strong"/><label text="${task.priority ?: ''}"/></container>
-                <container><label text="Purpose: " type="strong"/><label text="${purposeEnum.description}"/></container>
+                <container><label text="Priority: " type="strong"/><label text="${ticket.priority ?: ''}"/></container>
                 <container><label text="Status: " type="strong"/>
                     <editable id="TaskStatus" text="${currentStatus.description}" transition="updateTaskStatus"
                             parameter-name="statusId" widget-type="select">
-                        <parameter name="workEffortId" from="task.workEffortId"/>
+                        <parameter name="workEffortId" from="ticket.workEffortId"/>
                         <editable-load transition="getTaskStatuses"/>
                     </editable>
                 </container>
                 <container><label text="Resolution: " type="strong"/>
                     <editable id="TaskResolution" text="${resolutionEnum?.description?:''}" transition="updateTaskResolution"
                             parameter-name="resolutionEnumId" widget-type="select">
-                        <parameter name="workEffortId" from="task.workEffortId"/>
+                        <parameter name="workEffortId" from="ticket.workEffortId"/>
                         <editable-load transition="getTaskResolutions"/>
                     </editable>
                 </container>
-                <container><label text="Due Date: " type="strong"/><label text="${ec.l10n.format(task.estimatedCompletionDate, 'yyyy-MM-dd')}"/></container>
-                <container><label text="Estimated Hours: " type="strong"/><label text="${ec.l10n.format(task.estimatedWorkTime, '0.00')}"/></container>
-                <container><label text="Actual Hours: " type="strong"/><label text="${ec.l10n.format(task.actualWorkTime, '0.00')}"/></container>
-                <container><label text="Remaining Hours: " type="strong"/><label text="${ec.l10n.format(task.remainingWorkTime, '0.00')}"/></container>
+                <container><label text="Due Date: " type="strong"/><label text="${ec.l10n.format(ticket.estimatedCompletionDate, 'yyyy-MM-dd')}"/></container>
+                <container><label text="Estimated Hours: " type="strong"/><label text="${ec.l10n.format(ticket.estimatedWorkTime, '0.00')}"/></container>
+                <container><label text="Actual Hours: " type="strong"/><label text="${ec.l10n.format(ticket.actualWorkTime, '0.00')}"/></container>
+                <container><label text="Remaining Hours: " type="strong"/><label text="${ec.l10n.format(ticket.remainingWorkTime, '0.00')}"/></container>
                 <container><label text="Act/Est: " type="strong"/>
-                    <label text="${ec.l10n.format((task.actualWorkTime / task.estimatedWorkTime) * 100, '0.00')}%" condition="task.estimatedWorkTime"/></container>
+                    <label text="${ec.l10n.format((ticket.actualWorkTime / ticket.estimatedWorkTime) * 100, '0.00')}%" condition="ticket.estimatedWorkTime"/></container>
                 <container><label text="Act+Rem/Est: " type="strong"/>
-                    <label text="${ec.l10n.format(((task.actualWorkTime + task.remainingWorkTime) / task.estimatedWorkTime) * 100, '0.00')}%" condition="task.estimatedWorkTime"/></container>
-                <container><label text="Last Updated: " type="strong"/><label text="${ec.l10n.format(task.lastUpdatedStamp, null)}"/></container>
+                    <label text="${ec.l10n.format(((ticket.actualWorkTime + ticket.remainingWorkTime) / ticket.estimatedWorkTime) * 100, '0.00')}%" condition="ticket.estimatedWorkTime"/></container>
+                <container><label text="Last Updated: " type="strong"/><label text="${ec.l10n.format(ticket.lastUpdatedStamp, null)}"/></container>
             </box-body></container-box>
 
             <container-box><box-header title="Assignments"/><box-body>
@@ -300,10 +299,10 @@ along with this software (see the LICENSE.md file). If not, see
         </row-col><row-col md="6">
 
             <container>
-                <editable id="TaskName" text="${task.workEffortName?:''}" transition="updateTaskField"
+                <editable id="TaskName" text="${ticket.workEffortName?:''}" transition="updateTaskField"
                         parameter-name="workEffortName" type="h4"/>
             </container>
-            <editable id="TaskDescription" text="${task.description?:''}" transition="updateTaskField" type="pre"
+            <editable id="TaskDescription" text="${ticket.description?:''}" transition="updateTaskField" type="pre"
                     parameter-name="description"/>
 
             <container-box><box-header title="Comments"/><box-toolbar>
@@ -326,7 +325,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <order-by field-name="entryDate"/>
                     </entity-find>
                 </actions><widgets>
-                    <container style="task-comment">
+                    <container style="ticket-comment">
                         <label text="${commEventDetail.subject}" type="strong"/>
                         <label text="from ${fromPerson ? fromPerson.firstName + ' ' + fromPerson?.lastName : 'Unknown'}" type="span"/>
                         <label text="at ${ec.l10n.format(commEventDetail.entryDate, 'yyyy-MM-dd HH:mm')}" type="span"/>
@@ -352,7 +351,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container-box><box-header title="Child Tickets"/><box-toolbar>
                 <section name="NewChildTaskSection">
                     <actions>
-                        <set field="rootWorkEffortId" from="task.rootWorkEffortId"/>
+                        <set field="rootWorkEffortId" from="ticket.rootWorkEffortId"/>
                         <set field="milestoneWorkEffortId" from="milestone?.workEffortId"/>
                         <set field="parentWorkEffortId" from="workEffortId"/>
                         <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="myProjectList">

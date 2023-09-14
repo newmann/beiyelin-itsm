@@ -30,6 +30,9 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="agreementTicketTypeId" type="id"><description>related to AgreementServiceCategory's productCategoryId</description></field>
         <field name="serviceCategoryId" type="id"><description>related to AgreementServiceCategory's productCategoryId</description></field>
         <field name="dispatchDate" type="date-time"/>
+        <field name="closeDate" type="date-time"/>
+        <field name="acceptDate" type="date-time"/>
+        <field name="requestDate" type="date-time"/>
         <field name="agreementServiceLevelId" type="id"/>
 
         <relationship type="one" title="ServiceLocation" related="mantle.party.Party" short-alias="serviceLocation">

@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        default-menu-title="Service Level" default-menu-index="6">
+        default-menu-title="Service Level" default-menu-index="7">
     <!--
         1、定义服务等级
         2、每个协议定义自己的服务等级
@@ -23,9 +23,9 @@ along with this software (see the LICENSE.md file). If not, see
 
 
 
-    <transition name="addServiceLevel"><service-call name="create#mantle.party.agreement.AgreementServiceLevel"/>
+    <transition name="addServiceLevel"><service-call name="beiyelin.party.AgreementServices.create#AgreementServiceLevel"/>
         <default-response url="."/></transition>
-    <transition name="updateServiceLevel"><service-call name="update#mantle.party.agreement.AgreementServiceLevel"/>
+    <transition name="updateServiceLevel"><service-call name="beiyelin.party.AgreementServices.update#AgreementServiceLevel"/>
         <default-response url="."/></transition>
     <transition name="deleteServiceLevel"><service-call name="delete#mantle.party.agreement.AgreementServiceLevel"/>
         <default-response url="."/></transition>
@@ -37,98 +37,156 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                           [agreementServiceLevelId:'3',serviceLevel:'P1',description:'1、非节假日里所有影响收银、运营管理等的报修。2、线路故障，但有备份线路可用',example:'1、非节假日对收银有影响的故障。2、运营管理系统不能使用',enabled:'Y'],-->
 <!--            ]-->
 <!--        </script>-->
+        <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
+        <if condition="'true'.equals(isBackToBackAgreement)">
+            <then>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceLevel" list="serviceLevelList">
+                    <econdition field-name="agreementId" from="sourceAgreement.agreementId"/>
+                    <order-by field-name="-pseudoId"/>
+                </entity-find>
+            </then>
+            <else>
+                <entity-find entity-name="mantle.party.agreement.AgreementServiceLevel" list="serviceLevelList" >
+                    <search-form-inputs default-order-by="-pseudoId"/>
+                    <econdition field-name="agreementId"/>
+                </entity-find>
+            </else>
+        </if>
+
+        <set field="backToBackAgreementLabelText" value="This is Back To Back Agreement, Service Level is inherited from  Agreement"/>
 
     </actions>
     <widgets>
-        <container-dialog id="AddServiceLevel" button-text="Add Service Level">
-            <form-single name="AddServiceLevelForm" transition="addServiceLevel">
-                <field name="agreementId"><default-field>
-                    <hidden/>
-                </default-field></field>
-                <field name="pseudoId"><default-field title="ID"><text-line/></default-field></field>
-                <field name="serviceLevelName"><default-field title="Name"><text-line/></default-field></field>
-                <field name="description"><default-field><text-area rows="2" cols="60"/></default-field></field>
-                <field name="example"><default-field><text-area rows="5" cols="60"/></default-field></field>
-                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
-            </form-single>
-        </container-dialog>
+<!--        <label text="This is Back To Back Agreement, Service Level is inherited from  Agreement(${sourceAgreement.agreementId} : ${sourceAgreement.description})." type="h6" style="text-danger" condition="isBackToBackAgreement == 'true'"/>-->
+        <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
 
-        <form-list name="ServiceLevelForm" list="serviceLevelList" transition="updateServiceLevel">
-            <entity-find entity-name="mantle.party.agreement.AgreementServiceLevel" list="serviceLevelList" >
-                <search-form-inputs default-order-by="-pseudoId"/>
-                <econdition field-name="agreementId"/>
-            </entity-find>
-            <field name="agreementServiceLevelId"><header-field><hidden/></header-field>
-                <default-field><hidden/></default-field></field>
+        <section name="ServiceLevel" condition="'true'.equals(isBackToBackAgreement)" >
+            <widgets>
+                <form-list name="ServiceLevelFromSourceAgreementForm" list="serviceLevelList" skip-form="true" paginate="false" >
 
-            <field name="agreementId"><header-field><hidden/></header-field>
-                <default-field><hidden/></default-field>
-            </field>
+                    <field name="agreementServiceLevelId">
+                        <default-field><hidden/></default-field></field>
 
-            <field name="pseudoId">
-                <header-field title="ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field><text-line/></default-field>
-            </field>
-            <field name="serviceLevelName">
-                <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field><text-line/></default-field>
-            </field>
+                    <field name="agreementId">
+                        <default-field><hidden/></default-field>
+                    </field>
 
-            <field name="description">
-                <header-field title="Description" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field>
-                      <text-area/>
-                    </default-field>
-            </field>
-            <field name="example">
-                <header-field title="Example" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
-                <default-field>
-                    <text-area/>
-                    </default-field>
-            </field>
-<!--            <field name="productCategoryTypeEnumId">-->
-<!--                <header-field title="Category Type" show-order-by="true">-->
-<!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
-<!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
-<!--                </header-field>-->
-<!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
-<!--            </field>-->
-<!--            <field name="ownerPartyId">-->
-<!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
-<!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
-<!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
-<!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
-<!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
-<!--                            <order-by field-name="organizationName"/>-->
-<!--                        </entity-find>-->
-<!--                    </entity-options>-->
-<!--                </drop-down></header-field>-->
-<!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
-<!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
-<!--            </field>-->
-            <field name="enabled">
-                <header-field title="Enabled">
-                    <radio no-current-selected-key="Y">
-                        <option key="Y" />
-                        <option key="N" />
-                    </radio>
-                </header-field>
-                <default-field title="Enabled">
-                    <radio >
-                        <option key="Y" />
-                        <option key="N" />
-                    </radio>
-                </default-field>
-            </field>
-            <field name="submitButton"><header-field title="Find">
-                <submit/>
-            </header-field>
-                <default-field title="Actions">
-                    <submit text="Update" />
-                    <link url="deleteServiceLevel" text="Delete"/>
-                </default-field>
-            </field>
-        </form-list>
+                    <field name="pseudoId">
+                        <default-field><display/></default-field>
+                    </field>
+                    <field name="serviceLevelName">
+                        <default-field><display/></default-field>
+                    </field>
+
+                    <field name="description">
+                        <default-field>
+                            <display/>
+                        </default-field>
+                    </field>
+                    <field name="example">
+                        <default-field>
+                            <display/>
+                        </default-field>
+                    </field>
+                    <field name="enabled">
+
+                        <default-field title="Enabled">
+                            <display/>
+                        </default-field>
+                    </field>
+                </form-list>
+            </widgets>
+            <fail-widgets>
+
+                <container-dialog id="AddServiceLevel" button-text="Add Service Level">
+                    <form-single name="AddServiceLevelForm" transition="addServiceLevel">
+                        <field name="agreementId"><default-field>
+                            <hidden/>
+                        </default-field></field>
+                        <field name="pseudoId"><default-field title="ID"><text-line/></default-field></field>
+                        <field name="serviceLevelName"><default-field title="Name"><text-line/></default-field></field>
+                        <field name="description"><default-field><text-area rows="4" /></default-field></field>
+                        <field name="example"><default-field><text-area rows="8"/></default-field></field>
+                        <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+
+                <form-list name="ServiceLevelForm" list="serviceLevelList" transition="updateServiceLevel">
+
+                    <field name="agreementServiceLevelId"><header-field><hidden/></header-field>
+                        <default-field><hidden/></default-field></field>
+
+                    <field name="agreementId"><header-field><hidden/></header-field>
+                        <default-field><hidden/></default-field>
+                    </field>
+
+                    <field name="pseudoId">
+                        <header-field title="ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field><text-line/></default-field>
+                    </field>
+                    <field name="serviceLevelName">
+                        <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
+                        <default-field><text-line/></default-field>
+                    </field>
+
+                    <field name="description">
+                        <header-field title="Description" show-order-by="case-insensitive"><text-find size="30" hide-options="true"/></header-field>
+                        <default-field>
+                            <text-area/>
+                        </default-field>
+                    </field>
+                    <field name="example">
+                        <header-field title="Example" show-order-by="case-insensitive"><text-find size="40" hide-options="true"/></header-field>
+                        <default-field>
+                            <text-area/>
+                        </default-field>
+                    </field>
+                    <!--            <field name="productCategoryTypeEnumId">-->
+                    <!--                <header-field title="Category Type" show-order-by="true">-->
+                    <!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
+                    <!--                        <set field="enumTypeId" value="ProductCategoryType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
+                    <!--                </header-field>-->
+                    <!--                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>-->
+                    <!--            </field>-->
+                    <!--            <field name="ownerPartyId">-->
+                    <!--                <header-field title="Owner Party"><drop-down allow-empty="true">-->
+                    <!--                    <entity-options key="${partyId}" text="PartyNameTemplate">-->
+                    <!--                        <entity-find entity-name="mantle.party.PartyDetailAndRole">-->
+                    <!--                            <econdition field-name="roleTypeId" value="OrgInternal"/>-->
+                    <!--                            <econdition field-name="disabled" value="N" or-null="true"/>-->
+                    <!--                            <order-by field-name="organizationName"/>-->
+                    <!--                        </entity-find>-->
+                    <!--                    </entity-options>-->
+                    <!--                </drop-down></header-field>-->
+                    <!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
+                    <!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
+                    <!--            </field>-->
+                    <field name="enabled">
+                        <header-field title="Enabled">
+                            <radio no-current-selected-key="Y">
+                                <option key="Y" />
+                                <option key="N" />
+                            </radio>
+                        </header-field>
+                        <default-field title="Enabled">
+                            <radio >
+                                <option key="Y" />
+                                <option key="N" />
+                            </radio>
+                        </default-field>
+                    </field>
+                    <field name="submitButton"><header-field title="Find">
+                        <submit/>
+                    </header-field>
+                        <default-field title="Actions">
+                            <submit text="Update" />
+                            <link url="deleteServiceLevel" text="Delete"/>
+                        </default-field>
+                    </field>
+                </form-list>
+            </fail-widgets>
+        </section>
+
     </widgets>
 
 </screen>

@@ -49,8 +49,9 @@ along with this software (see the LICENSE.md file). If not, see
         </entity-find>
     </actions>
     <widgets>
-        <container>
-            <container-dialog id="AddRelatedToDialog" button-text="Add Related To">
+        <container style="float-plain condensed" type="ul">
+            <container type="li">
+                <container-dialog id="AddRelatedToDialog" button-text="Add Related To">
                 <form-single name="AddRelatedToForm" transition="addRelated">
                     <field name="workEffortId"><default-field><hidden/></default-field></field>
                     <field name="fromWorkEffortId" from="workEffortId"><default-field><hidden/></default-field></field>
@@ -88,7 +89,9 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="submitButton"><default-field title="Add Related"><submit/></default-field></field>
                 </form-single>
             </container-dialog>
-            <container-dialog id="AddRelatedFromDialog" button-text="Add Related From">
+            </container>
+            <container type="li">
+                <container-dialog id="AddRelatedFromDialog" button-text="Add Related From">
                 <form-single name="AddRelatedFromForm" transition="addRelated">
                     <field name="workEffortId"><default-field><hidden/></default-field></field>
                     <field name="toWorkEffortId" from="workEffortId"><default-field><hidden/></default-field></field>
@@ -126,40 +129,44 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="submitButton"><default-field title="Add Related"><submit/></default-field></field>
                 </form-single>
             </container-dialog>
+            </container>
         </container>
 
-        <label text="Related From ${workEffortId} - ${task.workEffortName}" type="h2"/>
-        <form-list name="DeleteRelatedToForm" list="relatedToList" transition="deleteRelated">
-            <field name="workEffortId" from="mainWorkEffortId"><default-field><hidden/></default-field></field>
-            <field name="fromWorkEffortId"><default-field><hidden/></default-field></field>
+                <label text="Related From ${workEffortId} - ${task.workEffortName}" type="h2"/>
+                <form-list name="DeleteRelatedToForm" list="relatedToList" transition="deleteRelated">
+                    <field name="workEffortId" from="mainWorkEffortId"><default-field><hidden/></default-field></field>
+                    <field name="fromWorkEffortId"><default-field><hidden/></default-field></field>
 
-            <field name="workEffortAssocTypeEnumId">
-                <default-field title="Type"><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
-            </field>
-            <field name="toWorkEffortId"><default-field title="To ID"><display text=""/>
-                <link text="${toWorkEffortId}" url="taskSummary" link-type="anchor"><parameter name="workEffortId" from="toWorkEffortId"/></link>
-            </default-field></field>
-            <field name="workEffortName"><default-field title="To Name"><display/></default-field></field>
-            <field name="fromDate"><default-field title="At"><display/></default-field></field>
+                    <field name="workEffortAssocTypeEnumId">
+                        <default-field title="Type"><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
+                    </field>
+                    <field name="toWorkEffortId"><default-field title="To ID"><display text=""/>
+                        <link text="${toWorkEffortId}" url="taskSummary" link-type="anchor"><parameter name="workEffortId" from="toWorkEffortId"/></link>
+                    </default-field></field>
+                    <field name="workEffortName"><default-field title="To Name"><display/></default-field></field>
+                    <field name="fromDate"><default-field title="At"><display/></default-field></field>
 
-            <field name="submitButton"><default-field title="Delete"><submit/></default-field></field>
-        </form-list>
+                    <field name="submitButton"><default-field title="Delete"><submit/></default-field></field>
+                </form-list>
 
-        <label text="Related To ${workEffortId} - ${task.workEffortName}" type="h2"/>
-        <form-list name="DeleteRelatedFromForm" list="relatedFromList" transition="deleteRelated">
-            <field name="workEffortId" from="mainWorkEffortId"><default-field><hidden/></default-field></field>
-            <field name="toWorkEffortId"><default-field><hidden/></default-field></field>
+                <label text="Related To ${workEffortId} - ${task.workEffortName}" type="h2"/>
+                <form-list name="DeleteRelatedFromForm" list="relatedFromList" transition="deleteRelated">
+                    <field name="workEffortId" from="mainWorkEffortId"><default-field><hidden/></default-field></field>
+                    <field name="toWorkEffortId"><default-field><hidden/></default-field></field>
 
-            <field name="fromWorkEffortId"><default-field title="From ID"><display text=""/>
-                <link text="${fromWorkEffortId}" url="taskSummary" link-type="anchor"><parameter name="workEffortId" from="fromWorkEffortId"/></link>
-            </default-field></field>
-            <field name="workEffortName"><default-field title="From Name"><display/></default-field></field>
-            <field name="workEffortAssocTypeEnumId">
-                <default-field title="Type"><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
-            </field>
-            <field name="fromDate"><default-field title="At"><display/></default-field></field>
+                    <field name="fromWorkEffortId"><default-field title="From ID"><display text=""/>
+                        <link text="${fromWorkEffortId}" url="taskSummary" link-type="anchor"><parameter name="workEffortId" from="fromWorkEffortId"/></link>
+                    </default-field></field>
+                    <field name="workEffortName"><default-field title="From Name"><display/></default-field></field>
+                    <field name="workEffortAssocTypeEnumId">
+                        <default-field title="Type"><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
+                    </field>
+                    <field name="fromDate"><default-field title="At"><display/></default-field></field>
 
-            <field name="submitButton"><default-field title="Delete"><submit/></default-field></field>
-        </form-list>
+                    <field name="submitButton"><default-field title="Delete"><submit/></default-field></field>
+                </form-list>
+
+
+
     </widgets>
 </screen>

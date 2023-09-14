@@ -18,6 +18,7 @@ along with this software (see the LICENSE.md file). If not, see
     1、通过Party来管理服务网点
     2、每个协议只能添加服务需求方（OrganizationPartyId）下面的Party，，也可以通过PartyRelationship来获取
     3、可以调整服务网点的有效时间，但必须在协议的有效时间之内
+    4、背靠背协议只能添加原合同说包含的服务网点，且有效时间不能超过元合同约定的时间
 -->
     <parameter name="agreementId" required="true"/>
 
@@ -29,42 +30,46 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="deleteServiceLocation"><service-call name="delete#mantle.party.agreement.AgreementServiceLocation"/>
         <default-response url="."/></transition>
     <actions>
-<!--        <script>-->
-<!--            locationList = [[agreementServiceLocationId:'1',serviceLocationPartyId:'100103-001',pseudoId:'HaagenDazs-001',organizationName:'哈根达斯(上海松江万达店）',description:'', fromDate:'2023-08-01',thruDate:''],-->
-<!--                            [agreementServiceLocationId:'2',serviceLocationPartyId:'100103-003',pseudoId:'HaagenDazs-003',organizationName:'哈根达斯(上海莘庄店）',description:'', fromDate:'2023-08-01',thruDate:''],-->
-<!--            ]-->
-<!--        </script>-->
-        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>
-        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
-        
+<!--        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>-->
+<!--        <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>-->
+        <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
+
         <set field="ServiceDemandSideRoleType" value="OrgServiceDemandSide"/>
         <set field="ServiceLocationRoleType" value="OrgServiceLocation"/>
         <set field="relationshipTypeEnumId" value="PrtOrgRollup"/>
-        
 
+
+        <set field="backToBackAgreementLabelText" value="This is Back To Back Agreement, Service Location is limited to  Agreement"/>
+
+        <entity-find entity-name="mantle.party.agreement.BackToBackAgreementDetail" list="backToBackAgreementList">
+            <econdition field-name="toAgreementId" from="agreementId"/>
+            <econdition field-name="agreementAssocTypeEnumId" value="AatBackToBack"/>
+        </entity-find>
 
     </actions>
     <widgets>
-        <container-row>
-            <row-col md="6">
-                <container-dialog id="AddServiceLocation" button-text="Add Service Location">
-                    <form-single name="AddServiceLocationForm" transition="createServiceLocation">
+        <section name="ServiceLocationAction" condition="'true'.equals(isBackToBackAgreement)">
+            <widgets>
+
+<!--                <label text="This is Back To Back Agreement, Service Location is limited to  Agreement(${sourceAgreement.agreementId} : ${sourceAgreement.description})." type="h6" style="text-danger"/>-->
+                <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
+
+                <container-dialog id="AddServiceLocationFromSourceAgreement" button-text="Add Service Location From Source Agreement">
+                    <form-single name="AddServiceLocationFormSourceAgreementForm" transition="createServiceLocation">
                         <field name="agreementId"><default-field>
                             <hidden/>
                         </default-field></field>
                         <field name="serviceLocationPartyId"><default-field title="Service Location">
                             <drop-down>
-                                <entity-options key="${fromPartyId}" text="PartyNameTemplate">
-                                    <entity-find entity-name="mantle.party.PartyFromAndRelationship">
+                                <entity-options key="${partyId}" text="PartyNameTemplate" >
+                                    <entity-find entity-name="mantle.party.agreement.AgreementServiceLocationDetail">
                                         <date-filter/>
-                                        <econdition field-name="toPartyId" from="agreement.organizationPartyId"/>
-                                        <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
-                                        <econdition field-name="toRoleTypeId" from="ServiceDemandSideRoleType"/>
-                                        <econdition field-name="fromRoleTypeId" from="ServiceLocationRoleType"/>
+                                        <econdition field-name="agreementId" from="sourceAgreement.agreementId"/>
                                     </entity-find>
                                 </entity-options>
                             </drop-down>
                         </default-field></field>
+<!--                        TODO进一步控制时间范围 -->
                         <field name="fromDate">
                             <default-field title="From Date">
                                 <date-time />
@@ -72,14 +77,47 @@ along with this software (see the LICENSE.md file). If not, see
                         <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                     </form-single>
                 </container-dialog>
-            </row-col>
-            <row-col md="6" style="text-right">
-                <link url="../../ServiceDemandSide/ServiceLocations" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Location"/>
-            </row-col>
-        </container-row>
+            </widgets>
+            <fail-widgets>
+                <container-row>
+                    <row-col md="6">
+                        <container-dialog id="AddServiceLocation" button-text="Add Service Location">
+                            <form-single name="AddServiceLocationForm" transition="createServiceLocation">
+                                <field name="agreementId"><default-field>
+                                    <hidden/>
+                                </default-field></field>
+                                <field name="serviceLocationPartyId"><default-field title="Service Location">
+                                    <drop-down>
+                                        <entity-options key="${fromPartyId}" text="PartyNameTemplate">
+                                            <entity-find entity-name="mantle.party.PartyFromAndRelationship">
+                                                <date-filter/>
+                                                <econdition field-name="toPartyId" from="agreement.organizationPartyId"/>
+                                                <econdition field-name="relationshipTypeEnumId" from="relationshipTypeEnumId"/>
+                                                <econdition field-name="toRoleTypeId" from="ServiceDemandSideRoleType"/>
+                                                <econdition field-name="fromRoleTypeId" from="ServiceLocationRoleType"/>
+                                            </entity-find>
+                                        </entity-options>
+                                    </drop-down>
+                                </default-field></field>
+                                <field name="fromDate">
+                                    <default-field title="From Date">
+                                        <date-time />
+                                    </default-field></field>
+                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                            </form-single>
+                        </container-dialog>
+                    </row-col>
+                    <row-col md="6" style="text-right">
+                        <link url="../../ServiceDemandSide/ServiceLocations" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Location"/>
+                    </row-col>
+                </container-row>
+            </fail-widgets>
+        </section>
 
 
-        <form-list name="CategoriesForm" list="locationList" transition="updateServiceLocation">
+
+
+        <form-list name="ServiceLocationListForm" list="locationList" transition="updateServiceLocation">
             <entity-find entity-name="mantle.party.agreement.AgreementServiceLocationDetail" list="locationList" cache="false">
                 <search-form-inputs/>
                 <econdition field-name="agreementId"/>
@@ -138,6 +176,20 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field title="Thru Date">
                 <date-time type="date"/>
             </default-field></field>
+            <field name="serviceStationPartyId">
+                <header-field title="Service By">
+                </header-field>
+
+                <default-field title="Service By">
+                    <drop-down allow-empty="true">
+                        <entity-options key="${serviceStationPartyId}" text="PartyNameTemplate">
+                            <entity-find entity-name="mantle.party.agreement.AgreementServiceStationDetail">
+                                <econdition field-name="agreementId"/>
+                            </entity-find>
+                        </entity-options>
+                    </drop-down>
+                </default-field></field>
+
             <field name="submitButton"><header-field title="Find">
                 <submit/>
             </header-field>
@@ -147,6 +199,60 @@ along with this software (see the LICENSE.md file). If not, see
                 </default-field>
             </field>
         </form-list>
+
+        <section-iterate name="BackToBackAgreementServiceLocation" list="backToBackAgreementList" entry="backToBackAgreement">
+            <widgets>
+                <container-box>
+                    <box-header>
+                        <link url="//${appRoot}/ServiceAgreement/ServiceLocation" text="Back To Back Agreement: ${backToBackAgreement.agreementId}" link-type="anchor">
+                            <parameter name="agreementId" from="backToBackAgreement.agreementId"/>
+                        </link>
+                    </box-header>
+                    <box-body-nopad>
+                        <form-list name="BackToBackAgreementServiceLocation" list="locationList" list-entry="location" skip-form="true" >
+                            <entity-find entity-name="mantle.party.agreement.AgreementServiceLocationDetail" list="locationList" cache="false">
+                                <econdition field-name="agreementId" from="backToBackAgreement.agreementId"/>
+                            </entity-find>
+<!--                            <row-actions>-->
+<!--                                <entity-find-one entity-name="mantle.party.agreement.AgreementServiceStationDetail" value-field="serviceStationParty">-->
+<!--                                    <field-map field-name="agreementId" from="backToBackAgreement.agreementId"/>-->
+<!--                                    <field-map field-name="serviceStationPartyId" from="location.serviceStationPartyId"/>-->
+<!--                                </entity-find-one>-->
+<!--                                <message type="warning">serviceStationPartyId: ${location.serviceStationPartyId} </message>-->
+<!--                                <message type="warning">serviceStationParty: ${serviceStationParty} </message>-->
+<!--                            </row-actions>-->
+
+                            <field name="agreementId"><header-field><hidden/></header-field>
+                                <default-field><hidden/></default-field>
+                            </field>
+                            <field name="serviceLocationPartyId"><header-field><hidden/></header-field>
+                                <default-field><hidden/></default-field>
+                            </field>
+                            <field name="pseudoId" >
+                                <default-field title="pseudoId"><display/></default-field>
+                            </field>
+                            <field name="organizationName" >
+                                <default-field title="Name"><display/></default-field>
+                            </field>
+                            <field name="fromDate">
+                                <default-field title="From Date">
+                                    <display/>
+                                </default-field></field>
+                            <field name="thruDate">
+                                <default-field title="Thru Date">
+                                    <display />
+                                </default-field></field>
+                            <field name="serviceStationPartyId">
+                                <default-field title="Service By">
+                                    <display-entity entity-name="mantle.party.PartyDetail"  key-field-name="partyId" text="PartyNameTemplate"/>
+<!--                                    <label text="PartyNameTemplate" text-map="serviceStationParty"/>-->
+                                </default-field></field>
+
+                        </form-list>
+                    </box-body-nopad>
+                </container-box>
+            </widgets>
+        </section-iterate>
     </widgets>
 
 </screen>

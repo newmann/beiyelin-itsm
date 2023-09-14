@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        default-menu-title="Ticket Type" default-menu-index="7">
+        default-menu-title="Ticket Type" default-menu-index="8">
     <!--
         1、定义工单类型
     -->
@@ -23,94 +23,145 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="findProduct"><default-response url="."/></transition>
     <transition name="editProduct"><default-response url="../EditCategory"/></transition>
 
-    <transition name="createTicketType"><service-call name="create#mantle.party.agreement.AgreementTicketType"/>
+    <transition name="createTicketType"><service-call name="beiyelin.party.AgreementServices.create#AgreementTicketType"/>
         <default-response url="."/></transition>
     <transition name="updateTicketType"><service-call name="update#mantle.party.agreement.AgreementTicketType"/>
         <default-response url="."/></transition>
     <transition name="deleteTicketType"><service-call name="delete#mantle.party.agreement.AgreementTicketType"/>
         <default-response url="."/></transition>
     <actions>
-<!--        <script>-->
-<!--            ticketTypeList = [[agreementTicketTypeId:'1',ticketType:'Normal',description:'正常工单', enabled:'Y'],-->
-<!--                            [agreementTicketTypeId:'2',ticketType:'IMAC',description:'IMAC', enabled:'Y'],-->
-<!--            ]-->
-<!--        </script>-->
-        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>
+
+        <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
         <if condition="agreement == null"><return error="true" message="Service Agreement not found with ID ${agreementId}"/></if>
+
+        <if condition="'true'.equals(isBackToBackAgreement)">
+            <then>
+                <entity-find entity-name="mantle.party.agreement.AgreementTicketType" list="ticketTypeList">
+                    <econdition field-name="agreementId" from="sourceAgreement.agreementId"/>
+                    <order-by field-name="-pseudoId"/>
+                </entity-find>
+            </then>
+            <else>
+                <entity-find entity-name="mantle.party.agreement.AgreementTicketType" list="ticketTypeList">
+                    <search-form-inputs default-order-by="pseudoId"/>
+                    <econdition field-name="agreementId"/>
+                </entity-find>
+            </else>
+        </if>
+
+        <set field="backToBackAgreementLabelText" value="This is Back To Back Agreement, Service Ticket is inherited from  Agreement"/>
+
     </actions>
     <widgets>
-        <container-dialog id="AddTicketType" button-text="Add Ticket Type">
-            <form-single name="AddTicketTypeForm" transition="createTicketType">
+
+    <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
+
+    <section name="ServiceLevel" condition="'true'.equals(isBackToBackAgreement)" >
+        <widgets>
+<!--            <label text="This is Back To Back Agreement, Service Level is inherited from  Agreement(${sourceAgreement.agreementId} : ${sourceAgreement.description})." type="h6" style="text-danger"/>-->
+
+
+            <form-list name="TicketTypeFromSourceAgreementForm" list="ticketTypeList" skip-form="true" paginate="false">
+                <field name="agreementTicketTypeId">
+                    <default-field><hidden/></default-field>
+                </field>
                 <field name="agreementId">
-                    <default-field>
-                        <hidden/>
+                    <default-field><hidden/></default-field>
+                </field>
+
+                <field name="pseudoId">
+                    <default-field title="Ticket Type ID">
+                        <display/>
+                    </default-field></field>
+                <field name="ticketTypeName">
+                    <default-field title="Ticket Type Name">
+                        <display/>
+                    </default-field></field>
+
+                <field name="description">
+                    <default-field><display/></default-field>
+                </field>
+
+                <field name="enabled">
+                    <default-field title="Enabled">
+                        <display/>
                     </default-field>
                 </field>
-                <field name="pseudoId"><default-field title="Ticket Type ID"><text-line/></default-field></field>
-                <field name="ticketTypeName"><default-field title="Ticket Type Name"><text-line/></default-field></field>
-                <field name="description"><default-field title="Description"><text-area/></default-field></field>
+            </form-list>
+        </widgets>
+        <fail-widgets>
 
-                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
-            </form-single>
-        </container-dialog>
+            <container-dialog id="AddTicketType" button-text="Add Ticket Type">
+                <form-single name="AddTicketTypeForm" transition="createTicketType">
+                    <field name="agreementId">
+                        <default-field>
+                            <hidden/>
+                        </default-field>
+                    </field>
+                    <field name="pseudoId"><default-field title="Ticket Type ID"><text-line/></default-field></field>
+                    <field name="ticketTypeName"><default-field title="Ticket Type Name"><text-line/></default-field></field>
+                    <field name="description"><default-field title="Description"><text-area/></default-field></field>
 
-        <form-list name="TicketTypeForm" list="ticketTypeList" transition="updateTicketType">
-            <entity-find entity-name="mantle.party.agreement.AgreementTicketType" list="ticketTypeList">
-                <search-form-inputs default-order-by="pseudoId"/>
-                <econdition field-name="agreementId"/>
-            </entity-find>
-            <field name="agreementTicketTypeId">
-                <header-field><hidden/></header-field>
-                <default-field><hidden/></default-field>
-            </field>
-            <field name="agreementId">
-                <header-field><hidden/></header-field>
-                <default-field><hidden/></default-field>
-            </field>
+                    <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
 
-            <field name="pseudoId">
-                <header-field show-order-by="true"/>
-                <default-field title="Ticket Type ID">
-                <text-line/>
-            </default-field></field>
-            <field name="ticketTypeName">
-                <header-field show-order-by="true"/>
-                <default-field title="Ticket Type Name">
-                <text-line/>
-            </default-field></field>
+            <form-list name="TicketTypeForm" list="ticketTypeList" transition="updateTicketType">
+                <field name="agreementTicketTypeId">
+                    <header-field><hidden/></header-field>
+                    <default-field><hidden/></default-field>
+                </field>
+                <field name="agreementId">
+                    <header-field><hidden/></header-field>
+                    <default-field><hidden/></default-field>
+                </field>
 
-            <field name="description">
-                <header-field show-order-by="true"/>
-<!--                <header-field title="Description" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>-->
-                <default-field><text-area/></default-field>
-            </field>
+                <field name="pseudoId">
+                    <header-field show-order-by="true"/>
+                    <default-field title="Ticket Type ID">
+                        <text-line/>
+                    </default-field></field>
+                <field name="ticketTypeName">
+                    <header-field show-order-by="true"/>
+                    <default-field title="Ticket Type Name">
+                        <text-line/>
+                    </default-field></field>
 
-            <field name="enabled">
-                <header-field show-order-by="true"/>
-<!--                <header-field title="Enabled">-->
-<!--                    <radio no-current-selected-key="Y">-->
-<!--                        <option key="Y" />-->
-<!--                        <option key="N" />-->
-<!--                    </radio>-->
-<!--                </header-field>-->
-                <default-field title="Enabled">
-                    <radio no-current-selected-key="Y" >
-                        <option  key="Y" />
-                        <option key="N" />
-                    </radio>
-                </default-field>
-            </field>
-            <field name="submitButton">
-<!--                <header-field title="Find">-->
-<!--                    <submit/>-->
-<!--                </header-field>-->
-                <default-field title="Actions">
-                    <submit text="Update" />
-                    <link  url="deleteTicketType" text="Delete" />
+                <field name="description">
+                    <header-field show-order-by="true"/>
+                    <!--                <header-field title="Description" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>-->
+                    <default-field><text-area/></default-field>
+                </field>
 
-                </default-field>
-            </field>
-        </form-list>
+                <field name="enabled">
+                    <header-field show-order-by="true"/>
+                    <!--                <header-field title="Enabled">-->
+                    <!--                    <radio no-current-selected-key="Y">-->
+                    <!--                        <option key="Y" />-->
+                    <!--                        <option key="N" />-->
+                    <!--                    </radio>-->
+                    <!--                </header-field>-->
+                    <default-field title="Enabled">
+                        <radio no-current-selected-key="Y" >
+                            <option  key="Y" />
+                            <option key="N" />
+                        </radio>
+                    </default-field>
+                </field>
+                <field name="submitButton">
+                    <!--                <header-field title="Find">-->
+                    <!--                    <submit/>-->
+                    <!--                </header-field>-->
+                    <default-field title="Actions">
+                        <submit text="Update" />
+                        <link  url="deleteTicketType" text="Delete" />
+
+                    </default-field>
+                </field>
+            </form-list>
+        </fail-widgets>
+    </section>
+
     </widgets>
 
 </screen>
