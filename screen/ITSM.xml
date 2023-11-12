@@ -49,6 +49,8 @@ along with this software (see the LICENSE.md file). If not, see
         <subscreens-item name="SimpleReport" menu-title="Report Builder" menu-index="91"
                          location="component://SimpleScreens/screen/SimpleScreens/SimpleReport.xml"/>
 
+        <subscreens-item name="CreateAgreement" menu-include="false" location="component://beiyelin-itsm/screen/workflow/CreateAgreement.xml"/>
+
     </subscreens>
 
     <pre-actions>

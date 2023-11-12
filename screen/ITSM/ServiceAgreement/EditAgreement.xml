@@ -12,43 +12,18 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        default-menu-title="Agreement" default-menu-index="1" >
-    <!--
-        1、定义服务协议
-    -->
-<!--    <parameter name="partyId"/>-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        include-child-content="true" require-authentication="true" menu-image="/itsmstatic/images/Agreement.png"  default-menu-index="20">
+
     <parameter name="agreementId" required="true"/>
-
-
-<!--    给状态变更用-->
+    <!--    给状态变更用-->
     <transition name="updateStatus"><service-call name="beiyelin.party.AgreementServices.update#AgreementStatus"/>
         <default-response url="."/></transition>
 
-    <transition name="updateAgreement"><service-call name="update#mantle.party.agreement.Agreement"/><default-response url="."/></transition>
-
-    <transition name="createTerm"><service-call name="create#mantle.party.agreement.AgreementTerm"/><default-response url="."/></transition>
-    <transition name="deleteTerm"><service-call name="delete#mantle.party.agreement.AgreementTerm"/><default-response url="."/></transition>
-    <transition name="createAgreementItem"><service-call name="create#mantle.party.agreement.AgreementItem"/><default-response url="."/></transition>
-    <transition name="deleteAgreementItem"><service-call name="delete#mantle.party.agreement.AgreementItem"/><default-response url="."/></transition>
-    <transition-include name="getProductList" location="component://SimpleScreens/template/product/ProductTransitions.xml"/>
-    <transition-include name="createBackToBackAgreement" location="component://beiyelin-itsm/screen/ITSM/ServiceAgreement/FindAgreement.xml"/>
-
-    <transition name="createContent"><service-call name="mantle.party.AgreementServices.create#AgreementContent"/>
-        <default-response url="."/></transition>
-    <transition name="updateContent"><service-call name="mantle.party.AgreementServices.update#AgreementContent"/>
-        <default-response url="."/></transition>
-    <transition name="downloadContent" read-only="true">
-        <parameter name="agreementContentId"/>
-        <actions><entity-find-one entity-name="mantle.party.agreement.AgreementContent" value-field="agreementContent"/>
-            <script>ec.web.sendResourceResponse(agreementContent?.contentLocation)</script></actions>
-        <default-response type="none"/>
-    </transition>
+    <subscreens default-item="AgreementHeader"/>
     <actions>
-<!--        <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement"/>-->
         <service-call name="beiyelin.party.AgreementServices.get#AgreementDisplayInfo" in-map="context" out-map="context"/>
-
-        <!--        <set field="partyId" from="agreement?.otherPartyId"/>-->
         <set field="statusId" from="agreement.statusId"/>
         <set field="statusFlowId" value="ServiceAgreement"/>
         <set field="backToBackAgreementInitialStatusId" value="SAOpen"/>
@@ -56,408 +31,46 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="pkPrimaryValue" value="agreementId"/>
         <set field="statusChangeTransition" value="updateStatus"/>
         <set field="backToBackAgreementLabelText" value="Back To Back Agreement, Source Agreement"/>
-
     </actions>
     <widgets>
-
-
-        <container-row> <row-col lg="5">
-            <label text="Agreement #${agreementId}" type="h4"/>
-<!--            <label text="&lt;Back To Back Agreement&gt;" type="h6" style="text-danger" condition="isBackToBackAgreement == 'true'"/>-->
-            <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>
-
-            <form-single name="EditBackToBackAgreement" map="agreement" transition="updateAgreement">
-                        <!--                <field name="partyId"><default-field><hidden/></default-field></field>-->
-                        <field name="agreementId"><default-field><display/></default-field></field>
-                        <field name="statusId"><default-field><display/></default-field></field>
-
-
-                        <field name="organizationPartyId"><default-field title="Service Demand Side">
-                            <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
-
-                        <field name="otherPartyId"><default-field title="Service Provider">
-                            <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
-                        <field name="description"><default-field><text-line size="80"/></default-field></field>
-                        <field name="agreementDate"><default-field><date-time /></default-field></field>
-                        <field name="fromDate">
-                            <conditional-field condition="'true'.equals(agreementEditable) &amp;&amp; 'false'.equals(isBackToBackAgreement)">
-                                <date-time type="date"/>
-                            </conditional-field>
-                            <default-field>
-                                <display format="yyyy.MM.dd"/>
-                            </default-field>
-                        </field>
-                        <field name="thruDate">
-                            <conditional-field condition="'true'.equals(agreementEditable) &amp;&amp; 'false'.equals(isBackToBackAgreement)">
-                                <date-time type="date"/>
-                            </conditional-field>
-                            <default-field>
-                                <display format="yyyy.MM.dd"/>
-                        </default-field></field>
-
-                        <field name="textData"><default-field title="Agreement Text"><text-area rows="15" cols="100"/></default-field></field>
-
-                        <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
-                        <field-layout>
-                            <field-ref name="organizationPartyId"/>
-                            <field-ref name="otherPartyId"/>
-                            <field-ref name="description"/>
-                            <field-ref name="agreementDate"/>
-
-                            <field-row>
-                                <field-ref name="fromDate"/>
-                                <field-ref name="thruDate"/>
-                            </field-row>
-                            <field-ref name="textData"/>
-                            <field-ref name="submitButton"/>
-                        </field-layout>
-                    </form-single>
-<!--            <form-single name="EditAgreement" map="agreement" transition="updateAgreement">-->
-<!--&lt;!&ndash;                <field name="partyId"><default-field><hidden/></default-field></field>&ndash;&gt;-->
-<!--                <field name="agreementId"><default-field><display/></default-field></field>-->
-<!--                <field name="statusId"><default-field><display/></default-field></field>-->
-
-
-<!--                <field name="organizationPartyId"><default-field title="Service Demand Side">-->
-<!--                    <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>-->
-
-<!--                <field name="otherPartyId"><default-field title="Service Provider">-->
-<!--                    <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>-->
-<!--                <field name="description"><default-field><text-line size="80"/></default-field></field>-->
-<!--                <field name="agreementDate"><default-field><date-time /></default-field></field>-->
-<!--                <field name="fromDate"><default-field>-->
-<!--                    <section name="EditAgreementFromDate" condition="isBackToBackAgreement == 'false'" >-->
-<!--                        <widgets>-->
-<!--                            <date-time type="date"/>-->
-<!--                        </widgets>-->
-<!--                        <fail-widgets>-->
-<!--                            <display format="yyyy.MM.dd"/>-->
-<!--                        </fail-widgets>-->
-<!--                    </section>-->
-
-<!--                </default-field></field>-->
-<!--                <field name="thruDate"><default-field>-->
-<!--                    <section name="EditAgreementThruDate" condition="isBackToBackAgreement == 'false'">-->
-<!--                    <widgets>-->
-<!--                            <date-time type="date"/>-->
-<!--                        </widgets>-->
-<!--                        <fail-widgets>-->
-<!--                            <display format="yyyy.MM.dd"/>-->
-<!--                        </fail-widgets>-->
-<!--                    </section>-->
-<!--                </default-field></field>-->
-
-<!--                <field name="textData"><default-field title="Agreement Text"><text-area rows="15" cols="100"/></default-field></field>-->
-
-<!--                <field name="submitButton"><default-field title="Update"><submit/></default-field></field>-->
-<!--                <field-layout>-->
-<!--                    <field-ref name="organizationPartyId"/>-->
-<!--                    <field-ref name="otherPartyId"/>-->
-<!--                    <field-ref name="description"/>-->
-<!--                    <field-ref name="agreementDate"/>-->
-
-<!--                    <field-row>-->
-<!--                        <field-ref name="fromDate"/>-->
-<!--                        <field-ref name="thruDate"/>-->
-<!--                    </field-row>-->
-<!--                    <field-ref name="textData"/>-->
-<!--                    <field-ref name="submitButton"/>-->
-<!--                </field-layout>-->
-<!--            </form-single>-->
-
-            <container-box>
-                <box-header title="Agreement Assoc"/>
-                <box-toolbar>
-                    <container-dialog id="NewBackToBackAgreementDialog" button-text="New Back To Back Agreement">
-                        <form-single name="NewBackToBackAgreement" transition="createBackToBackAgreement">
-                            <field name="agreementTypeEnumId" from="agreement.agreementTypeEnumId"><default-field><hidden/></default-field></field>
-                            <field name="organizationRoleTypeId" from="agreement.organizationRoleTypeId"><default-field><hidden/></default-field></field>
-                            <field name="otherRoleTypeId" from="agreement.otherRoleTypeId"><default-field><hidden/></default-field></field>
-                            <field name="statusFlowId" from="agreement.statusFlowId"><default-field><hidden/></default-field></field>
-                            <field name="statusId" from="backToBackAgreementInitialStatusId" ><default-field><hidden/></default-field></field>
-
-                            <field name="organizationPartyId" from="agreement.otherPartyId"><default-field title="Service Demand Side" >
-                                <hidden/>
-                            </default-field></field>
-
-                            <field name="toAgreementId" from="agreementId">
-                                <default-field title="Source Agreement">
-                                    <hidden/>
-                                </default-field>
-                            </field>
-
-                            <field name="otherPartyId" ><default-field title="Service Provider">
-                                <drop-down allow-empty="false">
-                                    <entity-options key="${fromPartyId}" text="${organizationName}" >
-                                        <entity-find entity-name="mantle.party.PartyFromAndRelationship">
-                                            <date-filter/>
-                                            <econdition field-name="relationshipTypeEnumId" value="PrtService"/>
-                                            <econdition field-name="toPartyId" from="agreement.otherPartyId"/>
-                                            <econdition field-name="fromRoleTypeId" value="OrgServiceProvider"/>
-                                            <econdition field-name="disabled" value="N" or-null="true"/>
-                                            <order-by field-name="organizationName"/></entity-find>
-                                    </entity-options>
-                                </drop-down></default-field></field>
-
-                            <field name="description"><default-field><text-line size="80"/></default-field></field>
-
-                            <field name="agreementDate"><default-field><date-time/></default-field></field>
-
-                            <field name="fromDate" from="agreement.fromDate">
-                                <default-field title="Valid From">
-                                    <display format="yyyy.MM.dd"/>
-                                </default-field>
-                            </field>
-                            <field name="thruDate" from="agreement.thruDate">
-                                <default-field title="Valid Thru">
-                                    <display format="yyyy.MM.dd"/>
-                                </default-field>
-                            </field>
-                            <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
-
-                            <field-layout>
-                                <field-ref name="otherPartyId"/>
-                                <field-ref name="description"/>
-                                <field-ref name="agreementDate"/>
-                                <field-ref name="fromDate"/>
-                                <field-ref name="thruDate"/>
-                                <field-ref name="submitButton"/>
-                            </field-layout>
-                        </form-single>
-                    </container-dialog>
-                </box-toolbar>
-                <box-body-nopad>
-<!--                    <container>-->
-<!--                        <section name="SourceAgreementDisplay" condition="sourceAgreement">-->
-<!--                            <widgets>-->
-<!--                                <label text="1. Source Agreement: " type="strong"/>-->
-<!--                                <link url="." parameter-map="[agreementId:sourceAgreement.agreementId]" text="${sourceAgreement.agreementId}:${sourceAgreement.description}" link-type="anchor"/>-->
-<!--                            </widgets>-->
-<!--                            <fail-widgets>-->
-<!--                                <label text="1. No Source Agreement" type="strong"/>-->
-<!--                            </fail-widgets>-->
-<!--                        </section>-->
-<!--                    </container>-->
-<!--                    <container style="hr"/>-->
-                    <container>
-                        <section name="BackToBackAgreementDisplay" condition="backToBackAgreementList">
-                            <widgets>
-                                <label text="Back To Back Agreement" type="strong"/>
-                                <form-list name="AgreementAssocList" list="backToBackAgreementList" skip-form="true">
-                                    <field name="agreementId">
-                                        <default-field title="ID">
-                                            <link url="." parameter-map="[agreementId:agreementId]" text="${agreementId}" link-type="anchor"/>
-                                        </default-field>
-                                    </field>
-                                    <field name="description">
-                                        <default-field title="Name">
-                                            <link url="." parameter-map="[agreementId:agreementId]" text="${description}" link-type="anchor"/>
-                                        </default-field>
-                                    </field>
-                                </form-list>
-                            </widgets>
-                            <fail-widgets>
-                                <label text="No Back To Back Agreement" type="strong"/>
-                            </fail-widgets>
-                        </section>
-                    </container>
-
-<!--                    <section name="AgreementAssoc">-->
-<!--                        <widgets>-->
-<!--                            <form-list name="AgreementAssocList" list="agreementAssocList" skip-form="true">-->
-<!--                                <entity-find entity-name="mantle.party.agreement.AgreementAssoc" list="agreementAssocList">-->
-<!--                                    <econditions combine="or">-->
-<!--                                        <econdition field-name="agreementId" from="agreementId"/>-->
-<!--                                        <econdition field-name="toAgreementId" from="agreementId"/>-->
-<!--                                    </econditions>-->
-<!--                                </entity-find>-->
-<!--                                <field name="toAgreementId">-->
-<!--                                    <default-field title="Source Agreement">-->
-<!--                                        <section name="AgreementAssocToAgreementId" condition="toAgreementId == agreement.agreementId">-->
-<!--                                            <widgets>-->
-<!--                                                <display text="Current Agreement"/>-->
-<!--                                            </widgets>-->
-<!--                                            <fail-widgets>-->
-<!--                                                <link url="." parameter-map="[agreementId:toAgreementId]" text="${toAgreementId}" link-type="anchor"/>-->
-<!--                                            </fail-widgets>-->
-<!--                                        </section>-->
-
-
-<!--                                    </default-field>-->
-
-<!--                                </field>-->
-<!--                                <field name="agreementId">-->
-<!--                                    <default-field title="Back to Back Agreement">-->
-<!--                                        <section name="AgreementAssocAgreementId" condition="agreementId == agreement.agreementId">-->
-<!--                                            <widgets>-->
-<!--                                                <display text="Current Agreement"/>-->
-<!--                                            </widgets>-->
-<!--                                            <fail-widgets>-->
-<!--                                                <link url="." parameter-map="[agreementId:agreementId]" text="${agreementId}" link-type="anchor"/>-->
-<!--                                            </fail-widgets>-->
-<!--                                        </section>-->
-
-<!--                                    </default-field>-->
-<!--                                </field>-->
-
-<!--                                <field name="agreementAssocTypeEnumId">-->
-<!--                                    <default-field title="Assoc Type">-->
-<!--                                        <display-entity entity-name="moqui.basic.Enumeration"/>-->
-<!--                                    </default-field>-->
-<!--                                </field>-->
-<!--                            </form-list>-->
-<!--                        </widgets>-->
-<!--                    </section>-->
-                </box-body-nopad>
-
-            </container-box>
-        </row-col><row-col lg="7">
-            <section-include name="StatusChangeSection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>
-            <section-include name="StatusHistorySection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>
-            <container-box><box-header title="Terms"/><box-toolbar>
-                <container-dialog id="AddSettlementTermDialog" button-text="Add Settlement Term">
-                    <form-single name="AddSettlementTerm" transition="createTerm">
-<!--                        <field name="partyId"><default-field><hidden/></default-field></field>-->
-                        <field name="agreementId"><default-field><hidden/></default-field></field>
-                        <field name="settlementTermId"><default-field title="Term"><drop-down>
-                            <entity-options key="${settlementTermId}" text="${description}">
-                                <entity-find entity-name="mantle.account.invoice.SettlementTerm">
-                                    <order-by field-name="termTypeEnumId,description"/></entity-find></entity-options>
-                        </drop-down></default-field></field>
-                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                    </form-single>
-                </container-dialog>
-                <container-dialog id="AddOtherTermDialog" button-text="Add Other Term">
-                    <form-single name="AddOtherTerm" transition="createTerm">
-<!--                        <field name="partyId"><default-field><hidden/></default-field></field>-->
-                        <field name="agreementId"><default-field><hidden/></default-field></field>
-                        <field name="termTypeEnumId"><default-field title="Term Type">
-                            <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                                <set field="enumTypeId" value="TermType"/></widget-template-include>
-                        </default-field></field>
-                        <field name="termNumber"><default-field><text-line size="10"/></default-field></field>
-                        <field name="termText"><default-field>
-                            <text-area rows="5"/></default-field></field>
-                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                    </form-single>
-                </container-dialog>
-            </box-toolbar><box-body-nopad>
-                <form-list name="AgreementTermList" list="agreementTermList" skip-form="true">
-                    <entity-find entity-name="mantle.party.agreement.AgreementTerm" list="agreementTermList">
-                        <econdition field-name="agreementId"/><order-by field-name="termTypeEnumId,settlementTermId"/></entity-find>
-
-<!--                    <field name="partyId"><default-field><hidden/></default-field></field>-->
-                    <field name="agreementId"><default-field><hidden/></default-field></field>
-                    <field name="agreementTermId"><default-field><hidden/></default-field></field>
-
-                    <field name="settlementTermId"><default-field title="Settlement Term">
-                        <display-entity entity-name="mantle.account.invoice.SettlementTerm"/></default-field></field>
-                    <field name="termTypeEnumId"><default-field title="Term Type">
-                        <display-entity entity-name="moqui.basic.Enumeration"/></default-field></field>
-                    <field name="termNumber"><default-field><display/></default-field></field>
-                    <field name="termText"><default-field><display/></default-field></field>
-
-                    <field name="deleteButton" align="right"><default-field title="">
-                        <link url="deleteTerm" icon="fa fa-trash" parameter-map="[agreementTermId:agreementTermId]"/></default-field></field>
-
-                    <form-list-column><field-ref name="settlementTermId"/><field-ref name="termTypeEnumId"/></form-list-column>
-                    <form-list-column><field-ref name="termNumber"/><field-ref name="termText"/></form-list-column>
-                    <form-list-column><field-ref name="deleteButton"/></form-list-column>
-                </form-list>
-            </box-body-nopad></container-box>
-
-<!--            <container-box><box-header title="Items"/><box-toolbar>-->
-<!--                <container-dialog id="AddAgreementItemDialog" button-text="Add Agreement Item">-->
-<!--                    <form-single name="AddAgreementItem" transition="createAgreementItem">-->
-<!--                        <field name="agreementId"><default-field><hidden/></default-field></field>-->
-
-<!--                        <field name="agreementItemTypeEnumId"><default-field title="Type">-->
-<!--                            <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">-->
-<!--                                <set field="enumTypeId" value="AgreementItemType"/><set field="allowEmpty" value="true"/></widget-template-include>-->
-<!--                        </default-field></field>-->
-<!--                        <field name="productId"><default-field title="Product">-->
-<!--                            <drop-down><dynamic-options transition="getProductList" server-search="true" min-length="0"/></drop-down>-->
-<!--                        </default-field></field>-->
-<!--                        <field name="quantity"><default-field><text-line/></default-field></field>-->
-<!--                        <field name="fromDate"><default-field><date-time/></default-field></field>-->
-<!--                        <field name="thruDate"><default-field><date-time/></default-field></field>-->
-<!--                        <field name="itemText"><default-field><text-area/></default-field></field>-->
-
-<!--                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>-->
-<!--                    </form-single>-->
-<!--                </container-dialog>-->
-<!--            </box-toolbar><box-body-nopad>-->
-<!--                <form-list name="AgreementItemList" list="agreementItemList" skip-form="true">-->
-<!--                    <entity-find entity-name="mantle.party.agreement.AgreementItem" list="agreementItemList">-->
-<!--                        <econdition field-name="agreementId"/></entity-find>-->
-<!--                    <field name="agreementId"><default-field><hidden/></default-field></field>-->
-<!--                    <field name="agreementItemSeqId"><default-field title="Item"><hidden/></default-field></field>-->
-<!--                    <field name="productId"><default-field title="Product">-->
-<!--                        <display-entity entity-name="mantle.product.Product" text="ProductNameTemplate"/></default-field></field>-->
-<!--                    <field name="quantity"><default-field><display/></default-field></field>-->
-<!--                    <field name="itemText"><default-field><display/></default-field></field>-->
-<!--                    <field name="agreementItemTypeEnumId"><default-field title="Item Type">-->
-<!--                        <display-entity entity-name="moqui.basic.Enumeration"/></default-field></field>-->
-<!--                    <field name="fromDate"><default-field><display/></default-field></field>-->
-<!--                    <field name="thruDate"><default-field><display/></default-field></field>-->
-<!--                    <field name="deleteButton" align="right"><default-field title="">-->
-<!--                        <link url="deleteAgreementItem" icon="fa fa-trash" parameter-map="[agreementId:agreementId,agreementItemId:agreementItemId]"/></default-field></field>-->
-<!--                    <form-list-column><field-ref name="agreementItemSeqId"/></form-list-column>-->
-<!--                    <form-list-column><field-ref name="productId"/><field-ref name="quantity"/></form-list-column>-->
-<!--                    <form-list-column><field-ref name="fromDate"/><field-ref name="thruDate"/></form-list-column>-->
-<!--                    <form-list-column><field-ref name="agreementItemTypeEnumId"/><field-ref name="itemText"/></form-list-column>-->
-<!--                    <form-list-column><field-ref name="deleteButton"/></form-list-column>-->
-<!--                </form-list>-->
-<!--            </box-body-nopad></container-box>-->
-
-            <section name="ContentSection"><actions>
-                <entity-find entity-name="mantle.party.agreement.AgreementContent" list="contentList">
-                    <econdition field-name="agreementId"/><order-by field-name="-contentDate"/></entity-find>
-            </actions><widgets>
-                <container-box><box-header title="Content"/><box-toolbar>
-                    <container-dialog id="NewContentDialog" button-text="Add Content">
-                        <form-single name="NewContentForm" transition="createContent">
-                            <field name="agreementId"><default-field><hidden/></default-field></field>
-                            <field name="contentTypeEnumId"><default-field title="Content Type">
-                                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                                    <set field="enumTypeId" value="AgreementContentType"/><set field="allowEmpty" value="true"/></widget-template-include>
-                            </default-field></field>
-                            <field name="contentFile"><default-field><file/></default-field></field>
-                            <field name="description"><default-field><text-line size="60"/></default-field></field>
-                            <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                        </form-single>
-                    </container-dialog>
-                </box-toolbar><box-body>
-                    <section-iterate name="ContentIterateSection" list="contentList" entry="content"><actions>
-                        <entity-find-one entity-name="mantle.party.PersonWithUserAccount" value-field="paua">
-                            <field-map field-name="userId" from="content.userId"/></entity-find-one>
-                        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="contentTypeEnum">
-                            <field-map field-name="enumId" from="content.contentTypeEnumId"/></entity-find-one>
-                    </actions><widgets>
-                        <container>
-                            <container><label text="${contentTypeEnum?.description?:'No Type'}" type="strong"/></container>
-                            <link url="downloadContent" condition="content.contentLocation"
-                                    parameter-map="[agreementContentId:content.agreementContentId]"
-                                    text="Download ${content.contentLocation.substring(content.contentLocation.lastIndexOf('/')+1)}"/>
-                            <container-dialog id="UpdateContentContainer" button-text="Edit Content">
-                                <form-single name="UpdateContentForm" transition="updateContent" map="content">
-                                    <field name="agreementContentId"><default-field><hidden/></default-field></field>
-                                    <field name="agreementId"><default-field><hidden/></default-field></field>
-                                    <field name="contentTypeEnumId"><default-field title="Content Type">
-                                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                                            <set field="enumTypeId" value="AgreementContentType"/><set field="allowEmpty" value="true"/></widget-template-include>
-                                    </default-field></field>
-                                    <field name="contentFile"><default-field><file/></default-field></field>
-                                    <field name="description"><default-field><text-line size="60"/></default-field></field>
-                                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
-                                </form-single>
-                            </container-dialog>
-                            <container><label condition="paua" text="By ${ec.resource.expand('UsernameTemplate','',paua+[userId:content.userId])} at ${ec.l10n.format(content.contentDate, 'yyyy-MM-dd HH:mm')}"/></container>
-                            <label text="${content.description ?: 'No Description'}" type="p"/>
-                        </container>
-                    </widgets></section-iterate>
-                </box-body></container-box>
-            </widgets></section>
-        </row-col></container-row>
+        <container-row>
+            <row-col md="6">
+                <label text="Agreement #${agreementId}" type="h4"/>
+<!--                <section-include name="backToBackAgreementLabel" location="component://beiyelin-itsm/template/screen/AgreementTemplates.xml"/>-->
+            </row-col>
+            <row-col md="6" style="text-right">
+                <section-include name="StatusChangeSection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>
+            </row-col>
+        </container-row>
+        <!--        <subscreens-active/>-->
+        <!--        <label text="Service Agreement Management" />-->
+        <subscreens-panel id="AgreementPanel" type="tab"/>
     </widgets>
+
+<!--    <pre-actions>-->
+<!--        <script><![CDATA[-->
+<!--            html_scripts.add('/libs/moment.js/moment-with-locales.min.js')-->
+<!--//            footer_scripts.add('/js/TestMachineVue.qvt.js')-->
+<!--            ]]></script>-->
+<!--    </pre-actions>-->
+<!--    <always-actions>-->
+<!--        <set field="appRoot" value="ServiceAgreement"/>-->
+
+<!--&lt;!&ndash;        <set field="searchIndexName" value="mantle"/>-->
+<!--        <set field="searchLinkSets" value="marble"/>-->
+<!--        <set field="searchProductDocType" value="MantleProduct"/>-->
+<!--        <set field="searchPartyDocType" value="MantleParty"/>-->
+
+<!--        <set field="appUserGroupTypeEnumId" value="UgtMarbleErp"/>-->
+
+<!--        <service-call name="mantle.party.PartyServices.setup#UserOrganizationInfo" out-map="context"/>&ndash;&gt;-->
+<!--    </always-actions>-->
+
+<!--    <subscreens default-item="dashboard" always-use-full-path="true">-->
+
+<!--    </subscreens>-->
+
+<!--    <widgets>-->
+<!--        <subscreens-panel id="ServiceAgreement" type="popup" title="服务协议"/>-->
+<!--    </widgets>-->
 </screen>

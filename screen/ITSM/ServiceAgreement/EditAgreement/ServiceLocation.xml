@@ -108,7 +108,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </container-dialog>
                     </row-col>
                     <row-col md="6" style="text-right">
-                        <link url="../../ServiceDemandSide/ServiceLocations" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Location"/>
+                        <link url="//${appRoot}/ServiceDemandSide/ServiceLocations" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Location"/>
                     </row-col>
                 </container-row>
             </fail-widgets>

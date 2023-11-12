@@ -177,7 +177,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <field-layout><field-row-big><field-ref name="queryString"/><field-ref name="submitButton"/></field-row-big></field-layout>
             </form-single>
         </row-col><row-col md="6" style="text-right">
-            <container-dialog id="NewTicketContainer" button-text="New Ticket">
+            <container style="q-my-md">
+            <container-dialog id="NewTicketContainer" button-text="New Ticket" >
                 <form-single name="NewTicketForm" transition="createTicket">
                     <field name="rootWorkEffortId"><default-field title="Project"><drop-down allow-empty="true">
                         <list-options list="myTicketList" key="${workEffortId}" text="WorkEffortNameTemplate"/>
@@ -237,6 +238,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
                 </form-single>
             </container-dialog>
+            </container>
         </row-col></container-row>
 
         <form-list name="ListTickets" list="ticketList" skip-form="true" header-dialog="true" saved-finds="true" select-columns="true"

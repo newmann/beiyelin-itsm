@@ -18,16 +18,62 @@ along with this software (see the LICENSE.md file). If not, see
     1、通过Party来管理服务站
     2、服务站的ownerPartyId就是serviceProviderPartyId，也可以通过PartyRelationship来获取
     3、可以关闭服务站，但必须保证该服务站下面没有承担服务的服务地点
-
+    4、可以设置服务站包含的服务工程师
+    toPartyId为 serviceStationPartyId，toRoleTypeId为 OrgServiceStation,relationshipTypeEnumId 为 PrtEmployee
 -->
     <parameter name="partyId" required="true"/>
 
 
 <!--    <transition name="editFacility"><default-response url="../EditCategory"/></transition>-->
     <transition name="editServiceStation"><default-response url="../EditServiceStation"/></transition>
+    <transition-include name="getGeoCountryStates" location="component://SimpleScreens/template/party/PartyForms.xml"/>
 
     <transition name="addServiceStation"><service-call name="beiyelin.party.PartyServices.create#SubordinateOrganization"/>
         <default-response url="." parameter-map="[partyId:toPartyId]"/></transition>
+
+    <transition name="updateServiceStationRelationship"><service-call name="update#mantle.party.PartyRelationship"/>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="addServiceStationEngineer">
+        <actions>
+            <set field="fromDate" from="ec.user.nowTimestamp"/>
+<!--            因为字段名冲突，所以需用重新复制-->
+            <set field="fromPartyId" from="selectedPartyId"/>
+            <service-call name="create#mantle.party.PartyRelationship" in-map="context" out-map="context"/>
+        </actions>
+        <default-response url="."></default-response>
+    </transition>
+
+    <transition name="deleteStationEngineer">
+        <parameter name="partyRelationshipId" required="true"/>
+        <actions>
+            <service-call name="delete#mantle.party.PartyRelationship" in-map="context" out-map="context"/>
+        </actions>
+        <default-response url="."></default-response>
+    </transition>
+
+    <transition name="getAvailableEngineer">
+        <parameter name="serviceProviderPartyId"/>
+        <parameter name="serviceStationPartyId"/>
+        <actions>
+            <service-call name="beiyelin.party.PartyServices.get#AvailableEngineer" in-map="context" out-map="context"/>
+            <message type="warning">serviceEngineerList:${serviceEngineerList}</message>
+
+            <script>
+                def outList = []
+                for (def serviceEngineer in serviceEngineerList)
+                    outList.add([value:serviceEngineer.partyId, label:ec.resource.expand("PartyNameTemplate", "", serviceEngineer)])
+
+                ec.logger.warn(outList.toString())
+
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+
+
+        <default-response type="none" />
+    </transition>
     <actions>
 <!--        <script>-->
 <!--            serviceStationList = [[serviceStationPartyId:'Much-001',pseudoId:'Much-001',organizationName:'码驰松江服务站',description:''],-->
@@ -37,6 +83,7 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="ServiceProviderRoleType" value="OrgServiceProvider"/>
         <set field="ServiceStationRoleType" value="OrgServiceStation"/>
         <set field="relationshipTypeEnumId" value="PrtOrgRollup"/>
+
 
         <entity-find-one entity-name="mantle.party.PartyRole" value-field="serviceProviderRole">
             <field-map field-name="partyId"/><field-map field-name="roleTypeId" value="OrgServiceProvider"/></entity-find-one>
@@ -59,7 +106,7 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </container-dialog>
 
-        <form-list name="ServiceStationsForm" list="serviceStationList" >
+        <form-list name="ServiceStationsForm" list="serviceStationList" list-entry="serviceStationItem" transition="updateServiceStationRelationship" >
             <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="serviceStationList" cache="false">
                 <search-form-inputs/>
 <!--                <date-filter/>-->
@@ -68,23 +115,32 @@ along with this software (see the LICENSE.md file). If not, see
                 <econdition field-name="toRoleTypeId" from="ServiceProviderRoleType"/>
                 <econdition field-name="fromRoleTypeId" from="ServiceStationRoleType"/>
             </entity-find>
-
+            <row-actions>
+                <entity-find entity-name="mantle.party.PartyFromAndRelationship" list="stationEngineerList">
+                    <econdition field-name="toPartyId" from="serviceStationItem.fromPartyId"/>
+                    <econdition field-name="relationshipTypeEnumId" value="PrtEmployee"/>
+                    <econdition field-name="fromRoleTypeId" value="ServiceEngineer"/>
+                    <econdition field-name="toRoleTypeId" value="OrgServiceStation"/>
+                </entity-find>
+<!--                <message type="warning">serviceStationItem.fromPartyId:${serviceStationItem.fromPartyId}</message>-->
+<!--                <message type="warning">stationEngineerList:${stationEngineerList}</message>-->
+            </row-actions>
             <field name="partyId" from="partyId">
                 <header-field>
                     <hidden/>
                 </header-field>
                 <default-field><hidden/></default-field>
             </field>
-            <field name="partyRelationshipId">
+            <field name="partyRelationshipId" from="serviceStationItem.partyRelationshipId">
                 <default-field><hidden/></default-field>
             </field>
-            <field name="fromPartyId"><default-field><hidden/></default-field></field>
-            <field name="pseudoId">
+            <field name="fromPartyId" from="serviceStationItem.fromPartyId"><default-field><display/></default-field></field>
+            <field name="pseudoId" from="serviceStationItem.pseudoId">
                 <header-field title="Service Station ID" show-order-by="case-insensitive"><text-find size="15" hide-options="true"/></header-field>
                 <default-field title="Service Station ID"><link url="editServiceStation"
                                                                 parameter-map="[partyId:partyId,subordinatePartyId:fromPartyId]" text="${pseudoId}" link-type="anchor"/></default-field>
             </field>
-            <field name="organizationName">
+            <field name="organizationName" from="serviceStationItem.organizationName">
                 <header-field title="Name" show-order-by="case-insensitive"><text-find size="15" hide-options="true" /></header-field>
                 <default-field title="Name"><link url="editServiceStation"
                                                   parameter-map="[partyId:partyId,subordinatePartyId:fromPartyId]" text="${organizationName}" link-type="anchor"/></default-field>
@@ -109,14 +165,14 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                <default-field><link url="editParty" entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"-->
 <!--                                     link-type="anchor" parameter-map="[partyId:ownerPartyId]"/></default-field>-->
 <!--            </field>-->
-            <field name="fromDate">
+            <field name="fromDate" from="serviceStationItem.fromDate">
                 <header-field title="From Date" >
                     <date-time type="date" />
                 </header-field>
                 <default-field title="From Date">
                 <date-time type="date"/>
             </default-field></field>
-            <field name="thruDate">
+            <field name="thruDate" from="serviceStationItem.thruDate">
                 <header-field title="Thru Date">
                     <date-time type="date"/>
                 </header-field>
@@ -125,9 +181,33 @@ along with this software (see the LICENSE.md file). If not, see
                 <date-time type="date"/>
             </default-field></field>
 
-            <field name="serviceEngineerList">
+            <field name="stationEngineerList">
                 <default-field title="Service Engineers">
-                    <display/>
+                    <section-iterate name="StationEngineerList"  list="stationEngineerList" entry="stationEngineerItem" >
+                        <widgets>
+                            <label text="${ec.resource.expand('PartyNameTemplate', '', stationEngineerItem)}"/>
+                            <link url="deleteStationEngineer" parameter-map="[partyRelationshipId: stationEngineerItem.partyRelationshipId]" icon="fa fa-trash"/>
+                        </widgets>
+                    </section-iterate>
+<!--                    渲染报错-->
+<!--                    <form-list name="StationEngineerList" list="stationEngineerList" list-entry="stationEngineerItem">-->
+<!--                        <field name="engineerPseudoId" from="stationEngineerItem.pseudoId">-->
+<!--                            <default-field>-->
+<!--                                <display/>-->
+<!--                            </default-field>-->
+<!--                        </field>-->
+<!--                        <field name="engineerFirstName" from="stationEngineerItem.firstName">-->
+<!--                            <default-field>-->
+<!--                                <display/>-->
+<!--                            </default-field>-->
+<!--                        </field>-->
+<!--                        <field name="engineerLastName" from="stationEngineerItem.lastName">-->
+<!--                            <default-field>-->
+<!--                                <display/>-->
+<!--                            </default-field>-->
+<!--                        </field>-->
+<!--                    </form-list>-->
+                    
                 </default-field></field>
 
             <field name="submitButton"><header-field title="Find">
@@ -135,7 +215,41 @@ along with this software (see the LICENSE.md file). If not, see
             </header-field>
                 <default-field title="Actions">
                     <submit text="Update" />
-                    <link  url="." text="Add Engineer" parameter-map="[agreementServiceTimeId:agreementServiceTimeId]" link-type="anchor"/>
+
+
+                    <container-dialog id="AddServiceEngineer" button-text="Add Engineer">
+                        <form-single name="AddServiceStationEngineerForm" transition="addServiceStationEngineer">
+                            <field name="partyId" from="partyId">
+                                <default-field ><display/></default-field>
+                            </field>
+                            <field name="relationshipTypeEnumId"  from="'PrtEmployee'">
+                                <default-field ><display/></default-field>
+                            </field>
+                            <field name="toRoleTypeId" from="'OrgServiceStation'">
+                                <default-field ><display/></default-field>
+                            </field>
+                            <field name="toPartyId" from="serviceStationItem.fromPartyId">
+                                <default-field ><display/></default-field>
+                            </field>
+                            <field name="fromRoleTypeId" from="'ServiceEngineer'">
+                                <default-field ><display/></default-field>
+                            </field>
+                            <field name="selectedPartyId">
+                                <default-field title="Select Engineer">
+                                    <drop-down required-manual-select="true" >
+                                        <dynamic-options transition="getAvailableEngineer"
+                                                         parameter-map="[serviceProviderPartyId:partyId,
+                                                            serviceStationPartyId: serviceStationItem.fromPartyId]">
+
+                                        </dynamic-options>
+                                    </drop-down>
+                                </default-field>
+                            </field>
+                            <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                        </form-single>
+                    </container-dialog>
+
+                    <!--                    <link  url="." text="Add Engineer" parameter-map="[agreementServiceTimeId:agreementServiceTimeId]"/>-->
                 </default-field>
             </field>
         </form-list>

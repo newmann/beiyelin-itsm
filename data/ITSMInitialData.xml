@@ -221,8 +221,8 @@ along with this software (see the LICENSE.md file). If not, see
     <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="Assignee"/>
     <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="Reporter"/>
     <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="Watcher"/>
-    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="ServiceEngineer"/>
-    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="ServiceTeamLeader"/>
+
+
 
 <!--    转派原因-->
     <moqui.basic.Enumeration description="Service Dispatch" enumId="WepdrServiceDispatch" enumTypeId="WorkEffortPartyDelegateReason"/>
@@ -236,8 +236,8 @@ along with this software (see the LICENSE.md file). If not, see
 
     <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="OrgServiceProvider"/>
     <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="OrgServiceStation"/>
-    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="ServiceEngineer"/>
-    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="ServiceTeamLeader"/>
+
+
 
 
 <!--    onField ticket-->
@@ -270,6 +270,12 @@ along with this software (see the LICENSE.md file). If not, see
 
     <mantle.party.RoleGroupMember roleGroupEnumId="RgpPerson" roleTypeId="ServiceEngineer"/>
     <mantle.party.RoleGroupMember roleGroupEnumId="RgpPerson" roleTypeId="ServiceTeamLeader"/>
+
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="ServiceEngineer"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpTicket" roleTypeId="ServiceTeamLeader"/>
+
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="ServiceEngineer"/>
+    <mantle.party.RoleGroupMember roleGroupEnumId="RgpDispatchTicket" roleTypeId="ServiceTeamLeader"/>
 
 <!--    SLA indicator-->
     <moqui.basic.EnumerationType description="SLA Indicator" enumTypeId="SLAIndicator"/>

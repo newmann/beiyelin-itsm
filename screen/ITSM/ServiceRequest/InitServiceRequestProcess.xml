@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Initial Request Process" default-menu-include="false" >
+
+    <transition name="createRequest"><service-call name="beiyelin.request.RequestServices.create#ServiceRequestProcess"/>
+        <default-response url="."/></transition>
+
+    <transition-include name="searchPartyList" location="component://SimpleScreens/template/party/PartyForms.xml"/>
+    <transition-include name="getFacilityList" location="component://SimpleScreens/template/facility/FacilityTransitions.xml"/>
+    <transition-include name="getProductList" location="component://SimpleScreens/template/product/ProductTransitions.xml"/>
+
+    <transition-include name="getServiceLocationList" location="component://beiyelin-ITSM/screen/ITSM/FindRequest.xml"/>
+    <transition-include name="getPartyDetailFromRelationshipByToParty" location="component://beiyelin-ITSM/screen/ITSM/FindRequest.xml"/>
+    <transition-include name="getAssetList" location="component://beiyelin-ITSM/screen/ITSM/FindRequest.xml"/>
+    <actions>
+        <set field="ServiceDemandSideRoleTypeId" value="OrgServiceDemandSide"/>
+        <set field="ServiceRequestTypeId" value="RqtService"/>
+    </actions>
+    <widgets>
+        <form-single name="NewRequestForm" transition="createRequest">
+            <field name="requestTypeEnumId" from="ServiceRequestTypeId">
+                <default-field title="Type"><hidden/></default-field>
+            </field>
+
+            <field name="ownerPartyId"><default-field title="Service Demand Side ">
+                <drop-down ><dynamic-options transition="searchPartyList"
+                                             parameter-map="[roleTypeId:ServiceDemandSideRoleTypeId,includeDisabled:false]"
+                /></drop-down>
+            </default-field></field>
+            <field name="serviceLocationPartyId">
+                <default-field title="Service Location">
+                    <drop-down >
+                        <dynamic-options transition="getServiceLocationList" >
+                            <depends-on field="ownerPartyId" parameter="serviceDemandSidePartyId"/>
+                        </dynamic-options>
+                    </drop-down>
+                </default-field>
+            </field>
+
+            <!--TODO                暂时先用ServiceDemandSide，应该改成ServiceLocation-->
+            <field name="reporterPartyId">
+                <default-field title="Reporter">
+                    <drop-down >
+                        <dynamic-options transition="getPartyDetailFromRelationshipByToParty"
+                                         parameter-map="[toRoleTypeId:'OrgServiceDemandSide', relationshipTypeEnumId:'PrtEmployee']" >
+                            <depends-on field="ownerPartyId" parameter="toPartyId"/>
+                        </dynamic-options>
+                    </drop-down>
+                </default-field>
+
+            </field>
+
+            <field name="facilityId"><default-field title="Facility">
+                <drop-down allow-empty="true">
+                    <dynamic-options transition="getFacilityList" >
+                        <depends-on field="serviceLocationPartyId" parameter="ownerPartyId"/>
+                    </dynamic-options>
+
+                    <!--                        <entity-options key="${facilityId}" text="FacilityNameTemplate">-->
+                    <!--                            <entity-find entity-name="mantle.facility.Facility" list="facilityList">-->
+                    <!--                                <econdition field-name="facilityTypeEnumId" value="FcTpWarehouse"/>-->
+                    <!--                                <order-by field-name="facilityName"/>-->
+                    <!--                            </entity-find>-->
+                    <!--                        </entity-options>-->
+                </drop-down></default-field>
+            </field>
+            <field name="productId"><default-field title="Product" tooltip="输入两个字符才能开始查询">
+                <drop-down allow-empty="true" >
+
+                    <dynamic-options transition="getProductList" min-length="2" >
+                    </dynamic-options>
+                </drop-down></default-field>
+
+            </field>
+
+            <field name="assetId"><default-field title="Asset">
+                <drop-down allow-empty="true" >
+                    <dynamic-options transition="getAssetList" >
+                        <depends-on field="facilityId" />
+                        <depends-on field="productId"/>
+                    </dynamic-options>
+                </drop-down></default-field>
+
+            </field>
+            <!--                <field name="statusId"><default-field title="Initial Status">-->
+            <!--                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusDropDown">-->
+            <!--                        <set field="statusTypeId" value="Request"/><set field="noCurrentSelectedKey" value="ReqSubmitted"/></widget-template-include>-->
+            <!--                </default-field></field>-->
+
+            <field name="requestName"><default-field title="Request Name"><text-line size="60"/></default-field></field>
+            <field name="description"><default-field title="Description"><text-area rows="10"/></default-field></field>
+
+            <field name="priority"><default-field>
+                <drop-down no-current-selected-key="5"><option key="1"/><option key="2"/><option key="3"/><option key="4"/>
+                    <option key="5"/><option key="6"/><option key="7"/><option key="8"/><option key="9"/></drop-down>
+            </default-field></field>
+            <field name="responseRequiredDate"><default-field title="Due Date">
+                <date-time type="date-time"/></default-field></field>
+
+            <field name="draftStatus"><default-field title="Save as Draft"><submit/></default-field></field>
+            <field name="submittedStatus"><default-field title="Save as Submitted">
+                <submit />
+            </default-field></field>
+            <field-layout>
+                <fields-not-referenced/>
+                <field-col-row>
+                    <field-col md="6"><field-ref name="draftStatus"/></field-col>
+                    <field-col md="6" style="text-right"><field-ref name="submittedStatus"/></field-col>
+                </field-col-row>
+                <!--                    <field-row><field-ref name="submitButton"/><field-ref name="submitRequest"/></field-row>-->
+            </field-layout>
+        </form-single>
+    </widgets>
+</screen>

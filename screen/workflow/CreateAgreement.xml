@@ -143,9 +143,6 @@ along with this software (see the LICENSE.md file). If not, see
 <!--        <message type="warning">serviceDemandSideIdList: ${serviceDemandSideIdList}</message>-->
     </actions>
     <widgets>
-        <container-row>
-            <row-col md="6">
-                <container-dialog id="NewAgreementDialog" button-text="New Agreement">
             <form-single name="NewAgreement" transition="createAgreement">
                 <field name="agreementTypeEnumId" ><default-field><hidden/></default-field></field>
                 <field name="organizationRoleTypeId"><default-field><hidden/></default-field></field>
@@ -178,118 +175,5 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
             </form-single>
-        </container-dialog>
-            </row-col>
-            <row-col md="6" style="text-right">
-                <container-dialog id="NewBackToBackAgreementDialog" button-text="New Back To Back Agreement">
-                <form-single name="NewBackToBackAgreement" transition="createBackToBackAgreement">
-                    <field name="agreementTypeEnumId" ><default-field><hidden/></default-field></field>
-                    <field name="organizationRoleTypeId"><default-field><hidden/></default-field></field>
-                    <field name="otherRoleTypeId"><default-field><hidden/></default-field></field>
-                    <field name="statusFlowId" ><default-field><hidden/></default-field></field>
-                    <field name="statusId" ><default-field><hidden/></default-field></field>
-                    <field name="organizationPartyId"><default-field title="Service Demand Side"><drop-down allow-empty="false" >
-                        <entity-options key="${partyId}" text="PartyNameTemplate">
-                            <entity-find entity-name="mantle.party.PartyDetailAndRole">
-                                <!--                            <econdition field-name="partyId" from="activeOrgId" ignore="!activeOrgId"/>-->
-                                <econdition field-name="partyId" operator="in" from="serviceDemandSideIdList"/>
-                                <econdition field-name="roleTypeId" from="organizationRoleTypeId"/>
-                                <econdition field-name="disabled" value="N" or-null="true"/>
-                                <order-by field-name="organizationName"/></entity-find>
-                        </entity-options>
-                    </drop-down></default-field></field>
-                    <field name="toAgreementId">
-                        <default-field title="Source Agreement">
-                            <drop-down>
-                                <dynamic-options transition="getSourceAgreementList" >
-                                    <depends-on field="organizationPartyId" parameter="serviceProviderPartyId"/>
-                                </dynamic-options>
-
-                            </drop-down>
-                        </default-field>
-                    </field>
-
-                    <field name="otherPartyId" ><default-field title="Service Provider">
-                        <drop-down allow-empty="false">
-                            <dynamic-options transition="getServiceProviderList">
-                                <depends-on field="organizationPartyId" parameter="serviceDemandSidePartyId"/>
-                            </dynamic-options>
-                        </drop-down></default-field></field>
-                    <field name="description"><default-field><text-line size="80"/></default-field></field>
-                    <field name="agreementDate"><default-field><date-time/></default-field></field>
-                    <field name="fromDate">
-                        <default-field title="Valid From">
-                            <display dynamic-transition="getAgreementFromDate" >
-                                <depends-on field="toAgreementId"/>
-                            </display>
-                        </default-field>
-                    </field>
-                    <field name="thruDate">
-                        <default-field title="Valid Thru">
-                            <display dynamic-transition="getAgreementThruDate" >
-                                <depends-on field="toAgreementId"/>
-                            </display>
-                        </default-field>
-                    </field>
-                    <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
-                    <field-layout>
-                        <field-ref name="organizationPartyId"/>
-                        <field-ref name="toAgreementId"/>
-                        <field-ref name="otherPartyId"/>
-                        <field-ref name="description"/>
-                        <field-ref name="agreementDate"/>
-                        <field-ref name="fromDate"/>
-                        <field-ref name="thruDate"/>
-                        <field-ref name="submitButton"/>
-                    </field-layout>
-                </form-single>
-            </container-dialog>
-            </row-col>
-        </container-row>
-        <form-list name="AgreementList" list="agreementList" skip-form="true">
-            <entity-find entity-name="mantle.party.agreement.Agreement" list="agreementList">
-<!--                <search-form-inputs default-order-by="-fromDate"/>-->
-                <econditions combine="or">
-                    <econdition field-name="organizationPartyId" operator="in" from="empOrgIdList"/>
-                    <econdition field-name="otherPartyId" operator="in" from="empOrgIdList" />
-                </econditions>
-            </entity-find>
-
-            <field name="agreementId"><default-field>
-                <link url="editAgreement" text="${agreementId}" link-type="anchor"/></default-field></field>
-            <field name="description"><default-field>
-                <link url="editAgreement" text="${description}" link-type="anchor"/></default-field></field>
-
-            <field name="agreementTypeEnumId"><default-field title="Type">
-                <display-entity entity-name="moqui.basic.Enumeration"/></default-field></field>
-
-            <field name="statusId"><default-field title="Status">
-                <display-entity entity-name="moqui.basic.StatusItem"/></default-field></field>
-
-            <field name="organizationPartyId"><default-field title="Service Demand Side">
-                <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
-<!--            <field name="organizationRoleTypeId"><default-field title="Role">-->
-<!--                <display-entity entity-name="mantle.party.RoleType"/></default-field></field>-->
-
-            <field name="otherPartyId"><default-field title="Service Provider">
-                <display-entity entity-name="mantle.party.PartyDetail" text="PartyNameTemplate"/></default-field></field>
-
-<!--            <field name="otherRoleTypeId"><default-field title="Role">-->
-<!--                <display-entity entity-name="mantle.party.RoleType"/></default-field></field>-->
-
-
-            <field name="fromDate"><default-field title="Valid From"><display/></default-field></field>
-            <field name="thruDate"><default-field title="Valid Thru"><display/></default-field></field>
-        </form-list>
-
-<!--        <section name="ShowSql" condition="AgreementList_xafind?.getQueryTextList()"><widgets>-->
-<!--            <container-dialog id="ShowSqlDialog" button-text="Show SQL" type="info">-->
-<!--                <section-iterate name="ShowSqlIter" list="AgreementList_xafind?.getQueryTextList()" entry="queryText"><widgets>-->
-<!--                    <label text="queryText: ${queryText}" type="p"/>-->
-
-<!--                    <label text="AgreementList_xafind: ${AgreementList_xafind}" type="p"/>-->
-<!--                </widgets></section-iterate>-->
-<!--            </container-dialog>-->
-<!--        </widgets></section>-->
     </widgets>
 </screen>

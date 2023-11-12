@@ -146,7 +146,7 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="changedEntityName" value="mantle.work.effort.WorkEffort"/>
         <set field="pkPrimaryValue" from="workEffortId"/>
 <!--        <message type="warning">requestDetail: ${requestDetail}</message>-->
-        <message type="warning">ticketPartyList:${ticketPartyList}</message>
+<!--        <message type="warning">ticketPartyList:${ticketPartyList}</message>-->
     </actions>
     <widgets>
         <container-row>
@@ -251,7 +251,7 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                        <default-field><ignored/></default-field>-->
 <!--                    </field>-->
                     <field name="description"><default-field title="Detailed Demands"><text-area rows="10" cols="100"/></default-field></field>
-                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                    <field name="submitButton" ><default-field title="Update" moqui-key="s"><submit/></default-field></field>
 
                     <field-layout>
 
@@ -385,24 +385,28 @@ along with this software (see the LICENSE.md file). If not, see
                                     <field-map field-name="fromPartyId" from="curServiceParty.partyId"/>
                                     <field-map field-name="fromRoleTypeId" from="curServiceParty.roleTypeId"/>
                                 </service-call>
-                                <message type="warning">dispatchPartyList:${dispatchPartyList}</message>
+<!--                                <message type="warning">dispatchPartyList:${dispatchPartyList}</message>-->
                             </actions>
                             <widgets>
 
                                 <container type="li">
-                                    <container-dialog id="DispatchTicketContainer" button-text="Dispatch">
+                                    <container-dialog id="DispatchTicketContainer" button-text="Dispatch" moqui-key="D">
                                         <form-single name="DispatchTicketForm" transition="dispatchTicket" map="ticketParty">
                                             <field name="workEffortId"><default-field><hidden/></default-field></field>
                                             <field name="fromPartyId" from="curServiceParty.partyId"><default-field><hidden/></default-field></field>
                                             <field name="fromRoleTypeId" from="curServiceParty.roleTypeId"><default-field><hidden/></default-field></field>
+
                                             <field name="toPartyId">
                                                 <default-field>
                                                     <drop-down>
-                                                        <list-options list="dispatchPartyList"></list-options>
+
+                                                        <list-options  list="dispatchPartyList.partyList" key="${partyId}" text="PartyNameTemplate"></list-options>
                                                     </drop-down>
                                                 </default-field>
                                             </field>
-
+                                            <field name="toRoleTypeId" ><default-field >
+                                                <hidden default-value=""/>
+                                            </default-field></field>
                                             <field name="submitButton"><default-field title="Dispatch"><submit/></default-field></field>
                                         </form-single>
                                     </container-dialog>

@@ -73,7 +73,7 @@ along with this software (see the LICENSE.md file). If not, see
     </service>
 
     <!--    查找可派单对象
-    1、如果是服务组织，则可派单对象包括：a、背靠背合同的服务方，b、合同约定范围内的服务点，c、合同约定服务点内的服务人员
+    1、如果是服务组织，则可派单对象包括：a、如果有背靠背合同，則派单给合同约定的服务点和服务点内服务人员，b、如果没有背靠背合同，这查找本合同约定范围内的服务点和服务点内的服务人员
     2、如果是服务站，可派单对象包括：合同约定服务点内的服务人员
     3、如果是服务工程师，可派单对象包括：合同约定所在服务点内的其他服务人员
     -->
@@ -91,30 +91,199 @@ along with this software (see the LICENSE.md file). If not, see
             </parameter>
         </out-parameters>
         <actions>
-            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="ticket"/>
-            <set field="curAgreementId" from="ticket.agreementId"/>
-            <entity-find entity-name="mantle.party.agreement.AgreementAssoc" list="assocAgreementList">
-                <econdition field-name="toAgreementId" from="curAgreementId"/>
-                <econdition field-name="agreementAssocTypeEnumId" value="AatBackToBack"/>
-            </entity-find>
+<!--            <message type="warning">workEffortId: ${workEffortId}</message>-->
+<!--            <message type="warning">fromPartyId: ${fromPartyId}</message>-->
+<!--            <message type="warning">fromRoleTypeId: ${fromRoleTypeId}</message>-->
+            <entity-find-one entity-name="mantle.party.Party" value-field="fromParty">
+                <field-map field-name="partyId" from="fromPartyId"/>
+            </entity-find-one>
+            <set field="partyList" from="[]"/>
+
+            <if condition="fromParty.partyTypeEnumId == 'PtyPerson'">
+                <then>
+                <!--TODO：增加转派列表，待完善-->
+                </then>
+                <else>
+<!--                    找服务合同-->
+                    <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="ticket"/>
+
+                    <if condition="ticket == null">
+                        <return error="true" message="Ticket ID: '${workEffortId}' not found"/>
+                    </if>
+                    <set field="curAgreementId" from="ticket.agreementId"/>
+                    <if condition="curAgreementId == null">
+                        <return error="true" message="Ticket ID: '${workEffortId}' not found agreementId"/>
+                    </if>
+
+                    <set field="curOwnerPartyId" from="ticket.ownerPartyId"/>
+                    <if condition="curOwnerPartyId == null">
+                        <return error="true" message="Ticket ID: '${workEffortId}' not found ownerPartyId"/>
+                    </if>
+
+                    <set field="curServiceLocationPartyId" from="ticket.serviceLocationPartyId"/>
+                    <if condition="curServiceLocationPartyId == null">
+                        <return error="true" message="Ticket ID: '${workEffortId}' not found serviceLocationPartyId"/>
+                    </if>
+
+                    <!--                    找当前服务商提供服务的服务站-->
+                    <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="curAgreement">
+                        <field-map field-name="agreementId" from="curAgreementId"/>
+                    </entity-find-one>
+                    <if condition="curAgreement.otherPartyId == fromPartyId">
+                        <service-call name="beiyelin.work.TicketServices.get#ServiceStationByServiceLocation"
+                                        in-map="[agreementId: curAgreementId, serviceLocationPartyId:curServiceLocationPartyId ]"
+                                        out-map="selfStationList"/>
+
+                        <if condition="selfStationList.serviceStationPartyList">
+                            <script>
+                                partyList.addAll(selfEngineerList.serviceStationPartyList)
+                            </script>
+
+                            <iterate list="selfStationList.serviceStationPartyList" entry="selfStationItem">
+                                <service-call name="beiyelin.work.TicketServices.get#ServiceEngineerByServiceStation"
+                                              in-map="[serviceStationPartyId: selfStationItem.partyId ]" out-map="selfEngineerList"/>
+                                <if condition="selfEngineerList.serviceEngineerPartyList">
+                                    <script>
+                                        partyList.addAll(selfEngineerList.serviceEngineerPartyList)
+                                    </script>
+                                </if>
+                            </iterate>
+                        </if>
+                    </if>
+<!--找背靠背合同-->
+                    <entity-find entity-name="mantle.party.agreement.AgreementAssoc" list="assocAgreementList">
+                        <econdition field-name="toAgreementId" from="curAgreementId"/>
+                        <econdition field-name="agreementAssocTypeEnumId" value="AatBackToBack"/>
+                    </entity-find>
+                    <if condition="assocAgreementList">
+                        <iterate list="assocAgreementList" entry="assocAgreementItem">
+                            <service-call name="beiyelin.work.TicketServices.get#ServiceStationByServiceLocation"
+                                          in-map="[agreementId: assocAgreementItem.agreementId,serviceLocationPartyId:curServiceLocationPartyId]" out-map="backToBackStationList"/>
 
 
-            <if condition="fromRoleTypeId == 'OrgServiceProvider'">
+                            <if condition="backToBackStationList.serviceStationPartyList">
+                                <script>
+                                    partyList.addAll(backToBackStationList.serviceStationPartyList)
+                                </script>
+                                <iterate list="backToBackStationList.serviceStationPartyList" entry="backToBackStationItem">
+                                    <service-call name="beiyelin.work.TicketServices.get#ServiceEngineerByServiceStation"
+                                                  in-map="[serviceStationPartyId: backToBackStationItem.partyId ]" out-map="backToBackEngineerList"/>
+                                    <if condition="backToBackEngineerList.serviceEngineerPartyList">
+                                        <script>
+                                            partyList.addAll(backToBackEngineerList.serviceEngineerPartyList)
+                                        </script>
+                                    </if>
+                                </iterate>
+                            </if>
+                        </iterate>
+                    </if>
 
+                </else>
             </if>
+
 
         </actions>
     </service>
-<!--    支持第一次分派和多次转派-->
+<!--    根据合同找到背靠背的服务商-->
+    <service verb="get" noun="BackToBackServiceProvider">
+    <in-parameters>
+        <parameter name="agreementId" required="true"/>
+    </in-parameters>
+    <out-parameters>
+        <parameter name="backToBackServiceProviderPartyList" type="List">
+            <parameter name="partyItem" type="Map">
+                <auto-parameters entity-name="mantle.party.PartyDetail"/>
+            </parameter>
+        </parameter>
+    </out-parameters>
+    <actions>
+        <entity-find entity-name="mantle.party.agreement.AgreementAssoc" list="assocAgreementList">
+            <econdition field-name="toAgreementId" from="agreementId"/>
+            <econdition field-name="agreementAssocTypeEnumId" value="AatBackToBack"/>
+        </entity-find>
+
+        <set field="backToBackServiceProviderPartyList" from="[]"/>
+        <iterate list="assocAgreementList" entry="assocAgreement">
+            <entity-find-one entity-name="mantle.party.agreement.Agreement" value-field="agreement">
+                <field-map field-name="agreementId" from="assocAgreement.agreementId"/>
+            </entity-find-one>
+            <if condition="agreement.statusId == 'SAInForce' ">
+                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="party">
+                    <field-map field-name="partyId" from="agreement.otherPartyId"/>
+                </entity-find-one>
+                <script>
+                    backToBackServiceProviderPartyList.add(party)
+                </script>
+
+            </if>
+        </iterate>
+
+    </actions>
+    </service>
+    <!--    根据服务合同和服务地点，找到服务商的服务站 -->
+    <service verb="get" noun="ServiceStationByServiceLocation">
+        <in-parameters>
+            <parameter name="agreementId" required="true"/>
+            <parameter name="serviceLocationPartyId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="serviceStationPartyList" type="List">
+                <parameter name="partyItem" type="Map">
+                    <auto-parameters entity-name="mantle.party.PartyDetail"/>
+                </parameter>
+            </parameter>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.party.agreement.AgreementServiceLocation" list="serviceLocationList">
+                <date-filter/>
+                <econdition field-name="agreementId"/>
+                <econdition field-name="serviceLocationPartyId"/>
+            </entity-find>
+
+            <entity-find entity-name="mantle.party.PartyDetail" list="serviceStationPartyList">
+                <econdition field-name="partyId" operator="in" from="serviceLocationList.serviceStationPartyId"/>
+            </entity-find>
+
+        </actions>
+    </service>
+    <!--    根据服务站，找到服务站内所有服务人员 -->
+    <service verb="get" noun="ServiceEngineerByServiceStation">
+        <in-parameters>
+            <parameter name="serviceStationPartyId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="serviceEngineerPartyList" type="List">
+                <parameter name="partyItem" type="Map">
+                    <auto-parameters entity-name="mantle.party.PartyDetail"/>
+                </parameter>
+            </parameter>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.party.PartyRelationship" list="fromPartyList">
+                <date-filter/>
+                <econdition field-name="toPartyId" from="serviceStationPartyId"/>
+                <econdition field-name="toRoleTypeId" value="OrgServiceStation"/>
+                <econdition field-name="fromRoleTypeId" value="ServiceEngineer"/>
+                <econdition field-name="relationshipTypeEnumId" value="PrtEmployee"/>
+            </entity-find>
+<!--            <message type="warning">fromPartyList: ${fromPartyList}</message>-->
+            <entity-find entity-name="mantle.party.PartyDetail" list="serviceEngineerPartyList">
+                <econdition field-name="partyId" operator="in" from="fromPartyList.fromPartyId"/>
+            </entity-find>
+
+        </actions>
+    </service>
+
+    <!--    支持第一次分派和多次转派-->
     <service verb="dispatch" noun="Ticket">
         <in-parameters>
             <parameter name="workEffortId" required="true"/>
             <parameter name="fromPartyId" required="true"/>
             <parameter name="fromRoleTypeId" required="true"/>
-            <parameter name="fromDate" type="date-time" required="true"/>
+            <parameter name="fromDate" type="date-time" required="true" default="ec.user.nowTimestamp"/>
             <parameter name="toPartyId" required="true"/>
             <parameter name="toRoleTypeId" required="true"/>
-            <parameter name="delegateReasonEnumId" required="true" default="WepdrServiceDispatch"/>
+            <parameter name="delegateReasonEnumId" required="true" default="'WepdrServiceDispatch'"/>
         </in-parameters>
         <actions>
             <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="workEffort" />
@@ -122,16 +291,15 @@ along with this software (see the LICENSE.md file). If not, see
                 <service-call name="update#mantle.work.effort.WorkEffort" in-map="[workEffortId:workEffortId,statusId:'WeDispatched']"/>
             </if>
 
-            <set field="curDate" from="ec.user.nowTimestamp"/>
             <service-call name="update#mantle.work.effort.WorkEffortParty" in-map="[
                 workEffortId:workEffortId,partyId:fromPartyId,
-                roleType:fromRoleTypeId,fromDate:curDate,
+                roleType:fromRoleTypeId,fromDate:fromDate,
                 statusId:'Unassigned',delegateReasonEnumId:delegateReasonEnumId,delegatePartyId: toPartyId
                 ]"/>
 
             <service-call name="create#mantle.work.effort.WorkEffortParty" in-map="[
                 workEffortId:workEffortId,partyId:toPartyId,
-                roleType:toRoleTypeId,fromDate:curDate,
+                roleType:toRoleTypeId,fromDate:fromDate,
                 statusId:'WeptOffered',roleTypeId:toRoleTypeId
                 ]"/>
 

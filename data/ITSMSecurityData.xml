@@ -21,16 +21,25 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- Artifact group for all of the Example application via the ExampleApp screen (the root screen for the app) -->
     <moqui.basic.Enumeration description="ITSM App" enumId="UgtITSM" enumTypeId="UserGroupType"/>
     <!-- Administrators User Group -->
-    <userGroups userGroupId="ITSMAdmin" description="ITSM Administrators" groupTypeEnumId="UgtITSM">
-        <authz artifactAuthzId="ITSMAdminAccount" artifactGroupId="ITSM" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
-    </userGroups>
+    <moqui.security.UserGroup userGroupId="ITSMAdmin" description="ITSM Administrators"  groupTypeEnumId="UgtITSM"/>
 
-        <moqui.security.ArtifactGroup artifactGroupId="ITSM" description="IT服务管理"/>
-        <moqui.security.ArtifactGroupMember artifactGroupId="ITSM" artifactTypeEnumId="AT_XML_SCREEN"
-                inheritAuthz="Y" artifactName="component://beiyelin-itsm/screen/ITSM.xml"/>
-        <!-- Full permissions for the ADMIN user group -->
-        <moqui.security.ArtifactAuthz artifactAuthzId="ServiceAgreement_AUTHZ_ALL" userGroupId="ADMIN" artifactGroupId="ITSM"
-                authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+    <moqui.security.ArtifactGroup artifactGroupId="ITSM" description="IT服务管理"/>
+    <moqui.security.ArtifactGroupMember artifactGroupId="ITSM" artifactTypeEnumId="AT_XML_SCREEN"
+                                        inheritAuthz="Y" artifactName="component://beiyelin-itsm/screen/ITSM.xml"/>
+
+    <moqui.security.ArtifactAuthz artifactAuthzId="ITSMAdminAccount" userGroupId="ITSMAdmin" artifactGroupId="ITSM"
+                                  authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+
+    <!-- Full permissions for the ADMIN user group -->
+    <moqui.security.ArtifactAuthz artifactAuthzId="ServiceAgreement_AUTHZ_ALL" userGroupId="ADMIN" artifactGroupId="ITSM"
+                                  authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+
+<!--    <userGroups userGroupId="ITSMAdmin" description="ITSM Administrators" groupTypeEnumId="UgtITSM">-->
+<!--        <authz artifactAuthzId="ITSMAdminAccount" artifactGroupId="ITSM" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>-->
+<!--    </userGroups>-->
+
+
+
 
     <!--    <moqui.security.ArtifactGroup artifactGroupId="ServiceAgreement" description="服务协议管理"/>-->
 <!--    <moqui.security.ArtifactGroupMember artifactGroupId="ServiceAgreement" artifactTypeEnumId="AT_XML_SCREEN"-->

@@ -129,7 +129,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                     </row-col>
                     <row-col md="6" style="text-right">
-                        <link url="../../ServiceDemandSide/ServiceCategory" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Category"/>
+                        <link url="//${appRoot}/ServiceDemandSide/ServiceCategory" parameter-map="[partyId:agreement.organizationPartyId]" text="Create Service Category"/>
                     </row-col>
                 </container-row>
 

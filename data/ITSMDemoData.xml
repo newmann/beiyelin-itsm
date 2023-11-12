@@ -17,8 +17,6 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- 运营方-->
     <parties partyId="AW"  pseudoId="AW" partyTypeEnumId="PtyOrganization">
         <Organization organizationName="航信德利"/>
-        <roles roleTypeId="OrgServiceDemandSide"/>
-        <roles roleTypeId="OrgServiceProvider"/>
         <mantle.party.contact.ContactMech contactMechId="CustAWTeln" contactMechTypeEnumId="CmtTelecomNumber">
             <telecomNumber countryCode="86" areaCode="021" contactNumber="61689589"/>
             <parties contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
@@ -31,6 +29,9 @@ along with this software (see the LICENSE.md file). If not, see
             <parties contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
         </mantle.party.contact.ContactMech>
     </parties>
+
+    <mantle.party.PartyRole partyId="AW" roleTypeId="OrgServiceDemandSide"/>
+    <mantle.party.PartyRole partyId="AW"  roleTypeId="OrgServiceProvider"/>
 
     <parties partyId="100102" pseudoId="Newmann" partyTypeEnumId="PtyPerson">
         <person firstName="新生" middleName="" lastName="胡"/>
@@ -100,7 +101,7 @@ along with this software (see the LICENSE.md file). If not, see
 <!--        </mantle.party.contact.ContactMech>-->
 
     </facilities>
-    <mantle.facility.FacilityContactMech facilityId="100103-001" contactMechId="CustHaagenDazs001Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+    <mantle.facility.FacilityContactMech facilityId="100103-001" contactMechId="CustHaagenDazs001Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" />
     <mantle.facility.FacilityContactMech facilityId="100103-001" contactMechId="CustHaagenDazs001Addr" contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
 
     <parties partyId="100103-002" pseudoId="HaagenDazs-002"   partyTypeEnumId="PtyOrganization"  ownerPartyId="100103">
@@ -129,7 +130,7 @@ along with this software (see the LICENSE.md file). If not, see
 <!--                       telecomContactMechId="CustHaagenDazs002Teln"/>-->
 <!--    </mantle.party.contact.ContactMech>-->
 
-    <mantle.facility.FacilityContactMech facilityId="100103-002" contactMechId="CustHaagenDazs002Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+    <mantle.facility.FacilityContactMech facilityId="100103-002" contactMechId="CustHaagenDazs002Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" />
     <mantle.facility.FacilityContactMech facilityId="100103-002" contactMechId="CustHaagenDazs002Addr" contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
     <parties partyId="100103-003" pseudoId="HaagenDazs-003"   partyTypeEnumId="PtyOrganization"  ownerPartyId="100103">
         <Organization organizationName="哈根达斯(上海莘庄店）"/>
@@ -159,7 +160,7 @@ along with this software (see the LICENSE.md file). If not, see
         </mantle.party.contact.ContactMech>-->
 
     </facilities>
-    <mantle.facility.FacilityContactMech facilityId="100103-003" contactMechId="CustHaagenDazs003Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" allowSolicitation="Y"/>
+    <mantle.facility.FacilityContactMech facilityId="100103-003" contactMechId="CustHaagenDazs003Teln" contactMechPurposeId="PhonePrimary" fromDate="1265184000000" />
     <mantle.facility.FacilityContactMech facilityId="100103-003" contactMechId="CustHaagenDazs003Addr" contactMechPurposeId="PostalPrimary" fromDate="1265184000000"/>
 
     <!--    组织架构定义-->
